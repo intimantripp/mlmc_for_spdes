@@ -1,0 +1,169 @@
+import math
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+from mlmc import mlmc
+
+        
+
+def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
+
+    del1 = []; del2 = []
+    var1 = []; var2 = []
+    kur1 = []
+    chk1 = []
+    cost = []
+    L = np.arange(0, L+1)
+
+    for l in L:
+        print(f"l = {l}")
+        start_time = time.time()
+        sum1, sum2 = mlmc_fn(l, N)
+        time_taken = time.time() - start_time
+        cost.append(time_taken)
+        sum1 = sum1 / N
+        sum2 = sum2 / N
+        # kurtosis
+        numerator = sum1[3]- 4 * sum1[2] * sum1[0]+ 6 * sum1[1] * sum1[0]**2- 3 * sum1[0]**4
+        denominator = (sum1[1] - sum1[0]**2)**2
+        kurt = numerator / denominator if denominator > 0 else np.nan
+
+        del1.append(sum1[0])
+        del2.append(sum2[0])
+        var1.append(sum1[1] - sum1[0]**2)
+        var = max(sum2[1] - sum2[0]**2, 1e-12) #handles var=0 cases
+        var2.append(var)
+        kur1.append(kurt)
+
+        if l==0:
+            check = 0
+        else:
+            check = abs(del1[l] + del2[l-1] - del2[l]) /  \
+                (3.0 * (np.sqrt(var1[l])) + np.sqrt(var2[l]) + np.sqrt(var2[l])/np.sqrt(N))
+        chk1.append(check)
+
+    # convert items to numpy arrays so I can do index selecting
+    del1 = np.array(del1)
+    del2 = np.array(del2)
+    var1 = np.array(var1)
+    var2 = np.array(var2)
+    kur1 = np.array(kur1)
+    chk1 = np.array(chk1)
+
+    # use linear regression to estimate alpha, beta and gamma
+    start = max(2, int(np.floor(0.4 * len(L))))
+    range_ = np.arange(start, len(L))
+
+    print('Estimates of key MLMC Theorem parameters based on linear regression: ')
+
+    pa = np.polyfit(L[range_], np.log2(abs(del1[range_])), 1)
+    alpha = -pa[0]
+    print(f"alpha = {alpha:.6f} (exponent for MLMC weak convergence)")
+
+    pb = np.polyfit(L[range_], np.log2(abs(var1[range_])), 1)
+    beta = -pb[0]
+    print(f"beta = {beta:.6f} (exponent for MLMC variance)")
+
+    gamma = np.log2(cost[-1]/cost[-2])
+    print(f"gamma = {gamma:.6f} (exponent for MLMC cost")
+
+    # Perform checks on consistency error and kurtosis
+    if max(chk1) > 1:
+        print(f"WARNING: maximum consistency error = {max(chk1):.6f}")
+        print(f"Indicates identitiy E[Pf-Pc] = E[Pf] - E[Pc] not satisfied")
+
+    if kur1[-1] > 100:
+        print(f"WARNING: kurtosis on finest level = {kur1[-1]:.6f}. \n \
+                indicates MLMC correction dominated by a few rare paths; for information \
+                on the connection to variance of sample variances see \
+                http://mathworld.wolfram.com/SampleVarianceDistribution.html")
+
+    # Plot figures
+
+    fig, axs = plt.subplots(nvert, 2, figsize=(10, 3.5 * nvert))
+    axs = axs.flatten()
+
+    axs[0].plot(L, np.log2(var2), '-*', label='P_l')
+    axs[0].plot(L[1:], np.log2(var1[1:]), '--*', label='P_l - P_{l-1}')
+    axs[0].set_xlabel(r'level $l$')
+    axs[0].set_ylabel(r'$\log_2$ variance')
+    axs[0].legend(loc='upper right')
+
+    axs[1].plot(L, np.log2(np.abs(del2)), '-*', label='P_l')
+    axs[1].plot(L[1:], np.log2(np.abs(del1[1:])), '--*', label='P_l - P_{l-1}')
+    axs[1].set_xlabel(r'level $l$')
+    axs[1].set_ylabel(r'$\log_2 |\text{mean}|$')
+    axs[1].legend(loc='upper right')
+
+    if nvert == 3:
+        axs[2].plot(L[1:] - 1e-9, chk1[1:], '--*')
+        axs[2].set_xlabel(r'level $l$')
+        axs[2].set_ylabel('consistency check')
+
+        axs[3].plot(L[1:] - 1e-9, kur1[1:], '--*')
+        axs[3].set_xlabel(r'level $l$')
+        axs[3].set_ylabel('kurtosis')
+
+    if nvert == 1:
+        fig, axs = plt.subplots(1, 2, figsize=(8, 4.5))
+    
+    # Run MLMC for different EPS
+    Nls = []
+    ls = []
+    maxl = 0
+    mlmc_cost = []
+    std_cost = []
+
+    for i, eps in enumerate(Eps):
+        print(f"eps = {eps}")
+        gamma = np.log2(M)
+
+        # Run MLMC
+        P, Nl = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma)
+        l = len(Nl) - 1
+        maxl = max(maxl, l) # See how many levels were needed to get our desired level of eps
+
+        # Compute cost estimates - compares mlmc cost with standard mc cost
+        levels = np.arange(0, l + 1)
+        mlmc_c = (1 + 1 / M) * np.sum(Nl * M**levels) #C_tot = sum of Cl*Nl
+        std_c = np.sum((2 * var2[-1] / eps**2) * M**levels) #var2 contains powers of P^f
+
+        mlmc_cost.append(mlmc_c)
+        std_cost.append(std_c)
+
+        # Store per-level sample counts
+        Nls.append(Nl)
+        ls.append(levels)
+
+    # Now make sure all the arrays we will be plotting are the same size
+    for j in range(len(Eps)):
+        current_Nl = Nls[j]
+        current_ls = ls[j]
+
+        pad_len = maxl + 1 - len(current_Nl)
+
+        if pad_len > 0:
+            Nls[j] = np.pad(current_Nl, (0, pad_len), constant_values=current_Nl[-1])
+            ls[j] = np.pad(current_ls, (0, pad_len), constant_values=current_ls[-1])
+    
+    
+    Nls_array = np.column_stack(Nls)  # shape: (maxl+1, len(Eps))
+    ls_array = np.column_stack(ls)
+
+    axs[2 * nvert - 2].set_prop_cycle(None)
+    for i in range(len(Eps)):
+        axs[2 * nvert - 2].semilogy(ls_array[:, i], Nls_array[:, i], '--o', label=f'$\\varepsilon$ = {Eps[i]:.3g}')
+    axs[2 * nvert - 2].set_xlabel('level $\\ell$')
+    axs[2 * nvert - 2].set_ylabel('$N_\\ell$')
+    axs[2 * nvert - 2].legend()
+
+    eps_squared = np.array(Eps) ** 2
+    axs[2 * nvert - 1].set_prop_cycle(None)
+    axs[2 * nvert - 1].loglog(Eps, eps_squared * std_cost, '--o', label='Std MC')
+    axs[2 * nvert - 1].loglog(Eps, eps_squared * mlmc_cost, '--x', label='MLMC')
+    axs[2 * nvert - 1].set_xlabel('accuracy $\\epsilon$')
+    axs[2 * nvert - 1].set_ylabel('$\\epsilon^2$ Cost')
+    axs[2 * nvert - 1].legend(loc='upper right')
+
+    plt.tight_layout()
+    plt.show()
