@@ -1,5 +1,5 @@
 import numpy as np
-from mlmc_test import mlmc_test  # assumes you have a Python version of mlmc_test implemented
+from mlmc.mlmc_test import mlmc_test  # assumes you have a Python version of mlmc_test implemented
 
 # GBM parameters
 def gbm_euler():

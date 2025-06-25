@@ -1,5 +1,5 @@
 import numpy as np
-from mlmc_test import mlmc_test
+from mlmc.mlmc_test import mlmc_test
 
 
 def para():

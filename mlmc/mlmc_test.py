@@ -2,17 +2,24 @@ import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from mlmc import mlmc
+from mlmc.mlmc import mlmc
 
         
 
 def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
-
-    del1 = []; del2 = []
-    var1 = []; var2 = []
+    """
+    Runs a MLMC test for a given function mlmc_fn, number of levels L,
+    number of samples N, initial sample size N0, and a list of desired accuracies Eps.
+    The function mlmc_fn should take two arguments: level l and number of samples N.
+    It should return two arrays: sum1 and sum2, where sum1 contains the first four moments
+    of the fine level and sum2 contains the first two moments of the coarse level.
+    The function will plot the results and return final mlmc estimate.
+    """
+    del1 = []; del2 = [] #del1 = P_l - P_{l-1}, del2 = P_l
+    var1 = []; var2 = [] #var1 = var(P_l - P_{l-1}), var2 = var(P_l)
     kur1 = []
     chk1 = []
-    cost = []
+    cost = [] # cost of each level
     L = np.arange(0, L+1)
 
     for l in L:
@@ -167,3 +174,5 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
 
     plt.tight_layout()
     plt.show()
+
+    return del1, del2, var1, var2
