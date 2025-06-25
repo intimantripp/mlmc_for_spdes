@@ -2,11 +2,12 @@ import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec  as gridspec
 from mlmc.mlmc import mlmc
 
         
 
-def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
+def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value=None):
     """
     Runs a MLMC test for a given function mlmc_fn, number of levels L,
     number of samples N, initial sample size N0, and a list of desired accuracies Eps.
@@ -86,9 +87,16 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
                 http://mathworld.wolfram.com/SampleVarianceDistribution.html")
 
     # Plot figures
-
-    fig, axs = plt.subplots(nvert, 2, figsize=(10, 3.5 * nvert))
-    axs = axs.flatten()
+    nrows = nvert + 1 if validate else nvert
+    fig = plt.figure(figsize=(10, 3.5 * nvert))
+    gs = gridspec.GridSpec(nrows, 2, figure=fig)
+    axs = []
+    for row in range(nvert):
+        axs.append(fig.add_subplot(gs[row, 0]))
+        axs.append(fig.add_subplot(gs[row, 1]))
+    
+    if validate:
+        validation_ax = fig.add_subplot(gs[nvert, :])
 
     axs[0].plot(L, np.log2(var2), '-*', label='P_l')
     axs[0].plot(L[1:], np.log2(var1[1:]), '--*', label='P_l - P_{l-1}')
@@ -110,6 +118,31 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert):
         axs[3].plot(L[1:] - 1e-9, kur1[1:], '--*')
         axs[3].set_xlabel(r'level $l$')
         axs[3].set_ylabel('kurtosis')
+
+    if validate:
+        # Plot target value of estimator
+        validation_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, label='Target QoI')
+
+        # MLMC estimates
+        mlmc_estimator = np.cumsum(del1)
+        mlmc_se = np.sqrt(np.cumsum(var1) / N)
+        validation_ax.errorbar(L, mlmc_estimator, yerr=mlmc_se, fmt='o-', capsize=5, elinewidth=1.2, color='blue', ecolor='lightblue',
+                               label=r'MLMC estimates $\pm$ SE')
+        
+        # Plot E[P_l] for context
+        mc_se = np.sqrt(var2 / N)
+        validation_ax.errorbar(L, del2, yerr=mc_se, fmt='s--', elinewidth=1.2, color='gray', ecolor='silver', label=r'MC estimates $\pm$ SE')
+
+        #Formatting
+        validation_ax.set_xlabel(r'Level $\ell$', fontsize=12)
+        validation_ax.set_ylabel(r'Estimate', fontsize=12)
+        validation_ax.tick_params(axis='both', which='major', labelsize=10)
+        validation_ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+        validation_ax.spines['top'].set_visible(False)
+        validation_ax.spines['right'].set_visible(False)
+        validation_ax.set_title('Convergence of MLMC Estimate', fontsize=13)
+        validation_ax.legend(loc='best', frameon=True, fontsize=11)
+
 
     if nvert == 1:
         fig, axs = plt.subplots(1, 2, figsize=(8, 4.5))

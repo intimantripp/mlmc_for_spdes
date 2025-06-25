@@ -12,17 +12,18 @@ def gbm_euler():
     nvert = 3
     M = 2
     N = 100000
-    L = 8
+    L = 16
     N0 = 1000
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
+    validation_value = 10.46
 
     # European Call Option
     option = 1
-    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert)
+    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert, validate=True, validation_value=validation_value)
 
     # Digital Call Option
     option = 2
-    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert)
+    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert, validate=False)
 
 
 def gbm_l(l, N, option, S0, K, T, r, sig):
