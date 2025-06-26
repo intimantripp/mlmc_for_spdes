@@ -1,6 +1,6 @@
 import numpy as np
 
-def u_scheme(T, nx, lam, n_samples=1000):
+def parabolic_example_scheme(T, nx, lam, n_samples=1000):
     """ 
     Uses a stochastic finite difference scheme to obtain n_samples of trajectories
     of the  stochastic heat equation.
@@ -9,16 +9,16 @@ def u_scheme(T, nx, lam, n_samples=1000):
     boundary conditions, and scale the white noise also.
     In this we have a row for each trial and a column for each x point
     """
-    dx = 1 / nx 
+    dx = 1 / nx
     dt = lam * dx**2
     nsteps = int(T / dt)
     print(f"Number of time steps: {nsteps}, dt: {dt}, dx: {dx}")
-    u = np.zeros((n_samples, nx + 1)) 
+    u = np.zeros((nx + 1, n_samples))
     i = np.arange(1, nx) # interior points
-    std_dev = np.sqrt(dt / dx)
+    std_dev = np.sqrt(dt)
     for t in range(nsteps):
-        if t % 1000 == 0:
+        if t % 100 == 0:
             print(f"Time step {t}/{nsteps}")
-        dW = np.random.randn(n_samples, nx - 1) * std_dev
-        u[:, i] += lam * (u[:, i+1] - 2 * u[:, i] + u[:, i-1]) + dW
+        dW = np.random.randn(n_samples) * std_dev
+        u[i,:] += lam * (u[i+1, :] - 2 * u[i, :] + u[i-1, :]) + 10 * np.tile(dW, (nx - 1, 1))
     return u

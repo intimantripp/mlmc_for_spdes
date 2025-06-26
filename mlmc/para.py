@@ -5,11 +5,13 @@ from mlmc.mlmc_test import mlmc_test
 def para():
     nvert = 3
     M = 8 # gamma = 3, 2**(3*l) cost per level
-    N = 1000
+    N = 5000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
-    mlmc_test(lambda l, N: para_l(l, N), M, N, L, N0, Eps, nvert)
+    validation_value = 4.138060043680517
+    mlmc_test(lambda l, N: para_l(l, N), M, N, L, N0, Eps, nvert, 
+              validate=True, validation_value=validation_value)
 
     
 
@@ -54,6 +56,7 @@ def para_l(l, N):
                     dWc += dWf # sum of 4 brownian increments has same variance as one coarse increment
                     uf[i_f, :] += lam * (uf[i_f+1, :] - 2 * uf[i_f, :] + uf[i_f-1, :]) \
                           + 10 * np.tile(dWf, (nf - 1, 1))
+
                 uc[i_c, :] += lam * (uc[i_c+1, :] - 2 * uc[i_c, :] + uc[i_c-1, :]) \
                       + 10 * np.tile(dWc, (nc - 1, 1))
             Pf = hf * np.sum(uf**2, axis=0)

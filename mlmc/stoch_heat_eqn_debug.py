@@ -32,7 +32,6 @@ def stoch_heat_eqn_l(l, N):
         dtc = lam * hc**2
         timesteps_c = nc**2
 
-    # std_f = np.sqrt(dtf / hf) # calculation outside the loop
     std_f = np.sqrt(dtf) # REMOVE
     sum1 = np.zeros(4)
     sum2 = np.zeros(2)

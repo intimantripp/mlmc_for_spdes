@@ -47,7 +47,7 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
             check = 0
         else:
             check = abs(del1[l] + del2[l-1] - del2[l]) /  \
-                (3.0 * (np.sqrt(var1[l])) + np.sqrt(var2[l]) + np.sqrt(var2[l])/np.sqrt(N))
+                (3.0 * (np.sqrt(var1[l])) + np.sqrt(var2[l-1]) + np.sqrt(var2[l])/np.sqrt(N))
         chk1.append(check)
 
     # convert items to numpy arrays so I can do index selecting
