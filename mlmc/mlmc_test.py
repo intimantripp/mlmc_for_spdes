@@ -7,7 +7,7 @@ from mlmc.mlmc import mlmc
 
         
 
-def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value=None):
+def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value=None, **mlmc_l_kwargs):
     """
     Runs a MLMC test for a given function mlmc_fn, number of levels L,
     number of samples N, initial sample size N0, and a list of desired accuracies Eps.
@@ -26,7 +26,7 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     for l in L:
         print(f"l = {l}")
         start_time = time.time()
-        sum1, sum2 = mlmc_fn(l, N)
+        sum1, sum2 = mlmc_fn(l, N, **mlmc_l_kwargs)
         time_taken = time.time() - start_time
         cost.append(time_taken)
         sum1 = sum1 / N
@@ -88,54 +88,55 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
 
     # Plot figures
     nrows = nvert + 2 if validate else nvert + 1
+    nrows = 5
     fig = plt.figure(figsize=(10, 3.5 * nrows))
     gs = gridspec.GridSpec(nrows, 2, figure=fig)
     axs = []
-    for row in range(nvert):
+    for row in range(nrows - 2): # rows 0, 1, 2
         axs.append(fig.add_subplot(gs[row, 0]))
         axs.append(fig.add_subplot(gs[row, 1]))
-    
+
+    var_ax, mean_ax, chk_ax, kur_ax, count_ax, cost_ax = axs
     # MLMC and MC validation plot
-    if validate:
-        validation_ax = fig.add_subplot(gs[nvert - 1, :])
+    validation_ax = fig.add_subplot(gs[3, :])
     
     # Results plot
-    results_ax = fig.add_subplot(gs[nvert, :])
+    results_ax = fig.add_subplot(gs[4, :])
 
-    axs[0].plot(L, np.log2(var2), '-*', label='P_l')
-    axs[0].plot(L[1:], np.log2(var1[1:]), '--*', label='P_l - P_{l-1}')
-    axs[0].set_xlabel(r'level $l$')
-    axs[0].set_ylabel(r'$\log_2$ variance')
-    axs[0].legend(loc='upper right')
+    var_ax.plot(L, np.log2(var2), '-*', label='P_l')
+    var_ax.plot(L[1:], np.log2(var1[1:]), '--*', label='P_l - P_{l-1}')
+    var_ax.set_xlabel(r'level $l$')
+    var_ax.set_ylabel(r'$\log_2$ variance')
+    var_ax.legend(loc='upper right')
 
-    axs[1].plot(L, np.log2(np.abs(del2)), '-*', label='P_l')
-    axs[1].plot(L[1:], np.log2(np.abs(del1[1:])), '--*', label='P_l - P_{l-1}')
-    axs[1].set_xlabel(r'level $l$')
-    axs[1].set_ylabel(r'$\log_2 |\text{mean}|$')
-    axs[1].legend(loc='upper right')
+    mean_ax.plot(L, np.log2(np.abs(del2)), '-*', label='P_l')
+    mean_ax.plot(L[1:], np.log2(np.abs(del1[1:])), '--*', label='P_l - P_{l-1}')
+    mean_ax.set_xlabel(r'level $l$')
+    mean_ax.set_ylabel(r'$\log_2 |\text{mean}|$')
+    mean_ax.legend(loc='upper right')
 
     if nvert == 3:
-        axs[2].plot(L[1:] - 1e-9, chk1[1:], '--*')
-        axs[2].set_xlabel(r'level $l$')
-        axs[2].set_ylabel('consistency check')
+        chk_ax.plot(L[1:] - 1e-9, chk1[1:], '--*')
+        chk_ax.set_xlabel(r'level $l$')
+        chk_ax.set_ylabel('consistency check')
 
-        axs[3].plot(L[1:] - 1e-9, kur1[1:], '--*')
-        axs[3].set_xlabel(r'level $l$')
-        axs[3].set_ylabel('kurtosis')
+        kur_ax.plot(L[1:] - 1e-9, kur1[1:], '--*')
+        kur_ax.set_xlabel(r'level $l$')
+        kur_ax.set_ylabel('kurtosis')
 
-    if validate:
         # Plot target value of estimator
-        validation_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, label='Target QoI')
+        if validation_value is not None:
+            validation_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, label='Target QoI')
 
         # MLMC estimates
         mlmc_estimator = np.cumsum(del1)
         mlmc_se = np.sqrt(np.cumsum(var1) / N)
         validation_ax.errorbar(L, mlmc_estimator, yerr=mlmc_se, fmt='o-', capsize=5, elinewidth=1.2, color='blue', ecolor='lightblue',
-                               label=r'MLMC estimates $\pm$ SE')
+                               label=r'MLMC estimates $\pm \sigma$ ')
         
         # Plot E[P_l] for context
         mc_se = np.sqrt(var2 / N)
-        validation_ax.errorbar(L, del2, yerr=mc_se, fmt='s--', elinewidth=1.2, color='gray', ecolor='silver', label=r'MC estimates $\pm$ SE')
+        validation_ax.errorbar(L, del2, yerr=mc_se, fmt='s--', elinewidth=1.2, color='gray', ecolor='silver', label=r'MC estimates $\pm \sigma$')
 
         #Formatting
         validation_ax.set_xlabel(r'Level $\ell$', fontsize=12)
@@ -164,7 +165,7 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
         gamma = np.log2(M)
 
         # Run MLMC
-        P, Nl = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma)
+        P, Nl = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma, **mlmc_l_kwargs)
         l = len(Nl) - 1
         maxl = max(maxl, l) # See how many levels were needed to get our desired level of eps
 
@@ -198,20 +199,20 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     Nls_array = np.column_stack(Nls)  # shape: (maxl+1, len(Eps))
     ls_array = np.column_stack(ls)
 
-    axs[2 * nvert - 2].set_prop_cycle(None)
+    count_ax.set_prop_cycle(None)
     for i in range(len(Eps)):
-        axs[2 * nvert - 2].semilogy(ls_array[:, i], Nls_array[:, i], '--o', label=f'$\\varepsilon$ = {Eps[i]:.3g}')
-    axs[2 * nvert - 2].set_xlabel('level $\\ell$')
-    axs[2 * nvert - 2].set_ylabel('$N_\\ell$')
-    axs[2 * nvert - 2].legend()
+        count_ax.semilogy(ls_array[:, i], Nls_array[:, i], '--o', label=f'$\\varepsilon$ = {Eps[i]:.3g}')
+    count_ax.set_xlabel('level $\\ell$')
+    count_ax.set_ylabel('$N_\\ell$')
+    count_ax.legend()
 
     eps_squared = np.array(Eps) ** 2
-    axs[2 * nvert - 1].set_prop_cycle(None)
-    axs[2 * nvert - 1].loglog(Eps, eps_squared * std_cost, '--o', label='Std MC')
-    axs[2 * nvert - 1].loglog(Eps, eps_squared * mlmc_cost, '--x', label='MLMC')
-    axs[2 * nvert - 1].set_xlabel('accuracy $\\epsilon$')
-    axs[2 * nvert - 1].set_ylabel('$\\epsilon^2$ Cost')
-    axs[2 * nvert - 1].legend(loc='upper right')
+    cost_ax.set_prop_cycle(None)
+    cost_ax.loglog(Eps, eps_squared * std_cost, '--o', label='Std MC')
+    cost_ax.loglog(Eps, eps_squared * mlmc_cost, '--x', label='MLMC')
+    cost_ax.set_xlabel('accuracy $\\epsilon$')
+    cost_ax.set_ylabel('$\\epsilon^2$ Cost')
+    cost_ax.legend(loc='upper right')
 
     # arrange Eps in ascending order to show error getting smaller and smaller
     results_ax.plot(Eps, mlmc_solns, '--*', label='MLMC estimates')
@@ -226,7 +227,7 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     results_ax.set_xlabel(r'standard error, $\epsilon^2$')
     results_ax.set_ylabel(r'MLMC estimate')
     results_ax.invert_xaxis()
-    if validation_value:
+    if validation_value is not None:
         results_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, 
                            label='True QoI')
     results_ax.legend()

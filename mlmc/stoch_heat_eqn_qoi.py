@@ -6,23 +6,34 @@ from mlmc.mlmc_test import mlmc_test
 # of a Wiener process. The increments are independent in space and time.
 # Currently simulates up to T = 0.25
 
+np.random.seed(seed=42)
 def default_qoi(u):
     delta_x = 1 / (u.shape[0] - 1) # Assuming u is a 2D array with shape (n, N)
     return np.sum(u**2, axis=0) * delta_x
 
-def stoch_heat_eqn_qoi():
+def nth_fourier_mode(n, u):
+    # Calculates integral from 0 to 1 of 2*u(x,t)sin(n pi x) dx
+    x = np.linspace(0, 1, len(u))
+    sin_basis = np.sin(n * np.pi * x)[:, np.newaxis]
+    integrand = 2 * u * sin_basis
+    fourier_mode = np.trapz(integrand, x)
+    return fourier_mode
+
+def stoch_heat_eqn_qoi(qoi_fn=default_qoi, validation_value=None):
     nvert = 3
     M = 8
-    N = 1000
+    N = 5000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
-    del1, del2, var1, var2 = mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N), M, N, L, N0, Eps, nvert)
+    if qoi_fn.__name__=='default_qoi':
+        validation_value = 1/12 - np.exp(- 2 * np.pi**2) / (2 * np.pi**2)
+    del1, del2, var1, var2 = mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N, qoi_fn), M, N, L, N0, Eps, nvert, validation_value=validation_value)
     
     return del1, del2, var1, var2
 
 
-def stoch_heat_eqn_l(l, N, qoi_fn = default_qoi):
+def stoch_heat_eqn_l(l, N, qoi_fn=default_qoi):
     # This is the same as the para.py module, except we apply different 
     # random increments to each spatial point in both grids.
     lam = 0.25
@@ -64,7 +75,7 @@ def stoch_heat_eqn_l(l, N, qoi_fn = default_qoi):
                     dWf = std_f * np.random.randn(nf - 1, N2)
                     uf[i_f, :] += lam * (uf[i_f+1, :] - 2 * uf[i_f, :] + uf[i_f-1, :]) + dWf
                     dWc +=  dWf[:-1, :].reshape(nc-1, 2, N2).sum(axis=1) # sum of 2 fine adjacent increments, ignore final point
-                    
+                dWc *= 0.5
                 # dWc is now the sum of 8 fine increments, which has the same variance as one coarse increment
                 uc[i_c, :] += lam * (uc[i_c+1, :] - 2 * uc[i_c, :] + uc[i_c-1, :]) + dWc
             Pc = qoi_fn(uc)
