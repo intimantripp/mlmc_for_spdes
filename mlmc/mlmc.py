@@ -20,12 +20,12 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
     
         # compute absolute means and variances
         ml = np.abs(suml[0,:])/Nl #get abs mean of each Y
-        Vl = np.maximum(0, suml[1,:])/Nl - ml**2 # Get maximum variance from levels so far
+        Vl = np.maximum(0, suml[1,:]/Nl - ml**2) # Get maximum variance from levels so far
 
         # fix to cope with possible zero values for ml and Vl - if ml or Vl were zero, we update them using decay estimates
-        for l in range(3, L + 1):
-            ml[l] = max(ml[l], 0.5 * ml[l-1] / 2**alpha)
-            Vl[l] = max(Vl[l], 0.5 * Vl[l-1] / 2**beta)
+        for l in range(3, L + 2):
+            ml[l-1] = max(ml[l-1], 0.5 * ml[l-2] / 2**alpha)
+            Vl[l-1] = max(Vl[l-1], 0.5 * Vl[l-2] / 2**beta)
         
 
         # use linear regression to estimate alpha and beta if they weren't updated
@@ -41,6 +41,7 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
             x = np.linalg.lstsq(A, np.log2(Vl[1:]), rcond=None)[0]
             beta = max(0.5, -x[0])
             print(f"Estimated beta: {beta:.6f}")
+
         
         # Why not calculate gamma again here Mike?
 
@@ -60,8 +61,7 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
                 L += 1
                 Vl = np.append(Vl, (Vl[L-1]) / 2**beta) #Append estimate for variance at next level (var decay)
                 Nl = np.append(Nl, 0)
-                dNl = np.append(dNl, 0)
-                suml = np.pad(suml, ((0, 0), (0, 1)), constant_values=0)
+                suml = np.column_stack([suml, [0, 0]])
                 
                 L_vector = np.arange(0, L+1)
                 Cl = 2**(gamma * L_vector)
@@ -70,6 +70,8 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
                 Ns = np.ceil(2 * term * normaliser / eps**2).astype(int)
                 dNl = np.maximum(0, Ns - Nl)
                 print(f"New level {L} added, with {dNl[L]} samples and variance {Vl[L]:.6f}")
+
+
     P = np.sum(suml[0, :] / Nl)
 
     return P, Nl
