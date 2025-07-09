@@ -32,10 +32,10 @@ def nth_fourier_mode(n, u):
     fourier_mode = np.trapz(integrand, x)
     return fourier_mode
 
-def stoch_heat_eqn_qoi(qoi_fn=default_qoi, noise_coupling=default_noise_coupling, validation_value=None):
+def stoch_heat_eqn_qoi(qoi_fn=default_qoi, noise_coupling=suspect_noise_coupling, validation_value=None):
     nvert = 3
     M = 8
-    N = 5000
+    N = 6000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
