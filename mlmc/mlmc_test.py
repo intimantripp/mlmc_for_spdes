@@ -87,7 +87,6 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
                 http://mathworld.wolfram.com/SampleVarianceDistribution.html")
 
     # Plot figures
-    nrows = nvert + 2 if validate else nvert + 1
     nrows = 5
     fig = plt.figure(figsize=(10, 3.5 * nrows))
     gs = gridspec.GridSpec(nrows, 2, figure=fig)
@@ -147,10 +146,6 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
         validation_ax.spines['right'].set_visible(False)
         validation_ax.set_title('Convergence of MLMC Estimate', fontsize=13)
         validation_ax.legend(loc='best', frameon=True, fontsize=11)
-
-
-    if nvert == 1:
-        fig, axs = plt.subplots(1, 2, figsize=(8, 4.5))
     
     # Run MLMC for different EPS
     Nls = []

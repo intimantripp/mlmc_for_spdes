@@ -9,7 +9,7 @@ def para():
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
-    validation_value = 4.138060043680517
+    validation_value = 4.138060043680517 # Obtained from mc simulation using 10^6 samples
     mlmc_test(lambda l, N: para_l(l, N), M, N, L, N0, Eps, nvert, 
               validate=True, validation_value=validation_value)
 
