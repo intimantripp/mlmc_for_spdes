@@ -3,14 +3,13 @@ from mlmc.mlmc_test import mlmc_test
 
 
 def para():
-    nvert = 3
     M = 8 # gamma = 3, 2**(3*l) cost per level
     N = 5000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
     validation_value = 4.138060043680517 # Obtained from mc simulation using 10^6 samples
-    mlmc_test(lambda l, N: para_l(l, N), M, N, L, N0, Eps, nvert, 
+    mlmc_test(lambda l, N: para_l(l, N), M, N, L, N0, Eps,
               validate=True, validation_value=validation_value)
 
     

@@ -4,7 +4,6 @@ np.random.seed(seed=42)
 
 
 def stoch_heat_eqn():
-    nvert = 3
     M = 8
     N = 1000
     L = 6
@@ -12,8 +11,7 @@ def stoch_heat_eqn():
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
 
     validation_value = 1/12 - np.exp(- 2 * np.pi**2) / (2 * np.pi**2) # derivation of this can be seen in notebook 1_validation_work.ipynb
-    mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N), M, N, L, N0, Eps, nvert,validate=True, validation_value=validation_value)
-    
+    mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N), M, N, L, N0, Eps, validate=True, validation_value=validation_value)
 
 
 

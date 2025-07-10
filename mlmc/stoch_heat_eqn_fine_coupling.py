@@ -32,7 +32,7 @@ def nth_fourier_mode(n, u):
     fourier_mode = np.trapz(integrand, x)
     return fourier_mode
 
-def stoch_heat_eqn_qoi(qoi_fn=default_qoi, validation_value=None):
+def stoch_heat_eqn_fine_coupling(qoi_fn=default_qoi, validation_value=None):
     M = 8
     N = 6000
     L = 6
@@ -85,7 +85,6 @@ def stoch_heat_eqn_l(l, N, qoi_fn=default_qoi):
             for _ in range(timesteps_c):
                 dWc = np.zeros((nc-1, N2))
                 for _ in range(4):
-                    # dWf = std_f * rng.standard_normal((nf - 1, N2))
                     num_half_cells = 2 * (nf - 1)
                     std_half = np.sqrt(hf * dtf / 2)
                     half_cell_noises = rng.standard_normal((num_half_cells, N2)) * std_half
