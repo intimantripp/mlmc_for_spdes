@@ -168,7 +168,7 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, 
         # Compute cost estimates - compares mlmc cost with standard mc cost
         levels = np.arange(0, l + 1)
         mlmc_c = (1 + 1 / M) * np.sum(Nl * M**levels) #C_tot = sum of Cl*Nl
-        std_c = np.sum((2 * var2[-1] / eps**2) * M**levels) #var2 contains powers of P^f
+        std_c = np.sum((2 * var2[-1] / eps**2) * M**levels) #var2 contains (P^f)^2
 
         mlmc_cost.append(mlmc_c)
         std_cost.append(std_c)
@@ -185,12 +185,22 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, 
         mlmc_soln_arrays.append(mlmc_estimators)
  
         # Plot mlmc solution arrays
+        var_per_sample = suml[1, :] / Nl - (suml[0, :] / Nl)**2  # Sample variance per level
+        se_array = np.sqrt(np.cumsum(var_per_sample / Nl))      # Standard error of cumulative sum
         cumulative_est = np.cumsum(mlmc_estimators)
         results_convergence_ax.plot(
             np.arange(len(cumulative_est)), 
             cumulative_est,
             '-o',
             label=rf'$\epsilon$ = {eps:.3g}'
+        )
+        results_convergence_ax.fill_between(
+            np.arange(len(cumulative_est)),
+            cumulative_est - se_array,
+            cumulative_est + se_array,
+            alpha=0.2,
+            linewidth=0,
+            label=None
         )
     
 
@@ -249,11 +259,11 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, 
     results_convergence_ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
     results_convergence_ax.legend()
     if validation_value is not None:
-        all_cumulative_vals = np.concatenate([np.cumsum(a) for a in mlmc_soln_arrays])
-        max_dev = np.max(np.abs(all_cumulative_vals - validation_value))
-        y_margin = max(0.1 * abs(validation_value), max_dev * 1.1)
+        # all_cumulative_vals = np.concatenate([np.cumsum(a) for a in mlmc_soln_arrays])
+        # max_dev = np.max(np.abs(all_cumulative_vals - validation_value))
+        # y_margin = max(0.1 * abs(validation_value), max_dev * 1.1)
         # y_margin = 0.1 * abs(validation_value)  # 10% margin
-        results_convergence_ax.set_ylim(validation_value - y_margin, validation_value + y_margin)
+        # results_convergence_ax.set_ylim(validation_value - y_margin, validation_value + y_margin)
         results_convergence_ax.axhline(validation_value, linestyle='--', color='crimson', label='True QoI')
 
 
