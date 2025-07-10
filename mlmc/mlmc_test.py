@@ -7,7 +7,7 @@ from mlmc.mlmc import mlmc
 
         
 
-def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value=None, **mlmc_l_kwargs):
+def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, **mlmc_l_kwargs):
     """
     Runs a MLMC test for a given function mlmc_fn, number of levels L,
     number of samples N, initial sample size N0, and a list of desired accuracies Eps.
@@ -87,11 +87,11 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
                 http://mathworld.wolfram.com/SampleVarianceDistribution.html")
 
     # Plot figures
-    nrows = 5
+    nrows = 6
     fig = plt.figure(figsize=(10, 3.5 * nrows))
     gs = gridspec.GridSpec(nrows, 2, figure=fig)
     axs = []
-    for row in range(nrows - 2): # rows 0, 1, 2
+    for row in range(0, 3): # rows 0, 1, 2
         axs.append(fig.add_subplot(gs[row, 0]))
         axs.append(fig.add_subplot(gs[row, 1]))
 
@@ -99,8 +99,9 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     # MLMC and MC validation plot
     validation_ax = fig.add_subplot(gs[3, :])
     
-    # Results plot
+    # Result plots
     results_ax = fig.add_subplot(gs[4, :])
+    results_convergence_ax = fig.add_subplot(gs[5, :])
 
     var_ax.plot(L, np.log2(var2), '-*', label='P_l')
     var_ax.plot(L[1:], np.log2(var1[1:]), '--*', label='P_l - P_{l-1}')
@@ -114,38 +115,37 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     mean_ax.set_ylabel(r'$\log_2 |\text{mean}|$')
     mean_ax.legend(loc='upper right')
 
-    if nvert == 3:
-        chk_ax.plot(L[1:] - 1e-9, chk1[1:], '--*')
-        chk_ax.set_xlabel(r'level $l$')
-        chk_ax.set_ylabel('consistency check')
+    chk_ax.plot(L[1:] - 1e-9, chk1[1:], '--*')
+    chk_ax.set_xlabel(r'level $l$')
+    chk_ax.set_ylabel('consistency check')
 
-        kur_ax.plot(L[1:] - 1e-9, kur1[1:], '--*')
-        kur_ax.set_xlabel(r'level $l$')
-        kur_ax.set_ylabel('kurtosis')
+    kur_ax.plot(L[1:] - 1e-9, kur1[1:], '--*')
+    kur_ax.set_xlabel(r'level $l$')
+    kur_ax.set_ylabel('kurtosis')
 
-        # Plot target value of estimator
-        if validation_value is not None:
-            validation_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, label='Target QoI')
+    # Plot target value of estimator
+    if validation_value is not None:
+        validation_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, label='Target QoI')
 
-        # MLMC estimates
-        mlmc_estimator = np.cumsum(del1)
-        mlmc_se = np.sqrt(np.cumsum(var1) / N)
-        validation_ax.errorbar(L, mlmc_estimator, yerr=mlmc_se, fmt='o-', capsize=5, elinewidth=1.2, color='blue', ecolor='lightblue',
-                               label=r'MLMC estimates $\pm \sigma$ ')
-        
-        # Plot E[P_l] for context
-        mc_se = np.sqrt(var2 / N)
-        validation_ax.errorbar(L, del2, yerr=mc_se, fmt='s--', elinewidth=1.2, color='gray', ecolor='silver', label=r'MC estimates $\pm \sigma$')
+    # MLMC estimates
+    mlmc_estimator = np.cumsum(del1)
+    mlmc_se = np.sqrt(np.cumsum(var1) / N)
+    validation_ax.errorbar(L, mlmc_estimator, yerr=mlmc_se, fmt='o-', capsize=5, elinewidth=1.2, color='blue', ecolor='lightblue',
+                            label=r'MLMC estimates $\pm \sigma$ ')
+    
+    # Plot E[P_l] for context
+    mc_se = np.sqrt(var2 / N)
+    validation_ax.errorbar(L, del2, yerr=mc_se, fmt='s--', elinewidth=1.2, color='gray', ecolor='silver', label=r'MC estimates $\pm \sigma$')
 
-        #Formatting
-        validation_ax.set_xlabel(r'Level $\ell$', fontsize=12)
-        validation_ax.set_ylabel(r'Estimate', fontsize=12)
-        validation_ax.tick_params(axis='both', which='major', labelsize=10)
-        validation_ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
-        validation_ax.spines['top'].set_visible(False)
-        validation_ax.spines['right'].set_visible(False)
-        validation_ax.set_title('Convergence of MLMC Estimate', fontsize=13)
-        validation_ax.legend(loc='best', frameon=True, fontsize=11)
+    #Formatting
+    validation_ax.set_xlabel(r'Level $\ell$', fontsize=12)
+    validation_ax.set_ylabel(r'Estimate', fontsize=12)
+    validation_ax.tick_params(axis='both', which='major', labelsize=10)
+    validation_ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+    validation_ax.spines['top'].set_visible(False)
+    validation_ax.spines['right'].set_visible(False)
+    validation_ax.set_title('Convergence of MLMC Estimate', fontsize=13)
+    validation_ax.legend(loc='best', frameon=True, fontsize=11)
     
     # Run MLMC for different EPS
     Nls = []
@@ -154,13 +154,14 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
     mlmc_cost = []
     std_cost = []
     mlmc_solns = []
+    mlmc_soln_arrays = []
 
     for i, eps in enumerate(Eps):
         print(f"eps = {eps}")
         gamma = np.log2(M)
 
         # Run MLMC
-        P, Nl = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma, **mlmc_l_kwargs)
+        P, Nl, suml = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma, **mlmc_l_kwargs)
         l = len(Nl) - 1
         maxl = max(maxl, l) # See how many levels were needed to get our desired level of eps
 
@@ -178,6 +179,20 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
 
         # Store mlmc solutions
         mlmc_solns.append(P)
+
+        # Store mlmc solution arrays for plotting
+        mlmc_estimators = suml[0, :] / Nl # E[P_l - P_{l-1}]
+        mlmc_soln_arrays.append(mlmc_estimators)
+ 
+        # Plot mlmc solution arrays
+        cumulative_est = np.cumsum(mlmc_estimators)
+        results_convergence_ax.plot(
+            np.arange(len(cumulative_est)), 
+            cumulative_est,
+            '-o',
+            label=rf'$\epsilon$ = {eps:.3g}'
+        )
+    
 
     # Now make sure all the arrays we will be plotting are the same size
     for j in range(len(Eps)):
@@ -217,15 +232,31 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, nvert, validate=False, validation_value
         np.array(mlmc_solns) + np.array(Eps),
         color='crimson',
         alpha=0.2,
-        label=r'$\pm \epsilon^2$'
+        label=r'$\pm \epsilon$'
     )
-    results_ax.set_xlabel(r'standard error, $\epsilon^2$')
+    results_ax.set_xlabel(r'standard error, $\epsilon$')
     results_ax.set_ylabel(r'MLMC estimate')
     results_ax.invert_xaxis()
     if validation_value is not None:
         results_ax.axhline(y=validation_value, linestyle='--', color='crimson', linewidth=2, 
                            label='True QoI')
     results_ax.legend()
+
+    # Format the results eps convergence plot
+    results_convergence_ax.set_xlabel(r'Level $\ell$')
+    results_convergence_ax.set_ylabel(r'Cumulative Estimate')
+    results_convergence_ax.set_title('Cumulative MLMC estimate as levels are added')
+    results_convergence_ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+    results_convergence_ax.legend()
+    if validation_value is not None:
+        all_cumulative_vals = np.concatenate([np.cumsum(a) for a in mlmc_soln_arrays])
+        max_dev = np.max(np.abs(all_cumulative_vals - validation_value))
+        y_margin = max(0.1 * abs(validation_value), max_dev * 1.1)
+        # y_margin = 0.1 * abs(validation_value)  # 10% margin
+        results_convergence_ax.set_ylim(validation_value - y_margin, validation_value + y_margin)
+        results_convergence_ax.axhline(validation_value, linestyle='--', color='crimson', label='True QoI')
+
+
 
     plt.tight_layout()
     plt.show()

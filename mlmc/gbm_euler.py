@@ -2,16 +2,14 @@ import numpy as np
 from mlmc.mlmc_test import mlmc_test  # assumes you have a Python version of mlmc_test implemented
 
 # GBM parameters
-def gbm_euler():
+def gbm_euler(N = 100000):
     S0 = 100     
-    K = 100      
+    K = 100
     T = 1        
-    r = 0.05     
+    r = 0.05
     sig = 0.2    
 
-    nvert = 3
     M = 2
-    N = 100000
     L = 10
     N0 = 1000
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
@@ -19,11 +17,11 @@ def gbm_euler():
 
     # European Call Option
     option = 1
-    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert, validate=True, validation_value=validation_value)
+    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, validate=True, validation_value=validation_value)
 
     # Digital Call Option
     option = 2
-    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, nvert, validate=False)
+    mlmc_test(lambda l, N: gbm_l(l, N, option, S0, K, T, r, sig), M, N, L, N0, Eps, validate=False)
 
 
 def gbm_l(l, N, option, S0, K, T, r, sig):
