@@ -158,3 +158,41 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+
+# C++ specific
+
+# build artifacts
+/build/
+/CMakeFiles/
+/cmake-build-*/
+
+# Build system files
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# Executables and binaries
+*.out
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*~
+*.user
+*.suo
+*.vcxproj.*
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
