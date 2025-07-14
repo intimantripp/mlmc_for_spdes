@@ -196,3 +196,7 @@ compile_commands.json
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# Debug created files
+*.dYSM
+*.dYSM/
