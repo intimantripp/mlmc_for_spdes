@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.15)
+project(mlmc_cpp LANGUAGES C CXX)
+
+# Set C language version
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Set C++ language version
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Tell CMake where to find your header files
+include_directories(include)
+
+# Define the executable target: mlmc_cpp
+add_executable(mlmc_cpp
+    main.cpp
+    src/gbm_euler.cpp
+    # src/mlmc.cpp
+    src/mlmc_test.cpp
+)
+
