@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm> // for std::max
 #include <functional>
+#include <string>
 
 void run_gbm_euler(const int N) {
     std::cout << "Running GBM Euler Option Pricing MLMC..." <<std::endl;
@@ -19,11 +20,10 @@ void run_gbm_euler(const int N) {
     int N0 = 1000;
 
     std::vector<double> Eps = {0.005, 0.01, 0.02, 0.05, 0.1};
-    double validation_value = 10.46;
     
+    std::string output_filename = "../outputs/mlmc_convergence_gbm_euler.csv";
 
-
-    mlmc_test([=](int l, int N) { return gbm_l(l, N, S0, K, T, r, sig); }, M, N, L, N0, Eps, validation_value);
+    mlmc_test([=](int l, int N) { return gbm_l(l, N, S0, K, T, r, sig); }, M, N, L, N0, Eps, output_filename);
     std::cout << "Finished running GBM Euler MLMC." << std::endl;
 }
 

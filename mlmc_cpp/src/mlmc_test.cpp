@@ -8,11 +8,12 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <fstream>
 
 void mlmc_test(
     std::function<std::pair<std::vector<double>, std::vector<double>>(int, int)> mlmc_fn,
     int M, int N, int L, int N0, const std::vector<double>& Eps,
-    double validation_value
+    const std::string& output_filename
 ) {
     std::vector<double> del1, del2, var1, var2, kur1, chk1, cost;
     std::vector<int> levels;
@@ -109,6 +110,21 @@ void mlmc_test(
     printf(" beta  = %f  (exponent for MLMC variance) \n", beta);
     printf(" gamma = %f  (exponent for MLMC cost) \n", gamma);
 
+    // Output results to file
+    std::ofstream file_out(output_filename);
+    file_out << "level,ave_Pf-Pc,ave_Pf,var_Pf-Pc,var_Pf,kurtosis,check,cost\n";
+    for (int i = 0; i <= L; ++i) {
+        file_out << levels[i] << ","
+                << del1[i] << ","
+                << del2[i] << ","
+                << var1[i] << ","
+                << var2[i] << ","
+                << kur1[i] << ","
+                << chk1[i] << ","
+                << cost[i] << "\n";
+    }
+    file_out.close();
+    std::cout << "\nWrote convergence table to mlmc_convergence.csv\n";
 }
 
 double regression(const std::vector<int>& x, const std::vector<double>& y) {
