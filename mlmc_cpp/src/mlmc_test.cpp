@@ -1,5 +1,6 @@
 
 #include "mlmc_test.hpp"
+#include "mlmc.hpp"
 #include <iostream>
 #include <vector>
 #include <numeric>
@@ -9,11 +10,15 @@
 #include <chrono>
 #include <ctime>
 #include <fstream>
+#include <string>
+#include <iomanip>
+#include <limits>
 
 void mlmc_test(
     std::function<std::pair<std::vector<double>, std::vector<double>>(int, int)> mlmc_fn,
     int M, int N, int L, int N0, const std::vector<double>& Eps,
-    const std::string& output_filename
+    const std::string& output_convergence_filename, 
+    const std::string& output_complexity_filename
 ) {
     std::vector<double> del1, del2, var1, var2, kur1, chk1, cost;
     std::vector<int> levels;
@@ -111,8 +116,8 @@ void mlmc_test(
     printf(" gamma = %f  (exponent for MLMC cost) \n", gamma);
 
     // Output results to file
-    std::ofstream file_out(output_filename);
-    file_out << "level,ave_Pf-Pc,ave_Pf,var_Pf-Pc,var_Pf,kurtosis,check,cost\n";
+    std::ofstream file_out(output_convergence_filename);
+    file_out << "level,ave_Pf-Pc,ave_Pf,var_Pf-Pc,var_Pf,kurtosis,check,cost,N\n";
     for (int i = 0; i <= L; ++i) {
         file_out << levels[i] << ","
                 << del1[i] << ","
@@ -121,24 +126,96 @@ void mlmc_test(
                 << var2[i] << ","
                 << kur1[i] << ","
                 << chk1[i] << ","
-                << cost[i] << "\n";
+                << cost[i] << ","
+                << N << "\n";
     }
     file_out.close();
-    std::cout << "\nWrote convergence table to mlmc_convergence.csv\n";
-}
+    std::cout << "\nWrote convergence table to " << output_convergence_filename << "\n";
 
-double regression(const std::vector<int>& x, const std::vector<double>& y) {
-    int n = x.size();
-    double sum_x = 0.0, sum_y = 0.0, sum_xx = 0.0, sum_xy = 0.0;
-    for (int i = 0; i < n; ++i) {
-        double log2y = std::log2(std::abs(y[i]));
-        sum_x += x[i];
-        sum_y += log2y;
-        sum_xx += x[i] * x[i];
-        sum_xy += x[i] * log2y;
+    // Complexity tests: Running MLMC for different Eps values
+    std::vector<std::vector<int>> Nls;
+    std::vector<std::vector<double>> costs;
+    std::vector<double> mlmc_estimates;
+    std::vector<double> std_costs;
+    std::vector<double> mlmc_costs;
+    std::vector<std::vector<double>> Yls;  // Store per-level estimators for each epsilon
+    std::vector<std::vector<double>> Vls; // Store per-level variances for each epsilon
+
+    std::cout << "\n*********** Complexity test (MLMC vs standard MC for different eps) ***********\n";
+    for (const auto& eps: Eps) {
+        std::cout << "Running MLMC for eps = " << eps << "...\n";
+        auto [P, Nl, suml] = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma);
+
+        mlmc_estimates.push_back(P);
+        Nls.push_back(Nl);
+
+        std::vector<double> means(Nl.size()), variances(Nl.size());
+        for (size_t l = 0; l < Nl.size(); ++l) {
+            if (Nl[l] > 0) {
+                double mean = suml[0][l] / Nl[l];
+                double mean_sq = suml[1][l] / Nl[l];
+                means[l] = mean;
+                variances[l] = std::max(0.0, mean_sq - mean * mean);
+            } else {
+                means[l] = 0.0;
+                variances[l] = 0.0;
+            }
+        }
+            
+        Yls.push_back(means);
+        Vls.push_back(variances);
+
+        // Compute MLMC cost = sum_{l} Nl[l] * Cl[l]
+        std::vector<double> Cl(Nl.size());
+        for (size_t l = 0; l < Nl.size(); ++l)
+            Cl[l] = std::pow(M, l);
+        
+        double mlmc_cost = 0.0;
+        for (size_t l = 0; l < Nl.size(); ++l)
+            mlmc_cost += Nl[l] * Cl[l];
+        
+        // Standard MC cost estimate: var2[-1] is the finest-level variance
+        double var_fine = var2.back();
+        double std_cost = 0.0;
+        for (size_t l = 0; l < Nl.size(); ++l)
+            std_cost += (2 * var_fine / (eps * eps)) * Cl[l];
+
+        mlmc_costs.push_back(mlmc_cost);
+        std_costs.push_back(std_cost);
+
+        std::cout << " MLMC estimate = " << P << ", MLMC cost = " << mlmc_cost << ", Std MC cost = " << std_cost << std::endl;
     }
-    double denom = n * sum_xx - sum_x * sum_x;
-    double slope = (n * sum_xy - sum_x * sum_y) / denom;
-    // Alpha is the negative slope
-    return -slope;
+
+    // Output complexity data
+    size_t max_levels = 0;
+    for (const auto& Nl : Nls) max_levels = std::max(max_levels, Nl.size());
+
+    std::ofstream comp_out(output_complexity_filename);
+    comp_out << "eps,mlmc_estimate,mlmc_cost,std_mc_cost";
+    for (size_t l = 0; l < Nls[0].size(); ++l)
+        comp_out << ",Nl_" << l;
+    for (size_t l = 0; l < Yls[0].size(); ++l) {
+        comp_out << ",Yl_" << l;
+    }
+    for (size_t l = 0; l < Vls[0].size(); ++l) {
+        comp_out << ",Vl_" << l;
+    }
+    comp_out << "\n";
+
+    for (size_t i = 0; i < Eps.size(); ++i) {
+        comp_out << Eps[i] << "," << mlmc_estimates[i] << "," << mlmc_costs[i] << "," << std_costs[i];
+
+        // Pad with zeros if this run didn't have all levels
+        for (size_t l = 0; l < max_levels; ++l)
+            comp_out << "," << (l < Nls[i].size() ? Nls[i][l] : std::numeric_limits<double>::quiet_NaN());
+        for (size_t l = 0; l < max_levels; ++l)
+            comp_out << "," << (l < Yls[i].size() ? Yls[i][l] : std::numeric_limits<double>::quiet_NaN());
+        for (size_t l = 0; l < max_levels; ++l)
+            comp_out << "," << (l < Vls[i].size() ? Vls[i][l] : std::numeric_limits<double>::quiet_NaN());
+
+        comp_out << "\n";
+    }
+    comp_out.close();
+    std::cout << "\nWrote complexity table to " << output_complexity_filename << "\n";
+
 }

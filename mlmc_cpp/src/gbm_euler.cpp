@@ -17,13 +17,15 @@ void run_gbm_euler(const int N) {
 
     int M = 2;
     int L = 10;
-    int N0 = 1000;
+    int N0 = 100;
 
     std::vector<double> Eps = {0.005, 0.01, 0.02, 0.05, 0.1};
     
-    std::string output_filename = "../outputs/mlmc_convergence_gbm_euler.csv";
+    std::string output_convergence_filename = "../outputs/mlmc_convergence_gbm_euler.csv";
+    std::string output_complexity_filename = ":../outputs/mlmc_complexity_gbm_euler.csv";
 
-    mlmc_test([=](int l, int N) { return gbm_l(l, N, S0, K, T, r, sig); }, M, N, L, N0, Eps, output_filename);
+    mlmc_test([=](int l, int N) { return gbm_l(l, N, S0, K, T, r, sig); }, M, N, L, N0, Eps, 
+    output_convergence_filename, output_complexity_filename);
     std::cout << "Finished running GBM Euler MLMC." << std::endl;
 }
 

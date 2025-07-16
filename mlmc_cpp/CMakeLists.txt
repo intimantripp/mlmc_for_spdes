@@ -16,7 +16,7 @@ include_directories(include)
 add_executable(mlmc_cpp
     main.cpp
     src/gbm_euler.cpp
-    # src/mlmc.cpp
+    src/mlmc.cpp
     src/mlmc_test.cpp
 )
 
