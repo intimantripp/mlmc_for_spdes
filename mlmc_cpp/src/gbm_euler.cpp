@@ -77,10 +77,11 @@ std::pair<std::vector<double>, std::vector<double>> gbm_l(
         }
         
         // European option payoff + discounting
+        double discount = std::exp(-r * T);
         for (int i = 0; i < N2; ++i) {
-            Pf[i] = std::exp(-r * T) * std::max(0.0, Sf[i] - K);
+            Pf[i] = discount * std::max(0.0, Sf[i] - K);
             if (l > 0) {
-                Pc[i] = std::exp(-r * T) * std::max(0.0, Sc[i] - K);
+                Pc[i] = discount * std::max(0.0, Sc[i] - K);
             }
         }
 
@@ -97,6 +98,3 @@ std::pair<std::vector<double>, std::vector<double>> gbm_l(
 
     return {sum1, sum2};
 }
-
-
-
