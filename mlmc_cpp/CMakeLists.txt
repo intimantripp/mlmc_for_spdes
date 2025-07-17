@@ -23,5 +23,6 @@ add_executable(mlmc_cpp
     src/gbm_euler.cpp
     src/mlmc.cpp
     src/mlmc_test.cpp
+    src/stoch_heat_eqn_qoi.cpp
 )
 

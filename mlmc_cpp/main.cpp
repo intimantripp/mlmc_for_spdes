@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include "gbm_euler.hpp"
+#include "stoch_heat_eqn_qoi.hpp"
 // #include "mlmc_core.hpp"
 // #include "mlmc_test.hpp"
 
@@ -10,7 +11,8 @@ int main() {
     std::cout << "Starting MLMC simulation..." << std::endl;
     auto start = high_resolution_clock::now();
 
-    run_gbm_euler(150000);
+    run_stoch_heat_eqn(5000);
+    // run_gbm_euler();
 
     auto end = high_resolution_clock::now();
     duration<double> elapsed = end - start;

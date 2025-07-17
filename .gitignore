@@ -198,5 +198,5 @@ compile_commands.json
 Thumbs.db
 
 # Debug created files
-*.dYSM
-*.dYSM/
+*.dSYM
+*.dSYM/

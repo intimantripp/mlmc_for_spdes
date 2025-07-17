@@ -40,7 +40,6 @@ void mlmc_test(
 
     for (int l = 0; l <= L; ++l) {
         levels.push_back(l);
-        std::cout << "l = " << l << std::endl;
         auto start = std::chrono::high_resolution_clock::now();
         auto [sum1, sum2] = mlmc_fn(l, N);
         auto end = std::chrono::high_resolution_clock::now();
@@ -90,7 +89,7 @@ void mlmc_test(
 
     std::cout << "\nEstimates of key MLMC Theorem parameters based on linear regression:\n";
     double alpha = regression(reg_levels, reg_del1);
-    
+    std::cout << "alpha = " << alpha << " (exponent for MLMC weak convergence)\n";    
     double beta = regression(reg_levels, reg_var1);
     std::cout << "beta = " << beta << " (exponent for MLMC variance)\n";
 

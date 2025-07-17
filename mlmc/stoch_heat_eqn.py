@@ -5,7 +5,7 @@ np.random.seed(seed=42)
 
 def stoch_heat_eqn():
     M = 8
-    N = 1000
+    N = 5000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
