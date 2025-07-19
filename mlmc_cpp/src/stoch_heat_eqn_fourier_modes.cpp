@@ -1,10 +1,18 @@
-#include "stoch_heat_eqn_qoi.hpp"
+#include "stoch_heat_eqn_fourier_modes.hpp"
 #include "mlmc_test.hpp"
 #include <vector>
 #include <random>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+
+// Define pi if it isn't defined
+#ifndef M_PI
+constexpr double M_PI = std::acos(-1.0);
+#endif
+
+// Define Fourier Mode
+static const int mode = 1;
 
 // Global RNG
 static std::mt19937 RNG{ std::random_device{}() };
@@ -13,22 +21,23 @@ static std::normal_distribution<> Z(0.0, 1.0);
 // Utility to index a flattened 2D array: xi(i, n) = i * N2 + n
 inline int idx(int i, int n, int N2) {return i * N2 + n; }
 
-void run_stoch_heat_eqn(const int N) {
+void run_stoch_heat_eqn_fourier_modes(const int N) {
     std::cout << "Running MLMC Stochastic Heat Equation\n" << std::endl;
     int M = 8;
     int L = 6;
     int N0 = 100;
     std::vector<double> Eps = {0.005, 0.01, 0.02, 0.05, 0.1};
 
-    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn.csv";
-    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn.csv";
+    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode.csv";
+    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode.csv";
+    
 
     mlmc_test(
-        [=](int l, int N) { return stoch_heat_eqn_l(l, N); }, 
+        [=](int l, int N) { return stoch_heat_eqn_fourier_modes_l(l, N); }, 
         M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename);
 }
 
-std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_l(int l, int N) {
+std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_l(int l, int N) {
     const double lam = 0.25;
     const int batch_size = 100;
     int nf = 1 << (l + 1);
@@ -67,10 +76,12 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_l(int l, int 
             }
             // Compute Pf
             for (int n = 0; n < N2; ++n) {
-                double s = 0.0;
-                for (int i = 0; i <= nf; i++)
-                    s += uf[idx(i, n, N2)] * uf[idx(i, n, N2)];
-                Pf[n] = hf * s;
+                double u1 = 0.0;
+                for (int i = 0; i <= nf; i++) {
+                    double x = i * hf;
+                    u1 += uf[idx(i, n, N2)] * std::sin(mode * M_PI * x);
+                }
+                Pf[n] = hf * u1;
             }
         } else {
             // Both fine and coarse grids need to be constructed
@@ -116,15 +127,17 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_l(int l, int 
             }
             // Compute Pf and Pc
             for (int n =  0; n < N2; ++n) {
-                double sf = 0.0, sc = 0.0;
-                for (int i_f = 0; i_f <= nf; ++i_f)
-                    sf += uf[idx(i_f, n, N2)] * uf[idx(i_f, n, N2)]; // sum of values squared
-                if (l > 0) {
-                    for (int ic = 0; ic <= nc; ++ic)
-                        sc += uc[idx(ic, n, N2)] * uc[idx(ic, n, N2)];
+                double u1_f = 0.0, u1_c = 0.0; // First Fourier modes
+                for (int i_f = 0; i_f <= nf; ++i_f) {
+                    double x = i_f * hf;
+                    u1_f += 2 * uf[idx(i_f, n, N2)] * std::sin(mode * M_PI * x); // sum of values squared
                 }
-                Pf[n] = hf * sf;
-                Pc[n] = hc * sc;
+                for (int ic = 0; ic <= nc; ++ic) {
+                    double x = ic * hc;
+                    u1_c += 2 * uc[idx(ic, n, N2)] * std::sin(mode * M_PI * x);
+                }
+                Pf[n] = hf * u1_f;
+                Pc[n] = hc * u1_c;
             }
         }
         for (int n = 0; n < N2; ++n) {

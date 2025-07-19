@@ -1,9 +1,9 @@
 #include <iostream>
 #include <chrono>
+#include "stoch_heat_eqn_energy.hpp"
+#include "stoch_heat_eqn_fourier_modes.hpp"
+#include "stoch_heat_eqn_fourier_modes_var.hpp"
 #include "gbm_euler.hpp"
-#include "stoch_heat_eqn_qoi.hpp"
-// #include "mlmc_core.hpp"
-// #include "mlmc_test.hpp"
 
 int main() {
     using namespace std::chrono;
@@ -11,7 +11,9 @@ int main() {
     std::cout << "Starting MLMC simulation..." << std::endl;
     auto start = high_resolution_clock::now();
 
-    run_stoch_heat_eqn(5000);
+    // run_stoch_heat_eqn_fourier_modes(5000);
+    run_stoch_heat_eqn_fourier_modes_var(1000);
+    // run_stoch_heat_eqn_energy(5000);
     // run_gbm_euler();
 
     auto end = high_resolution_clock::now();
