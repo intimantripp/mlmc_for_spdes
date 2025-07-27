@@ -34,7 +34,7 @@ def nth_fourier_mode(n, u):
 
 def stoch_heat_eqn_fine_coupling(qoi_fn=default_qoi, validation_value=None):
     M = 8
-    N = 6000
+    N = 10000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
@@ -63,7 +63,7 @@ def stoch_heat_eqn_l(l, N, qoi_fn=default_qoi):
     sum1 = np.zeros(4)
     sum2 = np.zeros(2)
 
-    for N1 in range(0, N, 1000):
+    for N1 in range(0, N, 100):
         rng = np.random.default_rng()   
         N2 = min(100, N - N1)
         uf = np.zeros((nf+1, N2))

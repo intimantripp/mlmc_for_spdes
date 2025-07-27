@@ -35,7 +35,7 @@ def nth_fourier_mode(n, u):
 def stoch_heat_eqn_qoi(qoi_fn=default_qoi, noise_coupling=suspect_noise_coupling, validation_value=None):
     nvert = 3
     M = 8
-    N = 6000
+    N = 10000
     L = 6
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
