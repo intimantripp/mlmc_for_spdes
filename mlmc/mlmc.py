@@ -75,4 +75,3 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
     P = np.sum(suml[0, :] / Nl)
 
     return P, Nl, suml
-
