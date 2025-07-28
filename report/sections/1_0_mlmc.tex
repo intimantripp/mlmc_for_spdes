@@ -1,0 +1,19 @@
+\section{Prerequisites}
+
+\subsection{Multilevel Monte Carlo}
+
+The MLMC method, introduced by Giles \cite{giles2015multilevel}, is a variance reduction technique
+designed to substantially reduce the computational cost of estimating quantities arising from stochastic systems
+compared to the standard Monte Carlo method.
+
+Given some computed quantity $P$, the standard Monte Carlo estimate of $\mathbb{E}\left[P\right]$ 
+is given by the average of $N$ independent samples of $P$:
+
+\begin{equation*}
+    \mathbb{E}\left[P\right] \approx \frac{1}{N} \sum_{n=1}^{N} P^{(n)} = P_{MC}
+\end{equation*}
+
+The variance of this estimate is $N^-1 \mathbb{V}\left[P\right]$, the standard error is therefore 
+$O(N^{\frac{1}{2}})$ and consequently to achieve an accuracy of $\varepsilon$, $N = O(\varepsilon^{-2})$ samples 
+are required. 
+
