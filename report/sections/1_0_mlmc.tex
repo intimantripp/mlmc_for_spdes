@@ -2,18 +2,62 @@
 
 \subsection{Multilevel Monte Carlo}
 
-The MLMC method, introduced by Giles \cite{giles2015multilevel}, is a variance reduction technique
-designed to substantially reduce the computational cost of estimating quantities arising from stochastic systems
+The MLMC method, introduced by Giles \cite{giles2008multilevel}, is a variance reduction technique
+designed to substantially reduce the computational cost of estimating expectations arising from stochastic systems
 compared to the standard Monte Carlo method.
 
-Given some computed quantity $P$, the standard Monte Carlo estimate of $\mathbb{E}\left[P\right]$ 
+Given some quantity $P$, the standard Monte Carlo estimate of $\mathbb{E}\left[P\right]$ 
 is given by the average of $N$ independent samples of $P$:
 
 \begin{equation*}
-    \mathbb{E}\left[P\right] \approx \frac{1}{N} \sum_{n=1}^{N} P^{(n)} = P_{MC}
+    \mathbb{E}\left[P\right] \approx \frac{1}{N} \sum_{n=1}^{N} P^{(n)} = \hat{P}_{MC}
 \end{equation*}
 
-The variance of this estimate is $N^-1 \mathbb{V}\left[P\right]$, the standard error is therefore 
+The variance of this estimate is $N^-1 \mathbb{V}\left[P\right]$, therefore the standard error is 
 $O(N^{\frac{1}{2}})$ and consequently to achieve an accuracy of $\varepsilon$, $N = O(\varepsilon^{-2})$ samples 
-are required. 
+are required.
 
+The treatment above assumes that each Monte Carlo sample $P^{(n)}$ is an exact evaluation of the quantity $P$.
+In Practice, however, such evaluations are rarely possible. Typically the quantity of interest $P$ is a functional
+of some unknown solution $u(x,t)$ and $u$ is governed by some differential
+equation. In this dissertation, this will be 
+the case, as $u(x,t)$ will be governed by an SPDE. Since analytic solutions of SPDEs are seldom available, 
+numerical methods such as finite-difference or finite-element schemes must be employed. Consequently,
+each sample $P_h^{(n)}$ is subject not only to statistical sampling error, but also to a bias or discretisation error
+stemming from the finite numerical resolution of the underlying mesh, characterised by a mesh size $h$.
+A common measure of the accuracy of Monte Carlo estimates is the Mean  Square Error (MSE). It can be shown that 
+the MSE accounts for both the bias in the estimator and its variance. The Root Mean Square Error is also 
+commonly employed.
+
+
+\begin{equation}\label{eq:MSE}
+    \text{MSE} \equiv \mathbb{E}\left[(P_h - \mathbb{E}\left[P\right])^2\right] 
+    = \underbrace{(\mathbb{E}[P_h] - \mathbb{E}[P])^2}_{\text{Bias}^2}
+    \;+\;
+    \underbrace{\mathbb{V}[\hat{P}]}_{\text{Variance}}.
+\end{equation}
+
+This distinction is fundamental. Simply increasing the number of Monte Carlo samples cannot reduce 
+discretisation bias;
+only mesh refinement (reducing $h$) can achieve this. Conversely, reducing variance requires larger $N$, 
+i.e. more samples. The motivation behind the Multilevel Monte Carlo method is to balance these 
+competing requirements efficiently. To achieve this, MLMC leverages a heirarchy of discretisation 
+to simultaneously control both bias and variance at significantly reduced computational cost.
+
+MLMC introduces multiple discretisation levels, denotes by mesh sizes $h_\ell = M^{-\ell}h_0$ for 
+$\ell = 0, 1, ..., L$ with $M \geq 2$. At each level $\ell$, let $P_\ell$ denote the numerical approximation
+of quantity $P$. Then, exploiting the linearity of expectation, one can obtain the following telescoping
+sum:
+
+\begin{equation}\label{eq:telescoping_sum}
+    \mathbb{E}\left[P_L\right] = \mathbb{E}\left[P_0\right]  + 
+    \sum_{\ell = 1}^{L} \mathbb{E}\left[P_\ell - P_{\ell - 1}\right]
+\end{equation}
+
+By obtaining a Monte Carlo estimate for each term, equation \eqref{eq:telescoping_sum} brings us to the 
+MLMC estimator:
+
+\begin{equation}\label{eq:MLMC_estimator}
+    \hat{P}_{MLMC} = \frac{1}{N_0}\sum_{n=1}^{N_0} P_0^{(n)} + 
+    \sum_{\ell=1}^{L}\frac{1}{N_{\ell}} \sum_{n=1}^{N_\ell} \left(P_\ell^{(n)} - P_{\ell-1}^{(n)}\right)
+\end{equation}
