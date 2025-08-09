@@ -33,7 +33,6 @@ def nth_fourier_mode(n, u):
     return fourier_mode
 
 def stoch_heat_eqn_qoi(qoi_fn=default_qoi, noise_coupling=suspect_noise_coupling, validation_value=None):
-    nvert = 3
     M = 8
     N = 10000
     L = 6
@@ -41,7 +40,7 @@ def stoch_heat_eqn_qoi(qoi_fn=default_qoi, noise_coupling=suspect_noise_coupling
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
     if qoi_fn.__name__=='default_qoi':
         validation_value = 1/12 - np.exp(- 2 * np.pi**2) / (2 * np.pi**2)
-    del1, del2, var1, var2 = mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N, qoi_fn, noise_coupling), M, N, L, N0, Eps, nvert, validation_value=validation_value)
+    del1, del2, var1, var2 = mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N, qoi_fn, noise_coupling), M, N, L, N0, Eps, validation_value=validation_value)
     
     return del1, del2, var1, var2
 
