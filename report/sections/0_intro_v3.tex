@@ -4,13 +4,19 @@ The purpose of this dissertation is to investigate the application of
 the Multilevel Monte Carlo (MLMC) method as a technique for 
 reducing computational cost in estimating expectations 
 of random variables for specific classes of 
-stochastic partial differential equations (SPDEs).  The central question 
-is whether -- and by how much -- MLMC reduces the wall-clock time required 
-to achieve a target root-mean-square error (RMSE) compared with the 
-standard Monte Carlo estimator built on the same numerical scheme.
+stochastic partial differential equations (SPDEs).  
 
-We begin this dissertation by first motivating this investigation of 
-alternatives to the standard Monte Carlo method when solving for SPDEs, 
+The central question 
+is:
+\begin{quote}
+\emph{By how much can MLMC reduce the computational cost (wall-clock time)
+needed to achieve a target root-mean-square error (RMSE) compared with the
+standard Monte Carlo (MC) estimator built on the same numerical scheme?}
+\end{quote}
+
+
+We begin this dissertation by motivating this investigation of 
+alternatives to the standard Monte Carlo method when solving SPDEs, 
 before continuing on to outline more specifically the goals and structure
 of this dissertation.
 
@@ -211,8 +217,16 @@ This forms a key part in the investigation of this dissertation.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.6\textwidth]{graphics/fine_grid_vs_coarse_grid.png}
-    \caption{An illustrative a coarse and a fine grid}
+    \begin{overpic}[width=0.8\linewidth]{graphics/fine_grid_vs_coarse_grid.png}
+        \put(9,0){\color{black}\text{Coarse Grid}}
+        \put(75,0){\color{black}\text{Fine Grid}}
+    \end{overpic}
+    \caption{An illustrative coarse and fine finite difference grid used to 
+    obtain samples of $P_{\ell - 1}$ and $P_\ell$ respectively. Red dots 
+    indicate vertices of the coarse grid. These are overlayed on the 
+    fine grid also, indicating common points both grids share and that
+    both would evaluate. Black dots indicate vertices of the fine grid that are 
+    not common to the coarse grid.}
     \label{fig:coarse_vs_fine_grid}
 \end{figure}
 

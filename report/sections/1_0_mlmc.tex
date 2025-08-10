@@ -1,63 +1,83 @@
 \section{Prerequisites}
 
-\subsection{Multilevel Monte Carlo}
+In this section we will outline the relevant prerequisites required to 
+justify and present the investigations performed in this dissertation. 
+These encompass outlining the Multilevel Monte Carlo (MLMC)
+method in further depth than that given in Section \ref{sec:introduction}, 
+presenting the SPDEs investigated and the finite difference schemes derived for them,
+and a review of the relevant literature.
+\cite{giles2015multilevel}
 
-The MLMC method, introduced by Giles \cite{giles2008multilevel}, is a variance reduction technique
-designed to substantially reduce the computational cost of estimating expectations arising from stochastic systems
-compared to the standard Monte Carlo method.
+\subsection{Multilevel Monte Carlo method}
 
-Given some quantity $P$, the standard Monte Carlo estimate of $\mathbb{E}\left[P\right]$ 
-is given by the average of $N$ independent samples of $P$:
+Let $P$ be a random variable defined implicitly through the solution of a stochastic
+differential equation, and let $P_L$ denote its numerical approximation 
+obtained using a discretisation of level $L$, such that 
+$\mathbb{E}[P] \approx \mathbb{E}[P_L]$. We define additional estimators $P_\ell$ 
+for less accurate levels $\ell \in \{0, 1, ..., L\}$.
+For example, in later  
+finite difference schemes we will use spatial step size $h_\ell = 2^{-(\ell+1)}$.
+
+We express $\mathbb{E}[P_L]$ via the following telescopic sum
 
 \begin{equation*}
-    \mathbb{E}\left[P\right] \approx \frac{1}{N} \sum_{n=1}^{N} P^{(n)} = \hat{P}_{MC}
+    \mathbb{E}[P_L] = \sum_{\ell = 0}^L \mathbb{E}\left[P_\ell - P_{\ell - 1}\right] 
+    \quad \text{where } P_{-1} \equiv 0.
 \end{equation*}
 
-The variance of this estimate is $N^-1 \mathbb{V}\left[P\right]$, therefore the standard error is 
-$O(N^{\frac{1}{2}})$ and consequently to achieve an accuracy of $\varepsilon$, $N = O(\varepsilon^{-2})$ samples 
-are required.
+We define the following unbiased estimator for $\mathbb{E}[P_L]$ to be the MLMC estimator:
 
-The treatment above assumes that each Monte Carlo sample $P^{(n)}$ is an exact evaluation of the quantity $P$.
-In Practice, however, such evaluations are rarely possible. Typically the quantity of interest $P$ is a functional
-of some unknown solution $u(x,t)$ and $u$ is governed by some differential
-equation. In this dissertation, this will be 
-the case, as $u(x,t)$ will be governed by an SPDE. Since analytic solutions of SPDEs are seldom available, 
-numerical methods such as finite-difference or finite-element schemes must be employed. Consequently,
-each sample $P_h^{(n)}$ is subject not only to statistical sampling error, but also to a bias or discretisation error
-stemming from the finite numerical resolution of the underlying mesh, characterised by a mesh size $h$.
-A common measure of the accuracy of Monte Carlo estimates is the Mean  Square Error (MSE). It can be shown that 
-the MSE accounts for both the bias in the estimator and its variance. The Root Mean Square Error is also 
-commonly employed.
+\begin{definition}[MLMC Estimator]\label{def:mlmc_estimator}
+    Given $N_\ell \in \mathbb{N}$ samples on each level $\ell = 0, \dots, L$, the 
+    MLMC estimator for $\mathbb{E}[P_L]$ is
+    \[
+    \hat{P}_{\mathrm{MLMC}} 
+    \;=\; \sum_{\ell=0}^L 
+    \frac{1}{N_\ell} \sum_{n=1}^{N_\ell}
+    \big( P_\ell^{(n,\ell)} - P_{\ell-1}^{(n,\ell)} \big),
+    \]
+    with the convention $P_{-1}^{(n, -1)} \equiv 0$ and where $P_\ell^{(n, \ell)},
+    P_{\ell - 1}^{(n, \ell)}$ are coupled coarse/fine samples sharing the same random inputs.
+\end{definition}
 
+For each level $\ell$ we also define the following quantities, following the notation
+used in \cite{giles2015multilevel}:
+\begin{equation*}
+    Y_\ell := \frac{1}{N_\ell} \sum_{n=1}^{N_\ell}
+    \big( P_\ell^{(n,\ell)} - P_{\ell-1}^{(n,\ell)} \big) 
+    \quad
+    V_\ell :=  \mathbb{V}[P_\ell - P_{\ell - 1}]
+\end{equation*}
 
-\begin{equation}\label{eq:MSE}
-    \text{MSE} \equiv \mathbb{E}\left[(P_h - \mathbb{E}\left[P\right])^2\right] 
-    = \underbrace{(\mathbb{E}[P_h] - \mathbb{E}[P])^2}_{\text{Bias}^2}
-    \;+\;
-    \underbrace{\mathbb{V}[\hat{P}]}_{\text{Variance}}.
+Denoting by $C_\ell$ the expected cost of a single sample for $P_\ell - P_{\ell - 1}$,
+we obtain an overall cost for the MLMC estimator of $\sum_{\ell=0}^L C_\ell N_\ell$ and 
+an overall variance of $\sum_{\ell=0}^L N_\ell^{-1} V_\ell$.
+
+We wish to determine $N_\ell$ that minimises the total cost for a fixed variance $\varepsilon^2$.
+Using a largange multiplier $\mu^2$ gives $N_\ell = \mu \sqrt{V_\ell / C_\ell}$. 
+Via the variance constraint we obtain $\mu = \varepsilon^{-2} \sum_{\ell=0}^L\sqrt{V_\ell C_\ell}$. 
+Thus, the overall cost is
+
+\begin{equation}\label{eq:mlmc_tot_cost}
+    C_{MLMC} = \varepsilon^{-2}\big(\sum_{\ell=0}^L\sqrt{V_\ell C_\ell}\big)^2
 \end{equation}
 
-This distinction is fundamental. Simply increasing the number of Monte Carlo samples cannot reduce 
-discretisation bias;
-only mesh refinement (reducing $h$) can achieve this. Conversely, reducing variance requires larger $N$, 
-i.e. more samples. The motivation behind the Multilevel Monte Carlo method is to balance these 
-competing requirements efficiently. To achieve this, MLMC leverages a heirarchy of discretisation 
-to simultaneously control both bias and variance at significantly reduced computational cost.
+The dominant cost is determined by whether the product $V_\ell C_\ell$ increases or decreases with 
+$\ell$. If the product increases with $\ell$, the dominant cost comes from $V_L C_L$ such that 
+$C_{MLMC} \approx \varepsilon^{-2} V_L C_L$. Conversely, if the product decreases with $\ell$ 
+then $C_{MLMC} \approx \varepsilon^{-2}V_0C_0$ \cite{giles2015multilevel}. In contrast, 
+the Monte Carlo estimator has total cost $\mathbb{\varepsilon^{-2}V_0C_L}$
 
-MLMC introduces multiple discretisation levels, denotes by mesh sizes $h_\ell = M^{-\ell}h_0$ for 
-$\ell = 0, 1, ..., L$ with $M \geq 2$. At each level $\ell$, let $P_\ell$ denote the numerical approximation
-of quantity $P$. Then, exploiting the linearity of expectation, one can obtain the following telescoping
-sum:
+We also define the following unbiased Monte Carlo estimator for $\mathbb{E}[P_L]$ also
 
-\begin{equation}\label{eq:telescoping_sum}
-    \mathbb{E}\left[P_L\right] = \mathbb{E}\left[P_0\right]  + 
-    \sum_{\ell = 1}^{L} \mathbb{E}\left[P_\ell - P_{\ell - 1}\right]
-\end{equation}
+\begin{definition}[MC Estimator]\label{def:mc_estimator}
+    Given $N_L \in \mathbb{N}$ independent samples obtained at level $L$, the MC estimator for 
+    $\mathbb{E}[P_L]$ is
+    \[
+    \hat{P}_{MC} = \frac{1}{N_L}\sum_{n=1}^{N_L}P_L^{(n)}
+    \]
+\end{definition}
 
-By obtaining a Monte Carlo estimate for each term, equation \eqref{eq:telescoping_sum} brings us to the 
-MLMC estimator:
+The cost of the MC estimator therefore is $N_L C_L$
 
-\begin{equation}\label{eq:MLMC_estimator}
-    \hat{P}_{MLMC} = \frac{1}{N_0}\sum_{n=1}^{N_0} P_0^{(n)} + 
-    \sum_{\ell=1}^{L}\frac{1}{N_{\ell}} \sum_{n=1}^{N_\ell} \left(P_\ell^{(n)} - P_{\ell-1}^{(n)}\right)
-\end{equation}
+
