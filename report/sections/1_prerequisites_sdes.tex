@@ -1,0 +1,90 @@
+\section{Stochastic Partial Differential Equations}
+
+In their most general sense, an SPDE is a partial differential equation
+where at least one of the following is random: coefficients, 
+initial boundary conditions, the domain, and the forcing term 
+\cite{lototsky2017stochastic}. In our case, 
+the SPDEs we examine have only a random forcing term. In this section, 
+we will present the two SPDEs we consider, define their relevant 
+terms and discuss their specifics.
+
+\subsection{The Stochastic Heat Equation}
+
+The stochastic heat equation (SHE) is a canonical example of a parabolic SPDE.
+Formally, it is the standard heat equation perturbed by a stochastic
+forcing term introducing spatially and temporally uncorrelated 
+fluctuations. For instance, heat diffusing through a metal bar 
+that experiences heat emitting chemical reactions is a typical scenario the SHE
+describes.
+
+\begin{align}\label{eq:she_spde}
+\frac{\partial u(t,\mathbf{x})}{\partial t} &= \Delta u(t,\mathbf{x}) + \xi(t,\mathbf{x})
+\tag{SHE}\\
+u(0, \mathbf{x}) &= u_0(\mathbf{x})
+\end{align}
+
+$u(t,\mathbf{x})$ is a real valued function dependent on time $t \in [0, T]$ and 
+spatial position $\mathbf{x}$ within domain $D \subset \mathbb{R}^d$. $\Delta$ is the Laplacian operator.
+
+The defining component is the stochastic forcing term $\xi(t,\mathbf{x})$ term which denotes 
+space-time white noise. $\xi$ is not a classical function but a generalised 
+stochastic process, or random distribution. It is mmost accurately understand as the 
+distributional derivative of a Brownian sheet, $W(t,\mathbf{x})$, which is a centred Gaussian 
+process indexed by $(t,\mathbf{x})$ with independent increments over disjoint rectangles in 
+space-time. $\xi$ is therefore formally defined by its inner product against a test function $\phi$,
+as $\langle\xi, \phi\rangle$. This random variable is Gaussian and defined by the following two properties:
+
+\begin{align}\label{eq:white_noise_defs}
+    \text{Zero Mean: } & \mathbb{E}\left[\langle \xi, \phi \rangle \right] = 0 \\
+    \text{Covariance Structure: } & \mathbb{E}\left[\langle\xi,\phi\rangle \langle\xi,\psi\rangle\right]
+    = \langle\phi, \psi\rangle_{L^2} = \int_0^T \int_D \phi(t, \mathbf{x}) \psi(t, \mathbf{x}) \,\mathrm{d}\mathbf{x} \,\mathrm{d}t
+\end{align}
+
+In section SECTION HERE we will derive the finite difference schemes used here for these 
+quantities using equations \eqref{eq:white_noise_defs}.
+
+
+\subsection{The Dean-Kawasaki Equation}
+
+The Dean-Kawasaki (DK) equation is used to describe the evolution of the density 
+$\rho(\mathbf{x}, t)$ of a system of $N >> 1$ weakly interacting particles.
+For the non-interacting case investigated in this dissertation, the equation is given by:
+
+\begin{align}\label{eq:dk_spde}
+\frac{\partial_\rho(t, \mathbf{x})}{\partial t} &= 
+\frac{1}{2}\Delta\rho(t, \mathbf{x}) + N^{-1/2}\nabla\cdot(\sqrt{\rho(t, \mathbf{x})}\xi(t, \mathbf{x})) \tag{DK} \
+\rho(0, \mathbf{x}) &= \rho_0(\mathbf{x}) \nonumber
+\end{align}
+
+Here, $\rho(t, \mathbf{x})$ is the particle density at time $t$ and position $\mathbf{x}$.
+The term $\frac{1}{2} \Delta \rho$ describes standard particle diffusion. 
+The stochastic forcing term $N^{-1/2} \nabla \cdot (\sqrt{\rho}\xi)$ models the density 
+fluctuations, where $\xi$ is space-time white noise. 
+
+The $DK$ equation presents significant mathematical and numerical challenges. The noise term 
+is multiplicative, its magnitude scaled by the local density through $\sqrt{\rho}$.
+The equation is highly singular. As shown in \cite{konarovskyi2019dean}, the only 
+martingale solutions to DK are empirical measures of the underlying particle system. Thus
+we require
+
+\begin{equation*}
+    \rho(\mathbf{x},t) \equiv \mu_t^N(\mathbf{x}) := N^{-1} \sum_{i=1}^N\delta(x - X_i(t)).
+\end{equation*}
+
+Cornalba and Fischer \cite{cornalba2025multilevel} however do demonstrate that
+statistical properties of fluctuations 
+around the mean-field limit $\bar{rho}$ can be simulated. 
+Generally, quantities of interest of the form:
+
+\begin{equation}
+    Q = \psi\big(N^{1/2} \int (\mu_N^T - \bar{\rho}^T)(\mathbf{x})
+    \phi(\mathbf{x})\mathrm{d}\mathbf{x}\big)
+\end{equation}
+
+
+This can correspond to for example the variances 
+$\mathbb{E}[|N^{1/2}\int(\\mu_T^N - \bar{\rho}^T)(\mathbf{x})\phi(\mathbf{x})\mathrm{d}x|^2]$.
+
+
+
+

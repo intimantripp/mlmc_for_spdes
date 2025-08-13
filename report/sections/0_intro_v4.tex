@@ -1,0 +1,121 @@
+\chapter{Introduction}
+
+The purpose of this dissertation is to investigate the application of the 
+Multilevel Monte Carlo (MLMC) method as a technique for reducing 
+the computational cost in estimating expectations of random variables 
+for two classes of parabolic stochastic partial differential equations (SPDEs).
+
+The motivation for this stems from the fact that the standard Monte Carlo 
+(MC) estimator suffers from slow convergence. Its root mean square error 
+(defined in section SECTION HERE) decays $O(N^{-1/2})$ where $N$ is the number 
+of independent samples obtained, and therefore achieving a high accuracy 
+estimate requires a high number of samples. As most SPDEs do not admit 
+analytic solutions, the main approach available for estimating expectations of 
+functionals of SPDEs is Monte Carlo methods. In the context
+of SPDEs, obtaining samples typically requires discretising 
+the spatial domain via finite difference or finite element methods
+and then evolving the system to obtain the desires quantity. Accurate 
+estimates requires fine discretisations, and as such, the cost of obtaining 
+a sample can become expensive. This, combined with the slow convergence of the 
+standard MC estimator, can make the standard Monte Carlo method prohibitively
+expensive.
+
+A number of techniques exist that aim to improve on the convergence of 
+the MC estimator. Their goal is to achieve an equivalent variance in their estimate 
+at a reduced computational cost. The MLMC method is one such method. 
+At its heart is an approach of computing a blend of cheaper and more expensive
+samples, unlike the MC estimator which uses only samples of the same cost.
+Many inexpensive samples provide the bulk of the statistical signal, 
+while comparitively few more costly samples then correct any residual bias.
+In the context of SPDEs, this means obtaining samples using meshes at 
+varying \textit{levels} of discretisation. By taking many samples at cheaper,
+coarser levels and fewer at finer, more expensive levels, the MLMC 
+estimator aim to achieve an estimate of equivalent accuracy at reduced cost
+compared to the MC estimator.
+
+The practical efficiency of the MLMC method however relies on correlating 
+samples obtained at different levels, in a manner analogous to that of the 
+control variates method \cite{giles2015multilevel} MORE CITATIONS HERE. 
+This is because the cost savings is dependent on the extent to which 
+samples across two adjacent levels of accuracy covary. Practically, this 
+entails aligning the randomness used to generate pairs of coarse and 
+fine samples. This is referred to as \textit{coupling}. 
+To provide intuition as to what this means, Figure
+\ref{fig:coarse_vs_fine_grid} illustrates what the finite difference 
+grid used by two adjacent estimators might look like. At each 
+node in these grids, a random noise is required to be generated. 
+This raises a serious question: what methods are best suited to aligning the 
+randomness across samples? Further, how large an impact 
+can different coupling methods have?
+
+\begin{figure}[htbp]
+    \centering
+    \begin{overpic}[width=0.8\linewidth]{graphics/fine_grid_vs_coarse_grid.png}
+        \put(9,0){\color{black}\text{Coarse Grid}}
+        \put(75,0){\color{black}\text{Fine Grid}}
+    \end{overpic}
+    \caption{An illustrative coarse and fine finite difference grid used to 
+    obtain samples of $P_{\ell - 1}$ and $P_\ell$ respectively. Red dots 
+    indicate vertices of the coarse grid. These are overlayed on the 
+    fine grid also, indicating common points both grids share and that
+    both would evaluate. Black dots indicate vertices of the fine grid that are 
+    not common to the coarse grid.}
+    \label{fig:coarse_vs_fine_grid}
+\end{figure}
+
+
+There are three main questions this dissertation aims to answer therefore. 
+
+\begin{enumerate}
+    \item \textbf{What cost savings can MLMC achieve over standard MC in the context 
+    of two parabolic SPDEs?}
+    \item \textbf{What are the effects of different coupling mechanisms?}
+    \item \textbf{Monte Carlo methods are embarrasingly parallelisable. What further 
+    cost reductions are therefore achievable in high performance implementations 
+    of these methods if we take advantage of the highly parallel nature of MC methods?}
+\end{enumerate}
+
+To answer these questions, this dissertation is structured as follows.
+
+SECTION HERE provides the theoretical background and a review of the 
+relevant literature. 
+We begin by formally defining the standard MoION HERE 
+To best present the answers found to these questions, this dissertation 
+is structured as so. In the next section we formally present the requisite 
+topics as they pertain to this investigation. This will cover 
+the main theory of MLMC, a sufficiently relevant overview of SPDEs and a literature
+review of the current landscape.
+
+SECTION HERE details our numerical implementation. We describe the 
+finite difference schemes used to discretise the SPDEs and, 
+crucially, the specific coupling strategies employed to correlate samples between
+levels. We then validate our implementation, demonstrating that it achieves 
+the correct theoretical convergence rates for both the stochastic heat equation
+and the Dean-Kawasaki equation.
+
+Section SECTION HERE will then present an MLMC implementation for the 
+stochastic heat equation. We  validate this implementation through a series of methods, 
+varying the quantity of interest being derived, that our MLMC implementation 
+converges to this and that its rate of convergence is appropriate. We then 
+further validate our MLMC implementation of the Dean-Kawasaki equation, replicating 
+the results of the original paper and our implementation.
+
+
+Section SECTION HERE presents a comprehensive performance analysis. 
+We directly address our first two research questions by comparing the 
+computational cost of our MLMC implementation against a standard MC 
+estimator for a range of target accuracies. Furthermore, we analyse 
+the practical impact of different coupling mechanisms on overall efficiency.
+
+Section SECTION HERE explores the potential for further cost reductions 
+through high-performance computing. We discuss the design of a parallelised MLMC 
+algorithm that leverages modern multi-core architectures and present performance 
+metrics, such as computational speedup, to quantify the benefits of this approach.
+
+Finally, Section SECTION HERE 
+Finally, Chapter 6 concludes the dissertation. We summarise our key findings, 
+revisit the initial research questions, and discuss potential avenues for future investigation.
+
+
+
+ 
