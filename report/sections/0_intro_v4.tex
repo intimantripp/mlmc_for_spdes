@@ -1,21 +1,21 @@
-\chapter{Introduction}
+\chapter{Introduction}\label{sec:intro}
 
-The purpose of this dissertation is to investigate the application of the 
+The purpose of this dissertation is to investigate the 
 Multilevel Monte Carlo (MLMC) method as a technique for reducing 
 the computational cost in estimating expectations of random variables 
 for two classes of parabolic stochastic partial differential equations (SPDEs).
 
 The motivation for this stems from the fact that the standard Monte Carlo 
 (MC) estimator suffers from slow convergence. Its root mean square error 
-(defined in section SECTION HERE) decays $O(N^{-1/2})$ where $N$ is the number 
+decays $O(N^{-1/2})$ where $N$ is the number 
 of independent samples obtained, and therefore achieving a high accuracy 
 estimate requires a high number of samples. As most SPDEs do not admit 
 analytic solutions, the main approach available for estimating expectations of 
 functionals of SPDEs is Monte Carlo methods. In the context
 of SPDEs, obtaining samples typically requires discretising 
 the spatial domain via finite difference or finite element methods
-and then evolving the system to obtain the desires quantity. Accurate 
-estimates requires fine discretisations, and as such, the cost of obtaining 
+and then evolving the system to obtain the desired quantity. Accurate 
+estimates require fine discretisations, and as such, the cost of obtaining 
 a sample can become expensive. This, combined with the slow convergence of the 
 standard MC estimator, can make the standard Monte Carlo method prohibitively
 expensive.
@@ -30,21 +30,21 @@ while comparitively few more costly samples then correct any residual bias.
 In the context of SPDEs, this means obtaining samples using meshes at 
 varying \textit{levels} of discretisation. By taking many samples at cheaper,
 coarser levels and fewer at finer, more expensive levels, the MLMC 
-estimator aim to achieve an estimate of equivalent accuracy at reduced cost
+estimator aims to achieve an estimate of equivalent accuracy at reduced cost
 compared to the MC estimator.
 
 The practical efficiency of the MLMC method however relies on correlating 
 samples obtained at different levels, in a manner analogous to that of the 
-control variates method \cite{giles2015multilevel} MORE CITATIONS HERE. 
-This is because the cost savings is dependent on the extent to which 
+control variates method \cite{giles2015multilevel}. 
+This is because the cost savings achievable is dependent on the extent to which 
 samples across two adjacent levels of accuracy covary. Practically, this 
 entails aligning the randomness used to generate pairs of coarse and 
-fine samples. This is referred to as \textit{coupling}. 
+fine samples, a process referred to as \textit{coupling}.
 To provide intuition as to what this means, Figure
 \ref{fig:coarse_vs_fine_grid} illustrates what the finite difference 
 grid used by two adjacent estimators might look like. At each 
 node in these grids, a random noise is required to be generated. 
-This raises a serious question: what methods are best suited to aligning the 
+This raises a question: what methods are best suited to aligning the 
 randomness across samples? Further, how large an impact 
 can different coupling methods have?
 
@@ -77,7 +77,7 @@ There are three main questions this dissertation aims to answer therefore.
 
 To answer these questions, this dissertation is structured as follows.
 
-SECTION HERE provides the theoretical background and a review of the 
+Chapter \ref{chap:preliminary} provides the theoretical background and a review of the 
 relevant literature. 
 We begin by formally defining the standard MoION HERE 
 To best present the answers found to these questions, this dissertation 

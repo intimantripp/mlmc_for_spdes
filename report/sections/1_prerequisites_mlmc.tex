@@ -1,4 +1,4 @@
-\section{Monte Carlo and Multilevel Monte Carlo}
+\section{Monte Carlo and Multilevel Monte Carlo}\label{sec:intro_mlmc}
 
 The primary objective in many applications involving SPDEs is not to find 
 a single, particular solution, but rather to compute the expected value of a quantity of 
@@ -125,17 +125,23 @@ Consequently, the variance of their difference, $V_\ell$, is much smaller
 than the variance of either term individually. As the level $\ell$ increases, 
 $P_\ell$ converges to $P_{\ell-1}$, and so we expect that $V_\ell \to 0$.
 
-This property allows for the following trade-off: we can use a small number of samples $N_\ell$ 
-for the expensive, high-level correction terms (where $V_\ell$ is small) and compensate 
-by using a large number of samples for the cheap, low-level terms. We can determine the 
-optimal number of samples for each $N_\ell$ that minimises the total cost in order 
-to achieve a given variance and also ensure we use enough levels such that our discretisation error 
-is also sufficiently small. Both of these ensure that can achieve a target MSE or RMSE at minimal cost.
+This property allows for the following trade-off: we can use a small number 
+of samples $N_\ell$ 
+for the expensive, high-level correction terms (where $V_\ell$ is small) 
+and compensate 
+by using a large number of samples for the cheap, low-level terms. We can 
+determine the 
+optimal number of samples for each $N_\ell$ that minimises the total cost in
+order 
+to achieve a given variance and also ensure we use enough levels such that our
+discretisation error 
+is also sufficiently small. Both of these ensure that we can achieve a target
+MSE or RMSE at minimal cost.
 
-For a fixed variance $\varepsilon^2$, choosing the optimal $\{N_\ell\}_{\ell=0}^L$ that 
+For a fixed variance, $\varepsilon^2$, choosing the optimal $\{N_\ell\}_{\ell=0}^L$ that 
 minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is a classic 
 constrained optimisaton problem solveable with Lagrange mutipliers. It yieds 
-optimal number of samples:
+optimal number of samples \cite{giles2015multilevel}:
 
 \begin{equation}\label{eq:optimal_N_l}
     N_\ell = \left\lceil \frac{1}{\varepsilon_{\text{var}}^2} \sqrt{\frac{V_\ell}{C_\ell}} \sum_{k=0}^L \sqrt{V_k C_k} \right\rceil.
@@ -154,7 +160,7 @@ $\mathbb{V}[\hat{P}_{\mathrm{MLMC}}] < \frac{\varepsilon^2}{2}]$.
 This leads to the following theorem \cite{giles2015multilevel} which makes 
 precise the cost scaling of the MLMC method:
 
-\begin{theorem}[MLMC Complexity Theorem]
+\begin{theorem}[MLMC Complexity Theorem]\label{theorem:mlmc_complexity}
     Let $P$ denote a random variable, and let $P_\ell$ denote the corresponding 
     level $\ell$ numerical approximation. 
 
@@ -230,9 +236,9 @@ the total cost is dominated by the work on the finest level, $L$.
 Even in this worst case scenario though, we still arrive at a smaller scaling of cost 
 than the MC estimator. 
 
-We conclude this scenario highlighting therefore the importance of how
+We conclude this section by highlighting the importance of how
 $\beta$ and $\gamma$ relate to one another in determining the 
-magnitude of cost savings an MLMC implementation can offer over an MC estimator. Determining
-how MLMC performs relative to MC in SPDE applications will depend heavily on 
-what variance decay we can achieve relative to cost growth in our implementations.
-
+magnitude of cost savings an MLMC implementation can offer over an 
+MC estimator. Determining how MLMC performs relative to MC in SPDE
+applications will depend heavily on what variance decay we can achieve
+relative to cost growth in our implementations.

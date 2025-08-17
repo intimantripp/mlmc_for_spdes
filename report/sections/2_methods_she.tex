@@ -1,0 +1,454 @@
+\section{Numerical Method for the Stochastic Heat Equation}
+\subsection{Problem Specification and Finite Difference Scheme}
+
+We consider the one-dimensional SHE on a finite spatial domain with 
+homogenous Dirichlet boundary conditions and a zero initial condition.
+This represents the simplest setting for a parabolic SPDE.
+
+The problem is formally defined as finding the real-valued 
+function $u(t,x)$ that satisfies:
+
+\begin{subequations} \label{eq:she_full_problem}
+\begin{align}
+    \frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial x^2} &= \xi(x,t),
+    \qquad &&\text{for } (t,x) \in (0, T] \times (0,1) \label{eq:she_pde} \\
+    u(0,x) &= 0, \qquad &&\text{for } x \in [0,1] \label{eq:she_ic} \\
+    u(t,0) &= 0, \quad u(t,1) = 0, \qquad &&\text{for } t \in (0, T] \label{eq:she_bc}
+\end{align}
+\end{subequations}
+
+To solve \eqref{eq:she_full_problem}, we use a scheme 
+obtained using a finite volume approach \cite{suli2025nspdes} where \eqref{eq:she_pde}
+is integrated over small, discreet space-time control volumes, 
+and then the resulting integral terms are then approximated.
+This scheme is:
+
+\begin{align}
+    U_j^{n+1} &= U_j^n + \frac{\Delta t}{(\Delta x)^2} 
+    (U_{j+1}^n - 2U_j^n + U_{j-1}^n) + \Delta W_j^n, \label{eq:she_scheme} \\
+    \text{where} \quad \Delta W_j^n &= \sqrt{\frac{\Delta t}{\Delta x}} 
+    Z_j^n \quad \text{and} \quad Z_j^n \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,1). \nonumber
+\end{align}
+
+The derivation of this scheme now follows.
+
+First, we define a uniform grid. The spatial domain 
+$[0,1]$ is discretised into $J$ intervals of width 
+$\Delta x = 1 / J$, with grid points $x_j = j \Delta x$ for 
+$j = 0, 1, \dots J$. Similarly, let the time interval 
+$[0, T]$ be discretised into $N$ steps of size $\Delta t 
+= T / N$, with the time points $t_n = n \Delta t$ for 
+$n = 0, 1, \dots N$. 
+Our discrete approximations of $u$ are denoted $U_j^n \approx 
+u(t_n, x_j)$ with $U_j^0 = 0$, $U_0^n = U_J^n = 0$ 
+capturing our initial and boundary conditions respectively.
+
+We integrate \eqref{eq:she_pde} over a control volume $C_j^n = 
+[x_j - \frac{\Delta x}{2}, x_j + \frac{\Delta x}{2}] \times [t_n, t_n+1]$:
+
+\begin{equation}\label{eq:she_integration}
+    \int_{t_n}^{t_{n+1}} 
+    \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+    \frac{\partial u}{\partial t} \,\mathrm{d}x\mathrm{d}t -
+    \int_{t_n}^{t_{n+1}} 
+    \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+    \frac{\partial^2 u}{\partial x^2} \,\mathrm{d}x\mathrm{d}t = 
+    \int_{t_n}^{t_{n+1}} 
+    \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+    \xi(t,x) \,\mathrm{d}x\mathrm{d}t
+\end{equation}
+
+
+We then approximate each term in this equation. Focussing first on 
+the time derivative term on the LHS:
+
+\begin{subequations}
+    \begin{align}
+        \int_{t_n}^{t_{n+1}} 
+        \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+        \frac{\partial u}{\partial t} \,\mathrm{d}x\mathrm{d}t 
+        &= \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+        \left[ u(t_{n+1}, x) - u(t_n, x) \right] \,\mathrm{d}x 
+        && \parbox[t]{3.5cm}{\raggedright\small 
+        (Fundamental Theorem of Calculus (FTOC))} \\
+        &\approx \Delta x (U_j^{n+1} - U_j^n)
+        && \text{(Midpoint Rule)}
+    \end{align}
+\end{subequations}
+
+Similarly, for the spatial derivative term:
+
+\begin{subequations}
+\begin{align}
+    \int_{t_n}^{t_{n+1}} 
+    \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
+    \frac{\partial^2 u}{\partial x^2} \,\mathrm{d}x\mathrm{d}t  
+    &=\\ 
+    &\int_{t_n}^{t_{n+1}} 
+    \left[ \frac{\partial u}{\partial x}\left(t, x_j + 
+    \frac{\Delta x}{2}\right) - 
+    \frac{\partial u}{\partial x}\left(t, x_j - 
+    \frac{\Delta x}{2}\right) \right] \,\mathrm{d}t 
+    && \parbox[t]{3.5cm}{\raggedright\small 
+    (FTOC)} \\
+    &\approx \frac{\Delta t}{\Delta x} \left[ 
+        U_{j+1}^n - 2U_j^n + 
+        U_{j-1}^n \right] 
+    && \parbox[t]{3.5cm}{\raggedright\small 
+    (Midpoint Rule and Central Differences)}
+\end{align}
+\end{subequations}
+
+Finally, the forcing term on the RHS, via equation \eqref{eq:white_noise_result} is equal to
+
+\begin{equation}
+\int_{t_n}^{t_{n+1}} \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} \xi(t,x) \,\mathrm{d}x\mathrm{d}t = \sqrt{\Delta x \Delta t} Z_j^n
+\end{equation}
+
+where $Z_j^n$ are indepenent and identically distributed standard normal random variables.
+Finally, we substitute the discrete approximations for each of the three terms back into the 
+integral equation \eqref{eq:she_integration}. This yields the following relation:
+\begin{equation*}
+    \Delta x (U_j^{n+1} - U_j^n) = 
+    \frac{\Delta t}{(\Delta x)^2} \Delta x (U_{j+1}^n - 2U_j^n + U_{j-1}^n) + 
+    \sqrt{\Delta t \Delta x} Z_j^n
+\end{equation*}
+
+Rearranging yields the scheme shown in equation \eqref{eq:she_scheme}.
+This scheme is used to propagate the solution forward in time. It is known to 
+be conditionally stable, requiring the Courant-Friedrichs-Lewy (CFL) condition, 
+$\frac{\Delta t}{(\Delta x)^2} \le \frac{1}{2}$, to be satisfied for convergence, 
+similar to the corresponding deterministic heat equation \cite{suli2025nspdes}. 
+A proof of this is given in the Appendix (CITE APPENDIX HERE).
+
+\subsection{Stochastic Heat Equation - MLMC Implementation}
+
+We now describe how scheme \eqref{eq:she_scheme} is implemented for our MLMC
+algorithm \ref{alg:mlmc_detailed}. This applies for a generic quantity of interest
+(QoI) $P_L$. The QoIs tested for this investigation are outlined in section SECTION HERE.
+
+For each level $\ell$, we divide the spatial domain into $n_{\ell} = 2^{l+1}$ subdivisions
+resulting in a spatial step size $\Delta x_\ell = 1 \ n_\ell$. We fix CFL number $\lambda = 
+\frac{\Delta t}{(\Delta x)^2} = 0.25$. This yields a timestep of 
+$\Delta t_\ell = \lambda (\Delta x_\ell)^2$. This means that for any two 
+consecutive levels the refinement ratios are related via
+
+\begin{equation}\label{eq:she_discrete_relations}
+    \Delta x_{\ell - 1} = 2\Delta x_\ell, \qquad \Delta t_{\ell - 1} = 4 \Delta t_\ell
+\end{equation}
+
+For noise coupling, we investigate 3 strategies: Right-Most Nearest Neighbours (NN)
+used in \cite{cornalba2025multilevel}, Central Coupling (CC) and a Finite Element (FE)
+based coupling. We outline each of these now. We follow the convention used in 
+\cite{giles2015multilevel}, in coupling describing the $\ell - 1$ level as 
+the \textit{fine} level and the $\ell$ level as the \textit{coarse} level.
+
+\paragraph{Right-Most Nearest Neighbours Coupling}
+
+For the fine level's noise generation, at each interior fine grid point, $j$, and each fine 
+time step, $n$, an independent noise increment is generated:
+
+\begin{equation}
+    \Delta W_{j,f}^n = \sqrt{\frac{\Delta t_f}{\Delta x_f}} Z_j^n, \qquad \text{where } 
+    Z_j^n \overset{\mathrm{i.i.d}}{\sim} \mathcal{N}(0,1)
+\end{equation}
+
+The coarse level's noise at a grid point, $k$,
+corresponding to fine grid point $2j$,
+over a coarse time step, $m$, is constructed by 
+aggregating the underlying fine noise. We sum 
+the noise from the corresponding fine grid point
+and its immediate right-hand Neighbour
+$2j + 1$. This sum is accumulated over 
+the 4 corresponding fine timesteps 
+and then rescaled.
+
+\begin{equation}
+    \Delta W_{k,c}^m = \frac{1}{2} \sum_{n = 4m}^{4m+3}
+    \left(\Delta W_{2j,f}^n + W_{2j+1, f}^n \right)
+\end{equation}
+
+The rescaling factor $\frac{1}{2}$ is essential to 
+ensure that the coarse noise $\Delta W_{k,c}^m$
+has the correct statistical variance of 
+$\frac{\Delta t_c}{\Delta x_c}$ required for 
+coarse grid simulation.
+
+We note that this method discards the final 
+interior noise increment from the fine grid
+point. The statistical impact of this 
+is unveiled in analysis of this system.
+
+
+\paragraph{Central Coupling}
+
+As an alternative to the asymmetric NN method, we
+propose a centred coupling strategy. This aims 
+to create a more symmetric correlation between the fine 
+and coarse grids by defining the fundamental source 
+of randomness on a "half-cell" refinement of the 
+spatial grid. From this common source of randomness, 
+the noise increments for both the fine and coarse 
+grids are constructed. 
+
+We divide each internal fine grid cell 
+$[x_{j}-\frac{\Delta x_f}{2}, 
+x_{j}+\frac{\Delta x_f}{2}]
+\times [t_n, t_n + \Delta t_f]$ into
+two half-cells of width $\frac{\Delta x_f}{2}$ 
+For each of these half-cells and for each fine time
+step $n$, we generate an independent, fundamental 
+noise increment $\zeta$. Let $\zeta_{j,L}^n$ and 
+$\zeta_{j,R}^n$ be the half-cell noises on the left 
+and right halves of the $j$-th fine grid point
+during the $n$-th time step. These are 
+i.i.d Gaussian random variables with variance 
+equal to the area of the half-cell:
+
+\begin{equation}
+    \zeta_{j,L}^n, \zeta_{j, R}^n 
+    \overset{\mathrm{i.i.d}}{\sim} 
+    \mathcal{N}(0, \frac{\Delta x_f \Delta t_f}{2})
+\end{equation}
+
+The noises for the fine finite difference 
+scheme are then constructed by aggregating 
+these fundamental half-cell noises.
+
+\begin{equation}
+    \Delta W_{j,f}^n = \frac{1}{\Delta x_f} 
+    (\zeta_{j,L}^n + \zeta_{j,R}^n)
+\end{equation}
+
+where the $\frac{1}{\Delta x_f}$ coefficient 
+ensures $\Delta W_{j,f}^n$ has the correct variance. 
+
+Similarly to the NN coupling, the coarse noise 
+is constructed as an aggregation of 
+the underlying fine noises accummulated over the
+four fine timesteps that constitute a single
+coarse time step, equivalent to using the 
+exact underlying 16 half-cell noises.
+
+\begin{equation}
+    \Delta W_{k, c}^n = \frac{1}{\Delta x_c}
+    \sum_{n=4m}^{4m+3} \left(\Delta W_{2j,f}^n + 
+    \Delta W_{2j+1}^n\right) = \frac{1}{\Delta x_c}
+    \sum_{n=4m}^{4m+3} \left(\zeta_{2j,L}^n + 
+    \zeta_{2j, R}^n + \zeta_{2j+1,L}^n + 
+    \zeta_{2j+1,R}^n\right)
+\end{equation}
+
+The scaling factors $\frac{1}{\Delta x_f}$ and 
+$\frac{1}{\Delta x_c}$ ensure the resulting
+noises have the correct variances required on 
+each grid. 
+By further discretising the spatial grid, 
+this method aims perfectly align the noises 
+used for each grid point in both the coarse
+and fine grids, unlike the NN method.
+
+
+\paragraph{Finite Element Coupling Method}
+
+The third coupling strategy is derived from a Galerkin Finite Element Method
+(FEM) \cite{suli2025fe} spatial discretisation of the SHE. We transform 
+the infinite-dimensional SPDE into a finite-dimensional system of SDEs, 
+which in turn defines a strcture of the discrete noise and coupling between 
+levels.
+
+We begin by formulating a weak form of the SHE. We multiply \eqref{eq:she_pde} by 
+a sufficiently smooth test function $\phi(x)$ and integrate over the spatial domain 
+$D = [0,1]$. Applying integration by parts yields:
+
+\begin{equation}\label{eq:she_differential_form}
+    (\mathrm{d}u,\phi) + (u_x, \phi_x)\mathrm{d}t = (\mathrm{d}W(t), \phi)
+\end{equation}
+
+where $(\cdot, \cdot)$ denotes the $L^2$ inner product and  
+$dW(t) = \xi(t,x)\mathrm{d}t$ represents Brownian
+motion.
+
+The Galerkin method seeks an approximate solution, $U(t,x)$ within a finite-dimensional
+subspace spanned by a set of basis functions \cite{suli2025fe}. For this problem, 
+we use the standard piecewise linear "hat" basis functions $\phi_j(x)$, defined on a 
+uniform grid with spacing $h$. 
+
+\begin{equation}
+    \phi_j(x) = \max(0, 1 - |x-x_j|/ h)
+\end{equation}
+
+The approximate solution is written as
+
+\begin{equation}
+    U(t,x) = \sum_{j=1}^{J-1}U_j(t)\phi_j(x).
+\end{equation}
+
+Here, the $U_j(t)$ are the time-dependent coefficients represents the solution's value at
+the spatial nodes $x_j$. By requiring the weak form to hold for every basis function 
+in this space, we obtain a system of SDEs for the vector of coefficients $\mathbf{U}(t)$. 
+
+The system of SDEs can be written in matrix form as:
+
+\begin{equation}\label{eq:fe_sdes_system}
+    M \mathrm{d}\mathbf{U}(t) + K \mathbf{U}(t)\mathrm{d}t = \mathrm{d}W(t)
+\end{equation}
+
+where $M$ is a tri-diagonal matrix with elements $M_{ij} = (\phi_i, \phi_j)$. 
+For the hat basis, this gives
+
+\begin{equation}
+    M_{i,i} = \frac{2}{3}h, \qquad M_{i, i\pm 1} = \frac{1}{6}h.
+\end{equation}
+
+$K$ is a tridiagonal matrix with entries $K_{ij} =(\phi'_i), \phi'_j$. This gives
+
+\begin{equation}
+    K_{i,i} = \frac{2}{h}, \qquad K_{i, i\pm 1} = - \frac{1}{h}
+\end{equation}
+
+$\mathrm{d}W(t)$ is a vector of normal increments. To determine their variance and covariance, 
+we can derive the following covariance function:
+
+\begin{equation}
+    \mathbb{E}[(f, \mathrm{d}W)(g, \mathrm{d}W)] = (f,g) \mathrm{d}t
+\end{equation}
+
+for arbitrary spatial functions $f$ and $g$. This follows from Definition \ref{def:whitenoise}
+by considering test functions $\phi_f$ and $\phi_g$:
+
+\begin{align*}
+    \phi_f(s,x) = f(x)\mathbf{1}_{[t, t+\mathrm{d}t]}(s)\\
+    \phi_g(s,x) = g(x)\mathbf{1}_{[t, t+\mathrm{d}t]}(s)
+\end{align*}
+
+where $\mathbf{1}_{[t, t+\mathrm{d}t]}(s)$ is an indicator function which is 1 for
+$s \in [t, t + \mathrm{dt}]$, $0$ otherwise. Th abstract random variable 
+$W(\phi_f)$ from Definition \ref{def:whitenoise} now represents the noise tested 
+against the spatial function $f(x)$
+
+
+\begin{align*} 
+    \mathbb{E}[(f, \mathrm{d}W)(g, \mathrm{d}W)] &= \mathbb{E}[W(\phi_f)W(\phi_g)] \\ 
+    &= \langle \phi_f, \phi_g \rangle_{L^2} \\ &= \int_0^T \int_D \phi_f(s, \mathbf{x}) \phi_g(s, \mathbf{x})
+     \,d\mathbf{x}ds \\ &= \int_0^T \int_D \left( f(\mathbf{x}) \mathbf{1}_{[t, t+\mathrm{d}t]}(s) \right) 
+     \left( g(\mathbf{x}) \mathbf{1}_{[t, t+\mathrm{d}t]}(s) \right) \,d\mathbf{x}ds \\
+    &= \left( \int_D f(\mathbf{x})g(\mathbf{x})\,d\mathbf{x} \right)
+     \times \left( \int_0^T (\mathbf{1}_{[t, t+\mathrm{d}t]}(s))^2 \,ds \right)  \\
+    &= \left(f,g\right) \mathrm{d}t
+\end{align*} 
+
+The vector of normal increments have the following expectations:
+
+\begin{align*}
+    \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_j] = \mathbb{E}[(\mathrm{d}W, \phi_i) 
+    (\mathrm{d}W, \phi_j)] = (\phi_i, \phi_j)\mathrm{d}t\\
+    \mathbb{E}[\mathrm{d}W_i^2] = \frac{2}{3}h \mathrm{d}t, \qquad 
+    \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_{i\pm 1}] = \frac{1}{6} h \mathrm{d}t
+\end{align*}
+
+To obtain a fully discrete scheme, we apply the explicit Euler-Maruyama
+method in time. A common simplification known as mass lumping is used, where $M$
+is used, where the mass matrix $M$ is replaced by the diagonal matrix $hI$. 
+From equation \eqref{eq:fe_sdes_system}, this yields the scheme:
+
+\begin{equation}
+    h\mathbf{U}^{n+1} = h\mathbf{U}^n - K \mathbf{U}^n \Delta t + \Delta W^n
+\end{equation}
+
+where the discrete noise vector $\Delta W^n$ has the covariance structure 
+$M \Delta t$.
+
+The coupling between a fine level $\ell$ and a coarse level $\ell-1$ is derived 
+from the relationship between the FEM basis functions. A coarse grid basis 
+function, $\phi_k^c$, can be expressed as a linear combination of the fine grid basis functions:
+
+\begin{equation*}
+    \phi_k^c(x) = \frac{1}{2} \phi_{2k-1}^f(x) + \phi_{2k}^f(x) + \frac{1}{2}\phi_{2k+1}^f(x).
+\end{equation*}
+
+This provide a natural way to construct the coarse noise from the fine noise. The coarse
+noise increment at a coarse node $k$, $\Delta W_{k,c}^m$, is constructed by applying the same 
+linear weighting to the fine noise increments over the corresponding time steps: 
+
+\begin{equation*}
+    \Delta W_{k,c}^m = \frac{1}{2} \sum_{n=4m}^{4m+3} \left( 
+        \frac{1}{2}\Delta W_{2k-1,f}^n + \Delta W_{2k,f}^n + 
+        \frac{1}{2}\Delta W_{2k+1,f}^n \right).
+\end{equation*}
+
+
+\subsection{Quantities of interest for the Stochastic Heat Equation}
+
+To validate our numerical schemes and analyse the performance 
+of different MLMC coupling strategies, we compute expectations
+of two distinct quantities of interest (QoI) derived from the solution 
+of the SHE problem \eqref{eq:she_full_problem}.
+The first examines the solution's behaviour in the frequency domain through 
+its Fourier modes, while the second is a measure of the total energy of the 
+system. 
+
+\subsubsection{Fourier Modes}
+
+For the problem \eqref{eq:she_full_problem}, 
+the solution can be expanded in a Fourier sine series. This 
+decomposition is justified 
+as the sine functions are the eigenfunctions of the Laplacian 
+operator with the given boundary conditions, and they also form a basis 
+for decomposing the stochastic noise term via the Karhunen-Loéve theorem
+()\cite{da2014stochastic}, Section 4.1).
+
+\begin{equation}
+    u(t,x) = \sum_{k=1}^\infty u_k(t)\phi_k(x) \qquad \phi_k(x) = \sqrt{2}\sin (k\pi x)
+\end{equation}
+
+where $u_k(t)$ is the $k$-th Fourier mode at time $t$ and $phi_k$ our 
+orthonormal sine basis functions. $u_k(t)$ is given by the $L^2$ 
+inner product of $u$ with $\phi_k$:
+
+\begin{equation}
+    u_k(t) = \int_0^1 u(t,x)\phi_k(x)\mathrm{d}x
+\end{equation}
+
+We derive first an analytic expression for $u_k$, 
+and then the first and second moments of $u_k$ for validating our 
+MLMC implementation is correct. We will also derive the 
+analytic error we expect to observe and 
+the expected variance decay. 
+
+\paragraph{Analytic Moments of Fourier Modes}
+
+To obtain analytic solutions to the Fourier modes, we first express each term 
+in the SHE governing equation as series expansions (an approach justified 
+in \cite{strauss2007partial}, Chapter 5).
+
+\begin{align}
+    u_t(t,x) = \sum_{k=1}^\infty v_k(t)\phi_k(x) \\
+    u_{xx}(t,x) = \sum_{k=1}^\infty w_k(t)\phi_k(x)
+    \xi(x,t) = \sum_{k=1}^\infty  \dot{B}_k(t) \phi_k(x)
+\end{align}
+
+where $\dot{B}(t)$ represents one-dimensional white noise, and $v_k$ and $w_k$ are 
+Fourier modes. Substituting these into \eqref{eq:she_pde}:
+
+\begin{align}
+    u_t - u_{xx} - \xi = 0 \\
+    \sum_{k=1}^\infty v_k\phi_k - \sum_{k=1}^\infty w_k\phi_k - \sum_{k=1}^\infty
+    \dot{B}_k \phi_k &= 0 \\
+    \sum_{k=1}^\infty \left(v_k - w_k - \dot{B}_k\right)\phi_k &= 0\\
+\end{align}
+
+
+\paragraph{System Energy}
+
+A fundamental property of the solution is its total energy, which is defined 
+as the squared $L^2$-norm of the solution $u(t,x)$ at a final time $T$. The 
+continuous form of this quantity if given by:
+
+\begin{equation}\label{eq:system_energy}
+    P_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x
+\end{equation}
+
+We 
+
+
