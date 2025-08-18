@@ -1,10 +1,9 @@
 \section{Numerical Method for the Stochastic Heat Equation}
 \subsection{Problem Specification and Finite Difference Scheme}
 
-We consider the one-dimensional SHE on a finite spatial domain with 
+We consider the one-dimensional SHE on a unit interval $[0,1]$ with
 homogenous Dirichlet boundary conditions and a zero initial condition.
-This represents the simplest setting for a parabolic SPDE.
-
+This represents the simplest setting for a parabolic SPDE. 
 The problem is formally defined as finding the real-valued 
 function $u(t,x)$ that satisfies:
 
@@ -13,11 +12,12 @@ function $u(t,x)$ that satisfies:
     \frac{\partial u(t,x)}{\partial t} - \frac{\partial^2 u(t,x)}{\partial x^2} &= \xi(x,t),
     \qquad &&\text{for } (t,x) \in (0, T] \times (0,1) \label{eq:she_pde} \\
     u(0,x) &= 0, \qquad &&\text{for } x \in [0,1] \label{eq:she_ic} \\
-    u(t,0) &= 0, \quad u(t,1) = 0, \qquad &&\text{for } t \in (0, T] \label{eq:she_bc}
+    u(t,0) &= 0, \quad u(t,1) = 0, \qquad &&\text{for } t \in (0, T]. \label{eq:she_bc}
 \end{align}
 \end{subequations}
 
-To solve \eqref{eq:she_full_problem}, we use a scheme 
+To solve \eqref{eq:she_full_problem} numerically, we employ
+an explicit finite difference scheme
 obtained using a finite volume approach \cite{suli2025nspdes} where \eqref{eq:she_pde}
 is integrated over small, discreet space-time control volumes, 
 and then the resulting integral terms are then approximated.
@@ -63,7 +63,7 @@ We then approximate each term in this equation. Focussing first on
 the time derivative term on the LHS:
 
 \begin{subequations}
-    \begin{align}
+    \begin{align*}
         \int_{t_n}^{t_{n+1}} 
         \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
         \frac{\partial u}{\partial t} \,\mathrm{d}x\mathrm{d}t 
@@ -73,13 +73,13 @@ the time derivative term on the LHS:
         (Fundamental Theorem of Calculus (FTOC))} \\
         &\approx \Delta x (U_j^{n+1} - U_j^n)
         && \text{(Midpoint Rule)}
-    \end{align}
+    \end{align*}
 \end{subequations}
 
 Similarly, for the spatial derivative term:
 
 \begin{subequations}
-\begin{align}
+\begin{align*}
     \int_{t_n}^{t_{n+1}} 
     \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 
     \frac{\partial^2 u}{\partial x^2} \,\mathrm{d}x\mathrm{d}t  
@@ -96,14 +96,14 @@ Similarly, for the spatial derivative term:
         U_{j-1}^n \right] 
     && \parbox[t]{3.5cm}{\raggedright\small 
     (Midpoint Rule and Central Differences)}
-\end{align}
+\end{align*}
 \end{subequations}
 
 Finally, the forcing term on the RHS, via equation \eqref{eq:white_noise_result} is equal to
 
-\begin{equation}
+\begin{equation*}
 \int_{t_n}^{t_{n+1}} \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} \xi(t,x) \,\mathrm{d}x\mathrm{d}t = \sqrt{\Delta x \Delta t} Z_j^n
-\end{equation}
+\end{equation*}
 
 where $Z_j^n$ are indepenent and identically distributed standard normal random variables.
 Finally, we substitute the discrete approximations for each of the three terms back into the 
@@ -125,10 +125,11 @@ A proof of this is given in the Appendix (CITE APPENDIX HERE).
 
 We now describe how scheme \eqref{eq:she_scheme} is implemented for our MLMC
 algorithm \ref{alg:mlmc_detailed}. This applies for a generic quantity of interest
-(QoI) $P_L$. The QoIs tested for this investigation are outlined in section SECTION HERE.
+(QoI) $P_L$. The QoIs tested for this investigation are outlined in section 
+\ref{sec:QoI_for_SHE}.
 
 For each level $\ell$, we divide the spatial domain into $n_{\ell} = 2^{l+1}$ subdivisions
-resulting in a spatial step size $\Delta x_\ell = 1 \ n_\ell$. We fix CFL number $\lambda = 
+resulting in a spatial step size $\Delta x_\ell = 1 / n_\ell$. We fix CFL number $\lambda = 
 \frac{\Delta t}{(\Delta x)^2} = 0.25$. This yields a timestep of 
 $\Delta t_\ell = \lambda (\Delta x_\ell)^2$. This means that for any two 
 consecutive levels the refinement ratios are related via
@@ -140,18 +141,19 @@ consecutive levels the refinement ratios are related via
 For noise coupling, we investigate 3 strategies: Right-Most Nearest Neighbours (NN)
 used in \cite{cornalba2025multilevel}, Central Coupling (CC) and a Finite Element (FE)
 based coupling. We outline each of these now. We follow the convention used in 
-\cite{giles2015multilevel}, in coupling describing the $\ell - 1$ level as 
-the \textit{fine} level and the $\ell$ level as the \textit{coarse} level.
+\cite{giles2015multilevel}, in coupling describing the $\ell$ level as 
+the \textit{fine} level and the $\ell - 1$ level as the \textit{coarse} level.
+\newline
 
-\paragraph{Right-Most Nearest Neighbours Coupling}
+\textbf{Right-Most Nearest Neighbours Coupling}
 
 For the fine level's noise generation, at each interior fine grid point, $j$, and each fine 
 time step, $n$, an independent noise increment is generated:
 
-\begin{equation}
+\begin{equation*}
     \Delta W_{j,f}^n = \sqrt{\frac{\Delta t_f}{\Delta x_f}} Z_j^n, \qquad \text{where } 
     Z_j^n \overset{\mathrm{i.i.d}}{\sim} \mathcal{N}(0,1)
-\end{equation}
+\end{equation*}
 
 The coarse level's noise at a grid point, $k$,
 corresponding to fine grid point $2j$,
@@ -163,10 +165,10 @@ $2j + 1$. This sum is accumulated over
 the 4 corresponding fine timesteps 
 and then rescaled.
 
-\begin{equation}
+\begin{equation*}
     \Delta W_{k,c}^m = \frac{1}{2} \sum_{n = 4m}^{4m+3}
     \left(\Delta W_{2j,f}^n + W_{2j+1, f}^n \right)
-\end{equation}
+\end{equation*}
 
 The rescaling factor $\frac{1}{2}$ is essential to 
 ensure that the coarse noise $\Delta W_{k,c}^m$
@@ -176,11 +178,11 @@ coarse grid simulation.
 
 We note that this method discards the final 
 interior noise increment from the fine grid
-point. The statistical impact of this 
+point. The impact of this 
 is unveiled in analysis of this system.
+\newline
 
-
-\paragraph{Central Coupling}
+\textbf{Central Coupling}
 
 As an alternative to the asymmetric NN method, we
 propose a centred coupling strategy. This aims 
@@ -195,7 +197,7 @@ We divide each internal fine grid cell
 $[x_{j}-\frac{\Delta x_f}{2}, 
 x_{j}+\frac{\Delta x_f}{2}]
 \times [t_n, t_n + \Delta t_f]$ into
-two half-cells of width $\frac{\Delta x_f}{2}$ 
+two half-cells of width $\frac{\Delta x_f}{2}$.
 For each of these half-cells and for each fine time
 step $n$, we generate an independent, fundamental 
 noise increment $\zeta$. Let $\zeta_{j,L}^n$ and 
@@ -205,20 +207,20 @@ during the $n$-th time step. These are
 i.i.d Gaussian random variables with variance 
 equal to the area of the half-cell:
 
-\begin{equation}
+\begin{equation*}
     \zeta_{j,L}^n, \zeta_{j, R}^n 
     \overset{\mathrm{i.i.d}}{\sim} 
     \mathcal{N}(0, \frac{\Delta x_f \Delta t_f}{2})
-\end{equation}
+\end{equation*}
 
 The noises for the fine finite difference 
 scheme are then constructed by aggregating 
 these fundamental half-cell noises.
 
-\begin{equation}
+\begin{equation*}
     \Delta W_{j,f}^n = \frac{1}{\Delta x_f} 
     (\zeta_{j,L}^n + \zeta_{j,R}^n)
-\end{equation}
+\end{equation*}
 
 where the $\frac{1}{\Delta x_f}$ coefficient 
 ensures $\Delta W_{j,f}^n$ has the correct variance. 
@@ -230,26 +232,26 @@ four fine timesteps that constitute a single
 coarse time step, equivalent to using the 
 exact underlying 16 half-cell noises.
 
-\begin{equation}
+\begin{equation*}
     \Delta W_{k, c}^n = \frac{1}{\Delta x_c}
     \sum_{n=4m}^{4m+3} \left(\Delta W_{2j,f}^n + 
     \Delta W_{2j+1}^n\right) = \frac{1}{\Delta x_c}
     \sum_{n=4m}^{4m+3} \left(\zeta_{2j,L}^n + 
     \zeta_{2j, R}^n + \zeta_{2j+1,L}^n + 
     \zeta_{2j+1,R}^n\right)
-\end{equation}
+\end{equation*}
 
-The scaling factors $\frac{1}{\Delta x_f}$ and 
-$\frac{1}{\Delta x_c}$ ensure the resulting
+Again, the scaling factor
+$\frac{1}{\Delta x_c}$ ensures the resulting
 noises have the correct variances required on 
-each grid. 
+the coarse grid. 
 By further discretising the spatial grid, 
 this method aims perfectly align the noises 
 used for each grid point in both the coarse
 and fine grids, unlike the NN method.
+\newline
 
-
-\paragraph{Finite Element Coupling Method}
+\textbf{Finite Element Coupling Method}
 
 The third coupling strategy is derived from a Galerkin Finite Element Method
 (FEM) \cite{suli2025fe} spatial discretisation of the SHE. We transform 
@@ -271,18 +273,18 @@ motion.
 
 The Galerkin method seeks an approximate solution, $U(t,x)$ within a finite-dimensional
 subspace spanned by a set of basis functions \cite{suli2025fe}. For this problem, 
-we use the standard piecewise linear "hat" basis functions $\phi_j(x)$, defined on a 
-uniform grid with spacing $h$. 
+we use the standard piecewise linear ``hat'' basis functions $\phi_j(x)$, defined on a 
+uniform grid with spacing $h$:
 
-\begin{equation}
-    \phi_j(x) = \max(0, 1 - |x-x_j|/ h)
-\end{equation}
+\begin{equation*}
+    \phi_j(x) = \max(0, 1 - |x-x_j|/ h).
+\end{equation*}
 
 The approximate solution is written as
 
-\begin{equation}
+\begin{equation*}
     U(t,x) = \sum_{j=1}^{J-1}U_j(t)\phi_j(x).
-\end{equation}
+\end{equation*}
 
 Here, the $U_j(t)$ are the time-dependent coefficients represents the solution's value at
 the spatial nodes $x_j$. By requiring the weak form to hold for every basis function 
@@ -297,22 +299,22 @@ The system of SDEs can be written in matrix form as:
 where $M$ is a tri-diagonal matrix with elements $M_{ij} = (\phi_i, \phi_j)$. 
 For the hat basis, this gives
 
-\begin{equation}
+\begin{equation*}
     M_{i,i} = \frac{2}{3}h, \qquad M_{i, i\pm 1} = \frac{1}{6}h.
-\end{equation}
+\end{equation*}
 
-$K$ is a tridiagonal matrix with entries $K_{ij} =(\phi'_i), \phi'_j$. This gives
+$K$ is a tridiagonal matrix with entries $K_{ij} =(\phi'_i, \phi'_j)$. This gives
 
-\begin{equation}
+\begin{equation*}
     K_{i,i} = \frac{2}{h}, \qquad K_{i, i\pm 1} = - \frac{1}{h}
-\end{equation}
+\end{equation*}
 
 $\mathrm{d}W(t)$ is a vector of normal increments. To determine their variance and covariance, 
 we can derive the following covariance function:
 
-\begin{equation}
+\begin{equation*}
     \mathbb{E}[(f, \mathrm{d}W)(g, \mathrm{d}W)] = (f,g) \mathrm{d}t
-\end{equation}
+\end{equation*}
 
 for arbitrary spatial functions $f$ and $g$. This follows from Definition \ref{def:whitenoise}
 by considering test functions $\phi_f$ and $\phi_g$:
@@ -330,7 +332,7 @@ against the spatial function $f(x)$
 
 \begin{align*} 
     \mathbb{E}[(f, \mathrm{d}W)(g, \mathrm{d}W)] &= \mathbb{E}[W(\phi_f)W(\phi_g)] \\ 
-    &= \langle \phi_f, \phi_g \rangle_{L^2} \\ &= \int_0^T \int_D \phi_f(s, \mathbf{x}) \phi_g(s, \mathbf{x})
+    &= (\phi_f, \phi_g) \\ &= \int_0^T \int_D \phi_f(s, \mathbf{x}) \phi_g(s, \mathbf{x})
      \,d\mathbf{x}ds \\ &= \int_0^T \int_D \left( f(\mathbf{x}) \mathbf{1}_{[t, t+\mathrm{d}t]}(s) \right) 
      \left( g(\mathbf{x}) \mathbf{1}_{[t, t+\mathrm{d}t]}(s) \right) \,d\mathbf{x}ds \\
     &= \left( \int_D f(\mathbf{x})g(\mathbf{x})\,d\mathbf{x} \right)
@@ -347,14 +349,13 @@ The vector of normal increments have the following expectations:
     \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_{i\pm 1}] = \frac{1}{6} h \mathrm{d}t
 \end{align*}
 
-To obtain a fully discrete scheme, we apply the explicit Euler-Maruyama
-method in time. A common simplification known as mass lumping is used, where $M$
+A common simplification to known as mass lumping is used, where $M$
 is used, where the mass matrix $M$ is replaced by the diagonal matrix $hI$. 
-From equation \eqref{eq:fe_sdes_system}, this yields the scheme:
+Applying this to \eqref{eq:fe_sdes_system} yields the scheme:
 
-\begin{equation}
+\begin{equation*}
     h\mathbf{U}^{n+1} = h\mathbf{U}^n - K \mathbf{U}^n \Delta t + \Delta W^n
-\end{equation}
+\end{equation*}
 
 where the discrete noise vector $\Delta W^n$ has the covariance structure 
 $M \Delta t$.
@@ -371,14 +372,14 @@ This provide a natural way to construct the coarse noise from the fine noise. Th
 noise increment at a coarse node $k$, $\Delta W_{k,c}^m$, is constructed by applying the same 
 linear weighting to the fine noise increments over the corresponding time steps: 
 
-\begin{equation*}
+\begin{equation}\label{eq:fe_coupling_eqn}
     \Delta W_{k,c}^m = \frac{1}{2} \sum_{n=4m}^{4m+3} \left( 
         \frac{1}{2}\Delta W_{2k-1,f}^n + \Delta W_{2k,f}^n + 
         \frac{1}{2}\Delta W_{2k+1,f}^n \right).
-\end{equation*}
+\end{equation}
 
 
-\subsection{Quantities of interest for the Stochastic Heat Equation}
+\subsection{Quantities of Interest for the Stochastic Heat Equation}\label{sec:QoI_for_SHE}
 
 To validate our numerical schemes and analyse the performance 
 of different MLMC coupling strategies, we compute expectations
@@ -390,65 +391,593 @@ system.
 
 \subsubsection{Fourier Modes}
 
-For the problem \eqref{eq:she_full_problem}, 
+For the SHE problem \eqref{eq:she_full_problem}, 
 the solution can be expanded in a Fourier sine series. This 
 decomposition is justified 
 as the sine functions are the eigenfunctions of the Laplacian 
 operator with the given boundary conditions, and they also form a basis 
 for decomposing the stochastic noise term via the Karhunen-Loéve theorem
-()\cite{da2014stochastic}, Section 4.1).
+(\cite{da2014stochastic}, Section 4.1).
 
-\begin{equation}
-    u(t,x) = \sum_{k=1}^\infty u_k(t)\phi_k(x) \qquad \phi_k(x) = \sqrt{2}\sin (k\pi x)
-\end{equation}
+\begin{equation*}
+    u(t,x) = \sum_{n=1}^\infty u_n(t)\phi_n(x) \qquad \phi_n(x) = \sqrt{2}\sin (n\pi x)
+\end{equation*}
 
-where $u_k(t)$ is the $k$-th Fourier mode at time $t$ and $phi_k$ our 
-orthonormal sine basis functions. $u_k(t)$ is given by the $L^2$ 
-inner product of $u$ with $\phi_k$:
+where $u_n(t)$ is the $n$-th Fourier mode at time $t$ and $\phi_n$ our 
+orthonormal sine basis functions. $u_n(t)$ is given by the $L^2$ 
+inner product of $u$ with $\phi_n$:
 
-\begin{equation}
-    u_k(t) = \int_0^1 u(t,x)\phi_k(x)\mathrm{d}x
-\end{equation}
+\begin{equation*}
+    u_n(t) = \int_0^1 u(t,x)\phi_k(x)\mathrm{d}x
+\end{equation*}
 
-We derive first an analytic expression for $u_k$, 
-and then the first and second moments of $u_k$ for validating our 
+We derive first an analytic expression for $u_n$, 
+and then the first and second moments of $u_n$ for validating our 
 MLMC implementation is correct. We will also derive the 
 analytic error we expect to observe and 
 the expected variance decay. 
+\newline
 
-\paragraph{Analytic Moments of Fourier Modes}
+\textbf{Analytic Moments of Fourier Modes}
 
 To obtain analytic solutions to the Fourier modes, we first express each term 
-in the SHE governing equation as series expansions (an approach justified 
-in \cite{strauss2007partial}, Chapter 5).
+in the SHE governing equation as a Fourier sine series (an approach justified 
+in \cite{strauss2007partial}, Chapter 5, and \cite{da2014stochastic}, Section 4.1).
 
-\begin{align}
-    u_t(t,x) = \sum_{k=1}^\infty v_k(t)\phi_k(x) \\
-    u_{xx}(t,x) = \sum_{k=1}^\infty w_k(t)\phi_k(x)
-    \xi(x,t) = \sum_{k=1}^\infty  \dot{B}_k(t) \phi_k(x)
+$$
+\begin{aligned} 
+    u_t(t,x) &= \sum_{n=1}^\infty \frac{\mathrm{d}u_n(t)}{\mathrm{d}t}\phi_n(x) \\ 
+    u_{xx}(t,x) &= \sum_{n=1}^\infty -(n\pi)^2 u_n(t)\phi_n(x) \\ 
+    \xi(x,t) &= \sum_{n=1}^\infty \dot{B}_n(t) \phi_n(x) 
+\end{aligned}
+$$
+
+where $\dot{B}_n(t)$ represents one-dimensional white noise for each mode.
+Substituting these expansions into the SHE yields:
+$$\sum_{n=1}^\infty \left( \frac{\mathrm{d}u_n(t)}{\mathrm{d}t} - (-(n\pi)^2 u_n(t)) 
+- \dot{B}_n(t) \right) \phi_n(x) = 0$$ $$\sum_{n=1}^\infty \left( \frac{\mathrm{d}u_n(t)}{dt}
+ + (n\pi)^2 u_n(t) - \dot{B}_n(t) \right) \phi_n(x) = 0
+ $$
+
+For
+this infinite sum to be zero for all $x$, the coefficient of each basis
+function must be zero independently. This decouples the partial differential 
+equation into an infinite system of SDEs, one for each mode 
+$u_n(t)$: 
+$$\frac{\mathrm{d}u_n(t)}{\mathrm{d}t} + (n\pi)^2 u_n(t) = \dot{B}_n(t)$$
+
+Writing this in differential form, where $\mathrm{d}B_n(t) = 
+\dot{B}_n(t)\mathrm{d}t$ is the 
+increment of a standard one-dimensional Brownian motion, 
+gives:
+$$
+\mathrm{d}u_n(t) = -(k\pi)^2 u_n(t)\mathrm{d}t + \mathrm{d}B_n(t)
+$$ 
+
+This is the equation for an \textit{Ornstein-Uhlenbeck process}.
+With a zero initial condition, $u_n(0)=0$, the solution to 
+this SDE is a Gaussian process (\cite{oksendal2013stochastic}, Chapter 5.1). 
+Its first two moments are well-known:
+
+\begin{align}\label{eq:moments_of_fourier_modes}
+\mathbb{E}[u_n(t)] &= 0 \\
+\mathbb{V}[u_n(t)] &= \mathbb{E}[u_n(t)^2] = 
+ \frac{1 - e^{-2(n\pi)^2 t}}{2(n\pi)^2} \label{eq:var_fourier_modes}
 \end{align}
 
-where $\dot{B}(t)$ represents one-dimensional white noise, and $v_k$ and $w_k$ are 
-Fourier modes. Substituting these into \eqref{eq:she_pde}:
+Thus,
+
+\begin{equation}
+    u_n(t) \sim \mathcal{N}(0, 
+    \frac{1-e^{-2\lambda_n^2t}}{2\lambda_n^2}), 
+    \quad \lambda_n = \pi^2 n^2
+\end{equation}
+\newline
+
+\textbf{Weak Error and Variance Decay of Fourier Modes}
+
+The analytical moments of the Fourier modes provide a precise target against 
+which our numerical implementation can be validated. To establish the expected 
+convergence rate for our MLMC estimators, we must analyse two key properties:
+the weak error of the finite difference scheme and the rate 
+of decay of the MLMC variance, $V_\ell$. We present 
+two propositions and their accompanying proofs to formally 
+derive these rates for our chosen QoI, the squared amplitude (variance)
+of a single Fourier mode. 
+
+\begin{proposition}[Weak Error for the Variance of a Fourier Mode]
+    \label{prop:weak_error_for_fourier_mode}
+    The explicit finite difference scheme for the Stochastic Heat Equation
+    governing the $n$-th Fourier mode, with time step $\Delta t$, has a weak error 
+    in its stationary variance of 
+    $\mathcal{O}(\Delta t)$. Consequently, for a finite difference 
+    implementation of the SHE with a fixed CFL number such that 
+    $\Delta t \propto (\Delta x)^2$, the error in the variance of the mode 
+    is of order $\mathcal{O}((\Delta x)^2)$. 
+\end{proposition}
+
+\begin{proof}
+The proof compares the exact variance of the
+continuous Ornstein-Uhlenbeck 
+(OU) process
+with the variance of its finite difference approximation. 
+Following from \eqref{eq:var_fourier_modes}, we can obtain that the 
+stationary variance of the $n$-th Fourier mode is the following:
+
+\begin{equation}\label{eq:stationary_variance}
+    \lim_{t \to \infty} \mathbb{V}[u_n]
+    := \mathbb{V}[u_n^{\infty}] = \frac{1}{2\lambda_n^2}
+\end{equation}
+
+Recalling our finite difference scheme in \eqref{eq:she_scheme},
+we express it instead in matrix vector form, with $N$ 
+internal points.
 
 \begin{align}
-    u_t - u_{xx} - \xi = 0 \\
-    \sum_{k=1}^\infty v_k\phi_k - \sum_{k=1}^\infty w_k\phi_k - \sum_{k=1}^\infty
-    \dot{B}_k \phi_k &= 0 \\
-    \sum_{k=1}^\infty \left(v_k - w_k - \dot{B}_k\right)\phi_k &= 0\\
+    \mathbf{U}^j := 
+    \begin{bmatrix}
+        U_1^j \\
+        \vdots \\
+        U_N^j
+    \end{bmatrix} 
+    \in \mathbb{R}^N,
+    \quad
+    \mathbf{Z}^j := 
+    \begin{bmatrix}
+        Z_1^j \\
+        \vdots \\
+        Z_N^j
+    \end{bmatrix}
+    &\overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, \mathbf{I}_N),
+    \quad
+    \boldsymbol{\phi}_n := \sqrt{2}
+    \begin{bmatrix}
+        \sin\left( \frac{n \pi}{N+1} \cdot 1 \right) \\
+        \vdots \\
+        \sin\left( \frac{n \pi}{N+1} \cdot N \right)
+    \end{bmatrix}
+    \in \mathbb{R}^N, \\
+    \mathbf{U}^{j+1} &= \mathbf{U}^j + \Delta t A \mathbf{U}^j
+    + \sqrt{\frac{\Delta t}{\Delta x}} \mathbf{Z}^j \label{eq:scheme_matrix_vector}\\
+    \text{where } A &= \frac{1}{(\Delta x)^2}
+    \begin{bmatrix}
+        -2 & 1 & & \\
+        1 & -2 & 1  \\
+        & \ddots & \ddots & \ddots \\
+        & & 1 & -2
+    \end{bmatrix}
 \end{align}
 
+We can equivalently express our finite difference estimates $\mathbf{U}^j$
+as a finite series of Fourier modes along with our basis functions 
+$\boldsymbol{\phi}$:
 
-\paragraph{System Energy}
+\begin{equation*}
+    \boldsymbol{U}^j = \sum_{n=1}^N \hat{u}_n^j \boldsymbol{\phi}_n
+\end{equation*}
+
+where $\hat{u}_n^j$ represents our estimate of the $n$-th Fourier 
+mode at time step $j$. We define the discrete inner product now 
+based on the definition presented in \cite{suli2025nspdes}. 
+
+\begin{definition}[Discrete Inner Product]
+    For two functions $V$ and $W$ defined at interior mesh-points 
+    $x_i$ for $i = 1, \dots, N$ with spatial step size $h$
+    \begin{equation*}
+        (V,W)_h := \sum_{i = 1}^{N} h V_i W_i
+    \end{equation*}
+\end{definition}
+
+Our discrete basis functions are orthogonal under the Discrete Inner product 
+(\cite{strang2007computational}, Chapter 2), i.e.
+
+\begin{equation*}
+    (\boldsymbol{\phi}_n, \boldsymbol{\phi}_m)_{\Delta x} 
+    = \sum_{n=1}^N \Delta x \phi_{n,i} \phi_{m,i} = \delta_{n,m}
+\end{equation*}
+
+where $\delta_{n,m}$ is the Kronecker-delta function.
+Applying the discrete inner product to our 
+scheme \eqref{eq:scheme_matrix_vector} and examining each term:
+
+\begin{align}
+    \begin{split}
+        (\mathbf{U}^{j+1}, \boldsymbol{\phi}_n)_{\Delta x} &= 
+        (\mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x} + 
+        \Delta t (A \mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x}
+        \label{eq:inner_product_var_res}
+        \\
+        &\qquad + \sqrt{\frac{\Delta t}{\Delta x}} 
+        (\mathbf{Z}^j, \boldsymbol{\phi}_n)_{\Delta x},
+    \end{split}\\
+    (\mathbf{U}^{j+1}, \boldsymbol{\phi}_n)_{\Delta x} &=
+    \left(\sum_{k=1}^{N} \hat{u}_k^{j+1} \boldsymbol{\phi}_k, 
+    \boldsymbol{\phi}_n\right)_{\Delta x} = 
+    \hat{u}_n^{j+1}, 
+    \nonumber
+    \\
+    (\mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x} &= \hat{u}_n^j, 
+    \nonumber
+    \\
+    \Delta t (A \mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x} &= 
+    \Delta t \Delta x (A \mathbf{U}^j)^T \boldsymbol{\phi}_n = 
+    \Delta t \Delta x (\mathbf{U}^j)^T A \boldsymbol{\phi}_n
+    \label{eq:eigenval_1}\\
+    &= \Delta t \Delta x \lambda_n^{FD}(\mathbf{U}^j)^T \boldsymbol{\phi}_n 
+    \nonumber
+    \\
+    &= \Delta t \lambda_n^{FD} (\mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x}
+    \nonumber
+    \\
+    &= \Delta t \lambda_n^{FD} \hat{u}_n^j
+     \label{eq:eigenval_2}\\
+     \text{where }\lambda_n^{FD}&= \frac{4}{(\Delta x)^2} 
+     \sin^2(\frac{\pi n}{2(N+1)}),
+     \nonumber
+     \\
+    \sqrt{\frac{\Delta t}{\Delta x}}
+    (\mathbf{Z}^j, \boldsymbol{\phi}_n)_{\Delta x} &= 
+    \sqrt{\frac{\Delta t}{\Delta x}} \sum_{k=1}^N
+    \Delta x \mathbf{Z}_k^j(\boldsymbol{\phi}_n)_k 
+    \nonumber
+    \\
+    &= 
+    \sqrt{\Delta t \Delta x} \sum_{k=1}^N \mathbf{Z}_k^j
+    (\boldsymbol{\phi_n})_k 
+    \nonumber
+    \\
+    &:= \nu_n^j 
+    \sim \mathcal{N}(0, \sigma_n^2),
+    \label{eq:sum_of_norm_variables}
+\end{align}
+
+where in going from \eqref{eq:eigenval_1} to \eqref{eq:eigenval_2}
+we have substituted the eigenvalues, $\lambda_n^{FD}$, of the matrix 
+$A$ (\cite{strang2007computational}, Chapter 2) and applied the orthogonality
+of the basis functions, and in 
+\eqref{eq:sum_of_norm_variables} we have 
+used that the sum of normal random variables is normally 
+distributed.
+
+We obtain that \eqref{eq:inner_product_var_res} is equal to:
+\begin{equation}
+    \hat{u}_n^{j+1} = (1 - \Delta t \lambda_n^{FD}) \hat{u}_n^j + 
+    \nu_n^j
+\end{equation}
+
+We now determine what the variance of the random variable 
+$\nu_n^j$ is:
+\begin{align*}
+    \mathbb{V}[\nu_n^j] &= \mathbb{V}\left[\sqrt{\Delta t \Delta x}
+    \sum_{k=1}^N\mathbf{Z}_k^j(\boldsymbol{\phi}_n)^k\right] \\
+    &=\Delta t \Delta x \sum_{k=1}^N \mathbb{V}[\mathbf{Z}_k^j]
+    ((\boldsymbol{\phi}_n)_k)^2 \\
+    &= \Delta t \sum_{k=1}^N \Delta x  ((\boldsymbol{\phi}_n)_k)^2\\
+    &= \Delta t
+\end{align*}
+
+where we have used the orthogonality of the basis functions, 
+$(\boldsymbol{\phi}_n, \boldsymbol{\phi}_m)_{\Delta x} = 
+\delta_{m,n}$.
+
+Taking the variance of equation 
+\eqref{eq:inner_product_var_res} therefore becomes:
+
+\begin{equation}\label{eq:var_of_relation}
+    \mathbb{V}[\hat{u}_n^{j+1}] = (1-\Delta t \lambda_n^{FD})^2
+    \mathbb{V}[\hat{u}_n^j] + \Delta t
+\end{equation}
+
+For the stationary variance, we have that 
+$\mathbb{V}[\hat{u}_n^{j+1}] = 
+\mathbb{V}[\hat{u}_n^{j}] = 
+\mathbb{V}[\hat{u}_j^\infty]$. Solving for the stationary 
+variance gives:
+
+\begin{align}
+\mathbb{V}[\hat{u}_j^\infty] 
+&= \frac{\Delta t}{1 - 
+(1-\Delta t \lambda_n^{FD})^2} = 
+\frac{1}{2\lambda_n^{FD} - 
+(\lambda_n^{FD})^2 \Delta t}
+\label{eq:fourier_variance_stationary}
+\\
+&= \frac{1}{2\lambda_n^{FD}(1 - \frac{\Delta t \lambda_n^{FD}}{2})}\\
+&= \frac{1}{2\lambda_n^{FD}}(1 + \frac{\Delta t \lambda_n^{FD}}{2}
++ \dots)\label{eq:using_taylor_series} \qquad 
+\text{(By Taylor Series)}
+\end{align}
+
+Recalling that $\lambda_n^{FD} = \frac{4}{(\Delta x)^2}
+\sin^2\left(\frac{\pi n}{2(N+1)}\right) = \frac{4}{(\Delta x)^2}
+\sin^2\left(\frac{n \pi \Delta x}{2}\right)$, as $\Delta x = \frac{1}
+{N+1}$, and expanding via another Taylor series yields:
+
+\begin{align*}
+    \lambda_n^{FD} &= \frac{4}{(\Delta x)^2}\left(\frac{n^2 
+    \pi^2 (\Delta x)^2}{4} + \mathcal{O}((\Delta x)^2)\right) = 
+    n^2\pi^2 + \mathcal{O}((\Delta x)^2) \\
+    &= \lambda_n^2 + \mathcal{O}((\Delta x)^2)
+\end{align*}
+
+Substituting this into \eqref{eq:using_taylor_series} yields:
+
+\begin{align*}
+    \mathbb{V}[\hat{u}_j^\infty] &= 
+    \frac{1}{2\lambda_n^{FD}}\left(1 + 
+    \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1}{2\left(\lambda_n^2 + \mathcal{O}(\Delta x^2)\right)}\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1}{2 \lambda_n^2 \left(1 + \mathcal{O}(\Delta x^2)\right)}\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)
+    \label{eq:final_result}
+\end{align*}
+
+Finally therefore we obtain our result that the weak error
+of our finite difference scheme estimate is :
+
+\begin{equation*}
+    |\mathbb{V}\left[u_n^\infty\right] - \mathbb{V}\left[\hat{u}_n^\infty]\right]| = |\frac{1}{2\lambda_n^2} - \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)|
+    = \mathcal{O}(\Delta x^2)
+\end{equation*}
+\end{proof}
+
+
+Having established the weak error, we now turn to the MLMC variance. 
+The following proposition will be used to validate the decay 
+rate achievable in an MLMC implementation.
+
+\begin{proposition}[MLMC Variance Decay for the Second Moment of a 
+    Fourier Mode]
+    \label{prop:variance_decay_fourier}
+    Let $P_\ell = \frac{1}{M}\sum_{m=1}^M(\hat{u}_n^{(\ell,m)})^2$ 
+    be the MC estimator for the squared amplitude 
+    of the the $n$-th Fourier mode on level $\ell$. The magnitude of 
+    the MLMC 
+    variance, $V_\ell = \mathbb{V}[P_\ell - P_{\ell - 1}]$, is 
+    determined by the correlation, $\rho$, between the underlying 
+    discrete finite difference samples, 
+    $\hat{u}_n^{(\ell, n)}$ and $\hat{u}_n^{(\ell-1, n)}$.
+    \begin{itemize}
+        \item If the processes are perfectly correlated ($\rho^2 = 1)$,
+         $V_\ell = \mathcal{O}((\Delta x_\ell)^4)$.
+        \item If the correlation is imperfect $(\rho^2 < 1)$, 
+        $V_\ell = \mathcal{O}((\Delta x_\ell)^2)$.
+    \end{itemize}
+\end{proposition}
+
+\begin{proof}
+    To prove this we will expand the terms in $V_\ell$ and then 
+    solve for each of them.
+    \begin{align*}
+    V_\ell &= \mathbb{V}[P_\ell - P^{\ell - 1}]\\
+    &= \mathbb{V}[P_\ell] + 
+        \mathbb{V}[P_{\ell-1}] - 
+        2 \mathrm{Cov}\left((P_\ell, P_{\ell - 1}\right)
+    \end{align*}
+
+    We begin by expanding $\mathbb{V}[P_\ell]$:
+
+    \begin{align*}
+        \mathbb{V}[P_\ell] &= 
+        \mathbb{V}\left[\frac{1}{M}\sum_{m=1}^M
+        \left(\hat{u}_k^{(\ell, m)}\right)^2\right] \\
+        &= \frac{1}{M}\mathbb{V}\left[ (\hat{u}_k^\ell)^2 \right]\\
+        &= \frac{1}{M}\left(\mathbb{E}[(\hat{u}_k^\ell)^4] 
+        - \left(\mathbb{E}[(\hat{u}_k^\ell)^2]\right)^2\right)
+    \end{align*}
+
+    This gives us two expectations to determine. 
+    Starting with the latter of these, we recall that 
+    Fourier modes are normally distributed with 
+    zero mean.
+    We therefore have the following:
+
+    \begin{align*}
+        \mathbb{V}[(\hat{u}_n^\ell)^2] &= 
+        \mathbb{E}[(\hat{u}_n^\ell)^2] - 
+        \underbrace{\mathbb{E}[\hat{u}_n^\ell]^2}_{=0}\\
+        \mathbb{V}[\hat{u}_n^\ell] &= \mathbb{E}[(\hat{u}_n^\ell)^2]
+    \end{align*}
+
+    Referring to the earlier derivation of the variance 
+    of the Fourier mode \eqref{eq:fourier_variance_stationary}:
+    
+    \begin{equation}\label{eq:fourier_mode_var}
+        \mathbb{V}[\hat{u}_n^\ell] = \frac{1}{2 \lambda_n^{FD} - 
+        \Delta t_\ell (\lambda_n^{FD})^2}.
+    \end{equation}
+
+    We denote by $\Delta x_\ell$ and $\Delta t_\ell$ the spatial
+    and temporal step sizes in our finite difference scheme at level 
+    $\ell$.
+    These are related, for our explicit finite difference scheme,
+    via $\Delta t = \mu (\Delta x)^2$, where $\mu$ is the CFL
+    number. Recalling that $\lambda_n^{FD} = \frac{4}{(\Delta x)^4} 
+    \sin^2\left(\frac{n \pi \Delta x}{2}\right) = \lambda_n - 
+    \frac{n^4 \pi^4}{12}(\Delta x)^2 + \mathcal{O}((\Delta x)^4)$
+    where $\lambda_n = n^2 \pi^2$, we have:
+
+    \begin{align*}
+        (\lambda_n^{FD})^2 &= (\lambda_n - 
+        \underbrace{\frac{\pi^4 n^4}{12}}_{\text{=a}}(\Delta x_\ell)^2
+         + \mathcal{O}((\Delta x)^4))^2\\
+         &= \lambda_n^2 - 2 a \lambda_n (\Delta x)^2 + 
+         \mathcal{O}((\Delta x)^4)
+    \end{align*}
+
+    Returning to \eqref{eq:fourier_mode_var}:
+
+    \begin{align*}
+        \mathbb{V}[\hat{u}_n^\ell] &= \frac{1}{2 \lambda_n^{FD} - 
+        \Delta t_\ell (\lambda_n^{FD})^2} = 
+        \frac{1}{2\lambda_n\left(1 - \frac{2a + \mu \lambda_n^2}{2\lambda_n}
+        (\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right)\right)} \\
+        &= \frac{1}{2 \lambda_n} \left(1 + 
+        \frac{2a + \mu \lambda_n^2}{2 \lambda_n} (\Delta x_\ell)^2
+        + \mathcal{O}\left((\Delta x_\ell)^4\right) \right)
+        \qquad \text{(Taylor Series)} \\
+        &= \frac{1}{2\lambda_n} + 
+        \underbrace{\frac{2a + \mu \lambda_n^2}{4\lambda_n^2}}_{=b}(\Delta x_\ell)^2
+        + \mathcal{O}\left((\Delta x_\ell)^4\right)
+        \\
+        &= \frac{1}{2\lambda_n} + 
+        b(\Delta x_\ell)^2
+        + \mathcal{O}\left((\Delta x_\ell)^4\right) := \sigma_\ell^2
+    \end{align*}
+
+    We next express $\mathbb{V}[\hat{u}_n^{\ell-1}]$ in terms of 
+    $\sigma_\ell^2$. This is straightforward via our geometric relationships
+    between spatial steps at adjacent levels, 
+    \eqref{eq:she_discrete_relations}.
+
+    \begin{equation}\label{eq:sigma_ell_1_var}
+        \sigma_{\ell-1}^2 = \frac{1}{2\lambda_n} + 4b(\Delta x)^2 + 
+        \mathcal{O}\left((\Delta x)^4\right)
+    \end{equation}
+
+    We now determine what $\mathbb{E}\left[(\hat{u}_n^\ell)^4\right]$ is.
+    Again, as $\hat{u}_n^\ell$ is normally distributed with zero mean, we use
+    the standard identity that $\mathbb{E}[X^4] = 3 \sigma^4$ for 
+    a normally distributed random variable $X$ with zero mean.
+    This yields:
+
+    \begin{align*}
+        \mathbb{V}[(\hat{u}_n^\ell)^2] &= 
+        \mathbb{E}[(\hat{u}_n^\ell)^4] + 
+        \left(\mathbb{E}[(\hat{u}_n^\ell)^2]\right)^2 \\
+        &= 3\sigma_l^4 - \sigma_l^4 = 2\sigma_l^4
+    \end{align*}
+
+    Finally, we obtain that:
+
+    \begin{equation}\label{eq:P_var_estimates}
+        \mathbb{V}[P_\ell] = \frac{2\sigma_l^4}{M}, \quad 
+        \mathbb{V}[P_{\ell-1}] = \frac{2\sigma_{\ell-1}^4}{M}.
+    \end{equation}
+
+    We now examine $\mathrm{Cov}\left(P_\ell, P_{\ell-1}\right)$.
+
+    \begin{equation*}
+        \mathrm{Cov}(P_l, P_{l-1}) = 
+        \frac{1}{M}\mathrm{Cov}(\hat{u}_l^2, \hat{u}_{l-1}^2) 
+        = \frac{1}{M}\mathbb{E}[(\hat{u}_n^\ell \hat{u}_n^{l-1})^2] 
+        - \mathbb{E}[(\hat{u}_n^\ell)^2]\mathbb{E}[(\hat{u}_n^{l-1})^2])
+    \end{equation*}
+
+    We already know $\mathbb{E}[(\hat{u}_n^\ell)^2] = \sigma_\ell^2$.
+    To solve for the first term, we use Isserlis's Theorem 
+    \cite{isserlis1918formula}, another 
+    formula relating properties of normally distributed random variables.
+
+    This gives us:
+    \begin{align*}
+        \mathbb{E}\left[(\hat{u}_n^\ell)^2(\hat{u}_n^{\ell-1})^2\right] 
+        &= \mathbb{E}[(\hat{u}_n^{\ell})^2]\mathbb{E}[(\hat{u}_n^{\ell-1})^2]
+         + 2\mathbb{E}[\hat{u}_n^\ell \hat{u}_n^{\ell-1}]^2 \\
+        &= \sigma_\ell^2 \sigma_{\ell-1}^2 + 
+        2\mathbb{E}[\hat{u}_n^\ell \hat{u}_n^{\ell-1}]^2
+    \end{align*}
+
+    We know that 
+    $$
+    \mathrm{Cov}(\hat{u}_n^\ell, \hat{u}_n^{\ell-1})
+    = \mathbb{E}[\hat{u}_n^\ell \hat{u}_n^{\ell-1}] - 
+    \underbrace{\mathbb{E}[\hat{u}_n^\ell]\mathbb{E}[\hat{u}_n^{\ell-1}]}_{=0}
+    =\rho \sigma_l \sigma_{\ell-1}
+    $$
+
+    and so we now obtain that:
+
+    \begin{equation}\label{eq:cov_fourier_var}
+        \mathrm{Cov}(P_\ell, P_{\ell-1}) = 
+        \frac{1}{M}\left(\sigma_\ell^2 \sigma_{\ell-1}^2 + 
+        2\rho^2\sigma_\ell \sigma_{\ell-1} - 
+        \sigma_\ell^2 \sigma_{\ell-1}^2\right)
+        = \frac{2\rho^2\sigma_\ell^2\sigma_{\ell-1}^2}{M}
+    \end{equation}
+
+    Putting together \eqref{eq:P_var_estimates} and 
+    \eqref{eq:cov_fourier_var} into $V_\ell$:
+
+    \begin{equation}\label{eq:nearly_there_fourier_var}
+        V_l = \mathbb{V}[P_l] + \mathbb{V}[P_{l-1}] - 
+        2\mathrm{Cov}(P_l, P_{l-1}) = 
+        \frac{2}{M}(\sigma_l^4 + \sigma_{l-1}^4 -
+        2\rho^2 \sigma_l^2 \sigma_{l-1}^2)
+    \end{equation}
+
+    We expand each of these terms, also setting 
+    $\frac{1}{2\lambda_n} = \sigma^2$, as it simplifies the expansion and 
+    also corresponds to the variance of the squared amplitude of the
+    continuous Fourier mode:
+
+    \begin{align*}
+        \sigma_l^4 &= \left(\sigma^2 + b (\Delta x_\ell)^2 + 
+        \mathcal{O}\left((\Delta x_\ell)^4\right)\right)^2 = 
+        \sigma^4 + 
+        2 \sigma^2 b (\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right)
+        \\
+        \sigma_{l-1}^4 &= \left(\sigma^2 + 4b (\Delta x_\ell)^2 + 
+        \mathcal{O}\left((\Delta x_\ell)^4\right)\right)^2 =
+        \sigma^4 + 8\sigma^2 b(\Delta x_\ell)^2 + 
+        \mathcal{O}\left((\Delta x_\ell)^4\right)
+        \\
+        \sigma_l^2 \sigma_{l-1}^2 &= \left(\sigma^2+ b(\Delta x_\ell)^2 + 
+        \mathcal{O}\left((\Delta x_\ell)^4\right)\right)(\sigma^2
+        + 4b(\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right))\\
+        &= \sigma^4 + 5\sigma^2b(\Delta x_\ell)^2 + 
+        \mathcal{O}\left((\Delta x_\ell)^4\right)
+    \end{align*}
+
+    Finally, substituting these terms into \eqref{eq:nearly_there_fourier_var}
+    results in:
+    \begin{align*}
+        \sigma_\ell^4 - \sigma_{\ell-1}^4 - 2\rho^2 \sigma_\ell^2 
+        \sigma_{\ell-1}^2 &= 2 \sigma^4(1 - \rho^2) + 10 \sigma^2b 
+        (\Delta x_\ell)^2(1 - \rho^2) + 
+        \mathcal{O}\left((\Delta x_\ell)^2\right) \\
+        &= \mathcal{O}\left((\Delta x_\ell)^4\right) \quad \text{iff } 
+        \rho = \pm 1
+    \end{align*}
+
+\end{proof}
+
+
+\subsubsection{System Energy}
 
 A fundamental property of the solution is its total energy, which is defined 
 as the squared $L^2$-norm of the solution $u(t,x)$ at a final time $T$. The 
 continuous form of this quantity if given by:
 
 \begin{equation}\label{eq:system_energy}
-    P_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x
+    Q_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x
 \end{equation}
 
-We 
+To derive the expected energy, $\mathbb{E}[Q_{\text{energy}}]$, 
+we again express the solution 
+$u(t,x)$ in its Fourier sine series
+$u(t,x) = \sum_{n=1}^\infty u_n(t)\phi_n(x)$. Substituting this into 
+\eqref{eq:system_energy}:
+
+\begin{align*}
+    \int_0^1 (u(T,x))^2 \mathrm{d}x &= 
+    \int_0^1\left(\sum_{n=1}^\infty u_n(t)\phi_n(x)\right)
+    \left(\sum_{n=1}^\infty u_n(t)\phi_n(x)\right) \mathrm{d}x \\
+    &= \sum_{n=1}^\infty \sum_{m=1}^\infty u_n(t) u_m(t) (\phi_n, \phi_m) \\
+    &= \sum_{n=1}^\infty (u_n(t))^2
+\end{align*}
+
+Taking the expectation:
+
+\begin{align*}
+    \mathbb{E}\left[\int_0^1 (u(T,x))^2 \mathrm{d}x\right] &= 
+    \mathbb{E}\left[\sum_{n=1}^\infty (u_n(t))^2\right] \\
+    &= \sum_{n=1}^\infty \mathbb{E}\left[(u_n(t))^2\right] \\
+    &= \sum_{n=1}^\infty \frac{1-e^{-2\lambda_n t}}{2\lambda_n}
+    \qquad \text{via } \eqref{eq:var_fourier_modes}\\
+    &= \frac{1}{12} - \sum_{n=1}^\infty \frac{e^{-2n^2 \pi^2 t}}{2 n^2 \pi^2}\\
+    &\approx \frac{1}{12} \quad \text{for sufficiently large } t
+\end{align*}
 
 

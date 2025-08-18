@@ -1,46 +1,51 @@
 \section{Stochastic Partial Differential Equations}
 
-In their most general sense, an SPDE is a partial differential equation
+An SPDE is a partial differential equation
 where at least one of the following is random: coefficients, 
 initial boundary conditions, the domain, and the forcing term 
-\cite{lototsky2017stochastic}. In our case, 
-the SPDEs we examine have only a random forcing term. 
-In this section, we present the two SPDEs that will be
-the use cases for our MLMC implementations and investigations.
-In section SECTION HERE we will derive and define the finite difference schemes
-based on these implementations.
+\cite{lototsky2017stochastic}. The SPDEs examined in this dissertation
+are specifically those with a random forcing term.
 
+This section introduces the two parabolic SPDEs that 
+serve as our primary case studies. For each, we 
+will present the formal problem specification and define relevant 
+quantities. These specifications form the basis for the derivation
+of their respective finite difference schemes and for the analytical 
+calculation of the quantities of interest that are used for 
+validation in Chapter \ref{chap:method_and_validation}.
 
 \subsection{The Stochastic Heat Equation}
 
 The stochastic heat equation (SHE) is a canonical example of a parabolic SPDE.
 Formally, it is the standard heat equation perturbed by a stochastic
 forcing term introducing spatially and temporally uncorrelated 
-fluctuations. For instance, heat diffusing through a metal bar 
-that experiences heat emitting chemical reactions is a typical scenario the SHE
-describes.
+fluctuations. Heat diffusing through a metal bar 
+that experiences heat emitting chemical reactions would be a typical
+scenario the SHE describes.
 
-The equation is fully specified by the SPDE itself, initial conditions and 
+The equation is fully specified by the SPDE itself, an initial condition and 
 a set of bondary conditions \cite{lototsky2017stochastic,pardoux2021stochastic}.
 
 \begin{align}\label{eq:she_spde}
-\frac{\partial u(t,\mathbf{x})}{\partial t} &= \Delta u(t,\mathbf{x}) + \xi(t,\mathbf{x}), \quad \text{for } (t, \mathbf{x}) \in (0, T] \times \Omega \tag{SHE} \\
+\frac{\partial u(t,\mathbf{x})}{\partial t} &= \Delta u(t,\mathbf{x}) + \xi(t,\mathbf{x}), 
+\quad \text{for } (t, \mathbf{x}) \in (0, T] \times \Omega \tag{SHE} \\
 u(0, \mathbf{x}) &= u_0(\mathbf{x}), \quad \text{for } \mathbf{x} \in \Omega \nonumber \\
-\mathcal{B}u(t, \mathbf{x}) &= g(t, \mathbf{x}), \quad \text{for } (t, \mathbf{x}) \in (0, T] \times \partial D \nonumber
+\mathcal{B}u(t, \mathbf{x}) &= g(t, \mathbf{x}), \quad \text{for } 
+(t, \mathbf{x}) \in (0, T] \times \partial D \nonumber
 \end{align}
 
-Where $u(t,\mathbf{x})$ is a real valued function at time $t \in [0, T]$ and 
-spatial position $\mathbf{x}$ within domain $\Omega \subset \mathbb{R}^d$. 
-$u_0(\mathbf{x})$ is the initial state of the field,
+where $u(t,\mathbf{x})$ is a real valued function at time $t \in [0, T]$ and 
+spatial position $\mathbf{x}$ within a domain $\Omega \subset \mathbb{R}^d$. 
+The function $u_0(\mathbf{x})$ is the initial state of the field,
 the operator $\mathcal{B}$ represents the boundary condition on the boundary of domain 
 $\partial \mathcal{B}$, and $\Delta$ is the standard Laplacian operator.
 
-The defining component is the stochastic forcing term $\xi(t,\mathbf{x})$ term which denotes 
+The defining component is the stochastic forcing term $\xi(t,\mathbf{x})$, which denotes 
 space-time white noise. We formally define this as follows (\cite{walsh2006introduction}, Chapter 1).
 
 \begin{definition}[Space-Time White Noise]
 \label{def:whitenoise}
-A space-time white noise $\xi(t,\mathbf{x})$ on $[0,T] \times D$ is a centered
+A space-time white noise $\xi(t,\mathbf{x})$ on $[0,T] \times D$ is a centred
 Gaussian process defined by a collection of random variables 
 $\{W(\phi)\}$ indexed by test functions $\phi \in L^2([0,T] \times D)$, 
 with a covariance structure given by:
@@ -55,7 +60,7 @@ $\mathbb{E}\left[\xi(t,\mathbf{x})\xi(s,\mathbf{y}\right] =
 \delta(t-s)\delta(\mathbf{x}-\mathbf{y})$, implying the noise is perfectly uncorrelated 
 at every point. Secondly, the abstract process can be understood as the distributional
 derivative of a more tangible (though still highly irregular) object
-known as a Brownian sheet, i.e. a multidimensional Brownian motion.
+known as a Brownian sheet (i.e. a multidimensional Brownian motion).
 
 Most critically for our purposes, Definition \ref{def:whitenoise} directly informs 
 how we discretise the noise term in a numerical scheme. The integral of 
@@ -69,7 +74,7 @@ $W(\phi_j^n)$. From Definition \ref{def:whitenoise}, we know this is a centred G
 random variable whose variance is given by:
 
 \begin{subequations}\label{eq:white_noise_integral_derivation}
-    \begin{align}
+    \begin{align*}
         \mathrm{Var}(W(\phi_j^n)) &= \mathbb{E}[W(\phi_j^n)^2] = 
         \langle \phi_j^n, \phi_j^n \rangle_{L^2} \\
         &= \int_0^T \int_D (\mathbf{1}_{C_j^n}(t, \mathbf{x}))^2 
@@ -77,13 +82,12 @@ random variable whose variance is given by:
         &= \int_{t_n}^{t_{n+1}} \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} 1
         \mathrm{d}\mathbf{x}\mathrm{d}t \\
         &= \text{Area}(C_j^n) = \Delta t \Delta x
-    \end{align}
+    \end{align*}
 \end{subequations}
 
-Since any centred Gaussian random variable with variance $\delta^2$ can be written as $\sigma Z$ where 
-$Z \sim \mathcal{N}(0,1)$. Equations \eqref{eq:white_noise_integral_derivation}
-lead to a result that will be used in our finite difference 
-implementations:
+Since any centred Gaussian random variable with variance $\sigma^2$ can be written as $\sigma Z$ where 
+$Z \sim \mathcal{N}(0,1)$, this derivation leads to a crucial 
+result for our finite difference implementations:
 
 \begin{equation}\label{eq:white_noise_result}
     \int_{t_n}^{t_{n+1}} \int_{x_j - \frac{\Delta x}{2}}^{x_j + \frac{\Delta x}{2}} \xi(t, \mathbf{x})
@@ -93,10 +97,10 @@ implementations:
 where $Z_j^n$ are idependent and identically distirbuted standard normal random variables.
 
 \subsection{The Dean-Kawasaki Equation}
--
-The Dean-Kawasaki (DK) equation is used to describe the evolution of the density 
-$\rho(\mathbf{x}, t)$ of a system of $N >> 1$ weakly interacting particles, 
-having emerged from the field of fluctuating hydrodynamics.
+
+The Dean-Kawasaki (DK) equation, having emerged from the field of fluctuating 
+hydrodynamics, is used to describe the evolution of the density 
+$\rho(\mathbf{x}, t)$ of a system of $N >> 1$ weakly interacting particles.
 For the non-interacting case investigated in this dissertation, the equation is given by
 \cite{cornalba2025multilevel}:
 
@@ -111,34 +115,39 @@ For the non-interacting case investigated in this dissertation, the equation is 
 Here, $\rho(t, \mathbf{x})$ is the particle density at time $t$ in a 
 domain $\Omega = \mathbb{T}^d$, the $d$-dimensional torus. 
 The term $\frac{1}{2} \Delta \rho$ describes
-typical particle diffusion. The stochastic forcing term $N^{-1/2}
-\nabla \cdot (\sqrt{\rho}\xi)$ captures the particle density flux,
-where $\xi$ is space-time white noise. Intuitively, this noise scaled
-by $\sqrt{\rho(t, \mathbf{x})}$.
+standard particle diffusion. The stochastic forcing term $N^{-1/2}
+\nabla \cdot (\sqrt{\rho}\xi)$ models the density fluctuations,
+where $\xi$ is space-time white noise, scaled by the local density 
+via the $\sqrt{\rho}$ factor.
 
 
 The equation is highly singular, and "strong" or "pathwise" solutions 
 i.e. solutions that exist as a function of every given realisation 
 of the noise, do not exist. Instead, the only existing solutions are martingale 
-solutions where $\rho$ corresponds to empirical measures of the underlying 
+solutions, where $\rho$ corresponds to empirical measures of the underlying 
 particle system:
 
 \begin{equation*}
     \rho(\mathbf{x},t) \equiv \mu_t^N(\mathbf{x}) := N^{-1} \sum_{i=1}^N\delta(x - X_i(t)).
 \end{equation*}
 
-Cornalba and Fischer \cite{cornalba2025multilevel} do demonstrate however that
+The solution therefore is not a smooth field but a sum 
+of Dirac-delta distributions. 
+
+Despite the singular nature of the solution, 
+Cornalba and Fischer \cite{cornalba2025multilevel} demonstrate that
 statistical properties of fluctuations 
 around the mean-field limit $\bar{rho}$ can be simulated. 
-Generally, quantities of interest, $Q$, of the form:
+The quantities of interest, $Q$, generally take the form of functionals applied 
+to a weighted average of the density fluctuations:
 
 \begin{equation} 
     Q = \psi\big(N^{1/2} \int (\mu_N^T - \bar{\rho}^T)(\mathbf{x})
-    \phi(\mathbf{x})\mathrm{d}\mathbf{x}\big)
+    \phi(\mathbf{x})\mathrm{d}\mathbf{x}\big).
 \end{equation}
 
-
-can be simulated for sufficiently regular test functions $\psi, \phi$, provided $Nh^d >> 1$
+These can be computed
+for sufficiently regular test functions $\psi, \phi$, provided $Nh^d >> 1$
 (i.e. as long as on average there is more than one particle per grid cell). 
 For example, choosing $\psi(z) = z^2$ allows for the computation of the 
 variance of the fluctuations.

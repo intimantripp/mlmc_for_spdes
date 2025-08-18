@@ -5,6 +5,7 @@
 %load any additional packages
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{caption}
@@ -17,8 +18,23 @@
 %and uncomment the next line)
 %\include{mymacros}
 
+% Create a new theorem style
+\newtheoremstyle{mydefstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {\itshape} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {\newline} % Space after head (this forces a new line)
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ #3}} % Custom head specification
+
+% Apply the new style to the definition environment
+\theoremstyle{mydefstyle}
+\newtheorem{definition}{Definition} % The [chapter] part numbers it by chapter
+
 % Define theorem-like environments
-\newtheorem{definition}{Definition}
+% \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}

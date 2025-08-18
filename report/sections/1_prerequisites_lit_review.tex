@@ -21,12 +21,12 @@ elliptic SPDEs (for example \cite{abdulle2013multilevel, kornhuber2014multilevel
 This dissertation is concerned with parabolic SPDEs, for which the literature 
 provides a smaller but highly relevant set of foundational papers. This review will focus on 
 three key works that inform the central questions of this research: establishing the theoretical 
-basis for MLMC's efficiency, demonstraing its practical validation, and exporing 
+basis for MLMC's efficiency, demonstrating its practical validation, and exploring 
 its application to highly singular equations with different coupling strategies. 
 
 
 Barth, Lang, and Schwab \cite{barth2013multilevel} analyse provide a foundational 
-analysis of the convegrence and complexity of the MLMC method for a general class of 
+analysis of the convergence and complexity of the MLMC method for a general class of 
 parabolic SPDEs. Using a Galerkin method in space and a Euler-Maruyama scheme in time, they 
 prove that the  MLMC estimator significantly reduces the computational work required 
 to achieve a given accuracy compared to a standard single-level method. Their 
@@ -43,20 +43,20 @@ The authors develop and analyse a Milstein finite difference scheme, proving it 
 first-order accuracy in time and second-order in space. They demonstrate a concrete reduction
 in computational complexity from $O(\varepsilon^{-7/2})$ for a standard MC approach to the optimal 
 $O(\varepsilon^{-2})$ for their MLMC implementation, validating this gain through 
-numerical experiments. This work serves as a methodological benchmar, demonstrating how to 
+numerical experiments. This work serves as a methodological benchmark, demonstrating how to 
 empirically confirm the theoretical performance gains of the MLMC method.
 
-A very revent and highly relevant contribution is the 2024 paper by 
+A very recent and highly relevant contribution is the 2024 paper by 
 Cornalba and Fischer, which 
 develops and analyses an MLMC method specifically for the Dean-Kawasaki equation, 
-one o the two case studies in this dissertation. Their work tackles a highly singular SPDE 
-for which standard MLMC convergence proofs fail. By formulating their analysis in terms 
+one of the two case studies in this dissertation. Their work tackles a highly singular SPDE 
+for which standard convergence proofs fail. By formulating their analysis in terms 
 of the convergence of probability distributions, they prove that MLMC provides a 
 significant computational improvement over standard MC, provided average 
 particle density is sufficiently large. Crucially, they propose and 
 analyse two distinct noise coupling strategies:
 a "Fourier coupling" and a "Right-Most Nearest Neighbours (NN) coupling". We build directly
-on this work in this dissertation by also investigating the Dean-KAwasaki equation and proposing 
+on this work in this dissertation by also investigating the Dean-Kawasaki equation and proposing 
 an alternative noise coupling strategy.
 
 NEED TO ADD REGARDING HPC MLMC IMPLEMENTATIONS AND SPDES (believe none done)

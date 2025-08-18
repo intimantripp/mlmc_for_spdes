@@ -57,34 +57,32 @@ $h_L = 2^{-(L+1)}$. A higher $L$ means a finer mesh and a more accurate - but al
 computationally expensive - approximation. 
 
 This introduces a second source of error. The total error of our estimate is now a combination 
-of the statistical error from the Monte Carlo sampling and the systematic bias from the
-numerical discretisation. In this context, the MSE of the standard MC estimator which uses 
-$N$ samples of the numerical approximation $P_L$, which we denote $\hat{P}_{MC, L}$ is therefore 
-the following:
+of the statistical error from the Monte Carlo sampling and the systematic bias from
+numerical discretisation. Consequently, the MSE of the standard MC estimator using 
+$N$ samples of the numerical approximation $P_L$, denoted $\hat{P}_{MC, L}$ is:
 
-\begin{equation}
+\begin{equation}\label{eq:mc_mse}
     \text{MSE}(\hat{P}_{MC,L}) = \underbrace{\frac{1}{N}\mathbb{V}[P_L]}_{\substack{\text{Statistical Error} \\ \text{(Variance)}}} + 
     \underbrace{(\mathbb{E}[P_L] - \mathbb{E}[P])^2}_{\substack{\text{Discretisation Error} \\ (\text{Bias}^2)}}
 \end{equation}
 
-This explicit formula presents the clear dilemma of the MC estimator. To achieve an overall
-MSE less than  $\varepsilon^2$, one must sufficiently reduce the above terms.
-To make the statistical error small, we require a \underline{large}
-number of samples $N$.
-To make the discretisation error small, we require a fine discretisation level $L$ such that
-$P_L \approx P$. A finer level $L$ dramatically increases the computational cost 
-of generating each sample, which we denote by $C_{L}$. The total cost of the 
-MC estimator is $N \times C_L$.
-Thus, we have that to achieve a target MSE, both terms in this product increase.
+\eqref{eq:mc_mse} presents the clear dilemma of the standard MC method. To achieve an overall
+MSE less than a tolerance  $\varepsilon^2$, both terms must be sufficiently small. 
+Reducing the statistical error requires a large number of samples $N$, while 
+reducing the discretisation error requires a fine discretisation lvel $L$.
+Since the computational cost per sample $C_L$, increases sharply with $L$, the total 
+cost, $N \times C_L$, often becomes prohibitively large. 
 
 This is the fundamental challenge that the Multilevel Monte Carlo method is designed to overcome. 
-Instead of estimating the expensive quantity $\mathbb{E}[P_L]$ directly, MLMC rewrites it 
+Instead of estimating the expensive quantity $\mathbb{E}[P_L]$ directly, MLMC reformulates it 
 using a telescoping sum:
 \begin{equation*}
-    \mathbb{E}[P_L] = \sum_{\ell=0}^L \mathbb{E}[Y_\ell], \quad \text{where} \quad Y_\ell := P_\ell - P_{\ell-1} \quad \text{and} \quad P_{-1} := 0.
+    \mathbb{E}[P_L] = \sum_{\ell=0}^L \mathbb{E}[Y_\ell], \quad \text{where} \quad 
+    Y_\ell := P_\ell - P_{\ell-1} \quad \text{and} \quad P_{-1} := 0.
 \end{equation*}
 
-Each term $\mathbb{E}[Y_\ell]$ is then estimated independently with a standard Monte Carlo estimator.
+Each correction term $\mathbb{E}[Y_\ell]$ is then estimated independently with a 
+standard Monte Carlo estimator.
 
 \begin{definition}[Multilevel Monte Carlo Estimator]\label{def:mlmc_estimator}
     Let $Y_\ell = P_\ell - P_{\ell-1}$ be the correction at level $\ell$. The \textbf{Multilevel Monte Carlo (MLMC) estimator}, $\hat{P}_{\mathrm{MLMC}}$, for the expectation $\mathbb{E}[P_L]$ is:
@@ -111,37 +109,23 @@ C_{\mathrm{MLMC}} = \sum_{\ell=0}^L N_\ell C_\ell, \qquad
 \mathbb{V}[\hat{P}_{\mathrm{MLMC}}] = \sum_{\ell=0}^L \frac{V_\ell}{N_\ell}.
 $$
 The success of the MLMC method hinges on the behaviour of the level variances, 
-$V_\ell$. The key is to ensure that $V_\ell$ is small, especially for large $\ell$ where
-the cost $C_\ell$ is high. This is achieved by using the same underlying source of 
-randomness to generate the pair $(P_\ell, P_{\ell-1})$. This technique is known as
-\textit{coupling}. For example, when solving a Stochastic Differential Equation 
-driven by Brownian motion,
-both the fine ($P_\ell$) and coarse ($P_{\ell - 1}$) simulations use the same discretised Brownian path 
-(\cite{giles2015multilevel}, section 5.1 for example). 
+$V_\ell$. The key is to ensure that $V_\ell$ decreases rapidly as the level $\ell$ 
+(and therefore cost $C_\ell$) increases. This is achieved by using the same underlying source of 
+randomness to generate pairs of samples $(P_\ell, P_{\ell-1})$. This technique, known as
+\textit{coupling}, ensures the samples are strongly correlated. Because 
+$P_\ell$ and $P_{\ell - 1}$ are approximations of the same underlying quantity, their difference 
+is small, and consequently the variance of this difference, $V_\ell$, is much smaller than the 
+variance of either term individually. As the level $\ell$ increases, $P_\ell$ converges to 
+$P_{\ell - 1}$, and so we expect that $V_\ell \to 0$.
 
-Because the coarse and fine paths are strongly correlated, 
-functionals $P_\ell$ and $P_{\ell-1}$ are also strongly correlated. 
-Consequently, the variance of their difference, $V_\ell$, is much smaller 
-than the variance of either term individually. As the level $\ell$ increases, 
-$P_\ell$ converges to $P_{\ell-1}$, and so we expect that $V_\ell \to 0$.
-
-This property allows for the following trade-off: we can use a small number 
-of samples $N_\ell$ 
-for the expensive, high-level correction terms (where $V_\ell$ is small) 
-and compensate 
-by using a large number of samples for the cheap, low-level terms. We can 
-determine the 
-optimal number of samples for each $N_\ell$ that minimises the total cost in
-order 
-to achieve a given variance and also ensure we use enough levels such that our
-discretisation error 
-is also sufficiently small. Both of these ensure that we can achieve a target
-MSE or RMSE at minimal cost.
-
+This decay of the level variance allows for a crucial trade-off: we use a small number 
+of samples $N_\ell$ for the expensive, high-level correction terms 
+(where $V_\ell$ is small) and compensate by using a large number of samples 
+for the cheap, low-level terms where the variance is high. The optimal allocation 
+of samples across levels can be determined by solving a constrained optimisation problem.
 For a fixed variance, $\varepsilon^2$, choosing the optimal $\{N_\ell\}_{\ell=0}^L$ that 
-minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is a classic 
-constrained optimisaton problem solveable with Lagrange mutipliers. It yieds 
-optimal number of samples \cite{giles2015multilevel}:
+minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is solveable with 
+Lagrange mutipliers. It yieds the optimal number of samples \cite{giles2015multilevel}:
 
 \begin{equation}\label{eq:optimal_N_l}
     N_\ell = \left\lceil \frac{1}{\varepsilon_{\text{var}}^2} \sqrt{\frac{V_\ell}{C_\ell}} \sum_{k=0}^L \sqrt{V_k C_k} \right\rceil.
@@ -236,9 +220,10 @@ the total cost is dominated by the work on the finest level, $L$.
 Even in this worst case scenario though, we still arrive at a smaller scaling of cost 
 than the MC estimator. 
 
-We conclude this section by highlighting the importance of how
-$\beta$ and $\gamma$ relate to one another in determining the 
-magnitude of cost savings an MLMC implementation can offer over an 
-MC estimator. Determining how MLMC performs relative to MC in SPDE
-applications will depend heavily on what variance decay we can achieve
-relative to cost growth in our implementations.
+We conclude this section by highlighting the importance of the relationship
+between variance decay rate $\beta$, and the cost growth rate $\gamma$. 
+As shown in the Complexity Theorem, the magnitude of the computational savings 
+offered by an MLMC implementation depends critically on whether the variance 
+decreases faster than the cost increases (i.e. if $\beta \ge \gamma$). 
+Determining this relationship for specific SPDE applications and coupling 
+strategies is a primary goal of this dissertation.

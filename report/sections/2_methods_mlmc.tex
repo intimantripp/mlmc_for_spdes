@@ -10,7 +10,7 @@ second phase uses these paramaters in an adaptive algorithm
 to achieve a final result.
 
 Before running the main adaptive algorithm, A fixed, large number of $N$ 
-samples is simulated on a specified number of initial levels. From 
+samples is simulated on a specified range of discretisation levels. From 
 these simulations we gather empirical estimates of $|\mathbb{E}[Y_\ell]|, 
 V_\ell, C_\ell$. Performing linear regression on the logarithms on these
 quantities against the index level we obtain estimates for the weak decay rate,
@@ -24,7 +24,7 @@ Those estimates can then be passed to the MLMC algorithm which we detail here.
 \label{alg:mlmc_detailed}
 \begin{algorithmic}[1]
 \Statex \textbf{Input:} Target RMSE $\varepsilon > 0$, initial number of samples
-$N_0 \ge 2$, $\alpha$, $\beta$ and $\gamma$ estimates.
+$N_0$, $\alpha$, $\beta$ and $\gamma$ estimates.
 \Statex \textbf{Output:} MLMC estimate $\hat{P}_{\mathrm{MLMC}}$, sample counts
 $N_\ell$, variances $V_\ell$, and costs $C_\ell$ for each level.
 
