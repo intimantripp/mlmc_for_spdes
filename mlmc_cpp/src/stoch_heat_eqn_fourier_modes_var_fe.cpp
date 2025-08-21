@@ -1,4 +1,4 @@
-#include "stoch_heat_eqn_fourier_modes_var.hpp"
+#include "stoch_heat_eqn_fourier_modes_var_fe.hpp"
 #include "mlmc_test.hpp"
 #include <vector>
 #include <random>
@@ -21,23 +21,23 @@ static std::normal_distribution<> Z(0.0, 1.0);
 // Utility to index a flattened 2D array: xi(i, n) = i * N2 + n
 inline int idx(int i, int n, int N2) {return i * N2 + n; }
 
-void run_stoch_heat_eqn_fourier_modes_var(const int N) {
-    std::cout << "Running MLMC Stochastic Heat Equation\n" << std::endl;
+void run_stoch_heat_eqn_fourier_modes_var_fe(const int N) {
+    std::cout << "Running MLMC Stochastic Heat Equation - Sq Amp FE\n" << std::endl;
     int M = 8;
     int L = 6;
     int N0 = 100;
     std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
 
-    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode_var.csv";
-    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode_var.csv";
+    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode_var_fe.csv";
+    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode_var_fe.csv";
     
 
     mlmc_test(
-        [=](int l, int N) { return stoch_heat_eqn_fourier_modes_var_l(l, N); }, 
+        [=](int l, int N) { return stoch_heat_eqn_fourier_modes_var_fe_l(l, N); }, 
         M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename);
 }
 
-std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_var_l(int l, int N) {
+std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_var_fe_l(int l, int N) {
     const double lam = 0.25;
     const int batch_size = 100;
     int nf = 1 << (l + 1);
@@ -59,17 +59,28 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes
         std::vector<double> uf((nf + 1) * N2, 0.0);
 
         if (l == 0) {
-            // Fine grid, no coarse grid
+            // Fine grid. generate correlated noise and update the fine grid
             std::vector<double> uf_new((nf + 1) * N2, 0.0); // temp buffer
             for (int t = 0; t < timesteps_f; ++t) {    // loop over the timesteps
+                std::vector<double> Z_node((nf - 1) * N2);
+                std::vector<double> Z_edge(nf * N2);
+                for(int i = 0; i < (nf - 1) * N2; ++i) Z_node[i] = Z(RNG);
+                for(int i = 0; i < nf * N2; ++i) Z_edge[i] = Z(RNG);
+                
+                // Construct correlated dWf noise
                 std::vector<double> dWf((nf - 1) * N2);
-                for (int i = 0; i < (nf - 1) * N2; i++) // construct random noises for x point, for every trial
-                    dWf[i] = std_f * Z(RNG);
+                for (int i = 0; i < nf - 1; ++i) {
+                    for (int n = 0; n < N2; ++n) {
+                        dWf[idx(i, n, N2)] = std::sqrt(hf / 3.0) * Z_node[idx(i, n, N2)] + 
+                                        std::sqrt(hf / 6.0) * (Z_edge[idx(i, n, N2)] + Z_edge[idx(i + 1, n, N2)]);
+                    }
+                }
 
-                for (int i = 1; i < nf; i++) { // Loop over internal points
-                    for (int n = 0; n < N2; ++n) { // loop over trials
-                        uf_new[idx(i, n, N2)] = uf[idx(i, n, N2)] + lam * (uf[idx(i + 1, n, N2)] - 2 * uf[idx(i, n, N2)] + 
-                        uf[idx(i - 1, n, N2)]) + dWf[idx(i - 1, n, N2)];
+                // Update fine solution
+                for (int i = 1; i < nf; ++i) {
+                    for (int n = 0; n < N2; ++n) {
+                        uf_new[idx(i, n, N2)] = uf[idx(i, n, N2)] + lam * (uf[idx(i + 1, n, N2)] - 2 * uf[idx(i, n, N2)] +
+                                                uf[idx(i - 1, n, N2)]) + (std::sqrt(dtf) / hf) * dWf[idx(i - 1, n, N2)];
                     }
                 }
                 uf.swap(uf_new);
@@ -93,36 +104,53 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes
             std::vector<double> uc((nc + 1) * N2);
             std::vector<double> uf_new((nf + 1) * N2, 0.0);
             std::vector<double> uc_new((nc + 1) * N2, 0.0);
+
             for (int tc = 0; tc < timesteps_c; ++tc) { // loop over coarse timesteps
-                std::vector<double> dWc((nc - 1) * N2);
+                std::vector<double> dWc((nc - 1) * N2, 0.0);
+
                 for (int s = 0; s < 4; ++s) { // loop through 4 fine timesteps per coarse timestep
+                    
+                    // 1. Generate underlying noises
+                    std::vector<double> Z_node((nf - 1) * N2);
+                    std::vector<double> Z_edge(nf * N2);
+                    for(int i = 0; i < (nf - 1) * N2; ++i) Z_node[i] = Z(RNG);
+                    for(int i = 0; i < nf * N2; ++i) Z_edge[i] = Z(RNG);
 
-                    // Construct dWf
+                    // 2. Construct correlated fine grid noises for dWf
                     std::vector<double> dWf((nf - 1) * N2);
-                    for (int i = 0; i < (nf - 1) * N2; ++i)
-                        dWf[i] = std_f * Z(RNG);
+                    for (int i = 0; i < nf - 1; ++i) {
+                        for (int n = 0; n < N2; ++n) {
+                            dWf[idx(i, n, N2)] = std::sqrt(hf / 3.0) * Z_node[idx(i, n, N2)] + 
+                                std::sqrt(hf / 6.0) * (Z_edge[idx(i, n, N2)] + Z_edge[idx(i + 1, n, N2)]);
+                        }
+                    }
 
-                    // Perform uf updates
+                    // 3. Update fine solution
                     for (int i = 1; i < nf; ++i) {// loop over internal fine points
                         for (int n = 0; n < N2; ++n) {// loop over trials
                             uf_new[idx(i, n, N2)] = uf[idx(i, n, N2)] + lam * (uf[idx(i + 1, n, N2)] - 2 * uf[idx(i, n, N2)] + uf[idx(i - 1, n, N2)])
-                            + dWf[idx(i - 1, n, N2)];
+                            + (std::sqrt(dtf) / hf) * dWf[idx(i - 1, n, N2)];
                         }
                     }
                     uf.swap(uf_new);
 
-                    // Coupling: sum adjacent fine increments for coarse
-                    for (int ic = 0; ic < nc - 1; ++ic) // loop over internal coarse points
-                        for (int n = 0; n < N2; ++n) // loop over numbers for each trial
-                                // Each dWc internal ic point is constructed by summing two left most dWf points 
-                                dWc[idx(ic, n, N2)] += dWf[idx(2 * ic, n, N2)] + dWf[idx(2 * ic + 1, n, N2)];
+                    // 4. Construct and accumulate coarse grid noise dWc from dWf
+                    for (int ic = 0; ic < nc - 1; ++ic) {
+                        for (int n = 0; n < N2; ++n) {
+                            dWc[idx(ic, n, N2)] += 0.5 * dWf[idx(2 * ic, n, N2)] + 
+                                                    dWf[idx(2 * ic + 1, n, N2)] + 
+                                                    0.5 * dWf[idx(2 * ic + 2, n, N2)];
+                        }
+                    }
                 }
-                // Coarse update (dWc scaled by 0.5)
+
+                
+                // 5. Update coarse grid
                 for (int ic = 1; ic < nc; ++ic)
                     for (int n = 0; n < N2; ++n)
                         uc_new[idx(ic, n, N2)] = uc[idx(ic, n, N2)] + 
                             lam * (uc[idx(ic + 1, n, N2)] -2 * uc[idx(ic, n, N2)] + uc[idx(ic - 1, n, N2)])
-                            + 0.5 * dWc[idx(ic - 1, n, N2)];
+                            + (std::sqrt(dtc) / hc) * (0.5 * dWc[idx(ic - 1, n, N2)]);
                 uc.swap(uc_new);
             }
             // Compute Pf and Pc

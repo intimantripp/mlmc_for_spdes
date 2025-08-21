@@ -1,4 +1,4 @@
-#include "stoch_heat_eqn_fourier_modes_var.hpp"
+#include "stoch_heat_eqn_fourier_modes_var_cc.hpp"
 #include "mlmc_test.hpp"
 #include <vector>
 #include <random>
@@ -21,23 +21,23 @@ static std::normal_distribution<> Z(0.0, 1.0);
 // Utility to index a flattened 2D array: xi(i, n) = i * N2 + n
 inline int idx(int i, int n, int N2) {return i * N2 + n; }
 
-void run_stoch_heat_eqn_fourier_modes_var(const int N) {
-    std::cout << "Running MLMC Stochastic Heat Equation\n" << std::endl;
+void run_stoch_heat_eqn_fourier_modes_var_cc(const int N) {
+    std::cout << "Running MLMC Stochastic Heat Equation - Sq Amp CC\n" << std::endl;
     int M = 8;
     int L = 6;
     int N0 = 100;
     std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
 
-    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode_var.csv";
-    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode_var.csv";
+    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode_var_cc.csv";
+    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode_var_cc.csv";
     
 
     mlmc_test(
-        [=](int l, int N) { return stoch_heat_eqn_fourier_modes_var_l(l, N); }, 
+        [=](int l, int N) { return stoch_heat_eqn_fourier_modes_var_cc_l(l, N); }, 
         M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename);
 }
 
-std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_var_l(int l, int N) {
+std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_var_cc_l(int l, int N) {
     const double lam = 0.25;
     const int batch_size = 100;
     int nf = 1 << (l + 1);
@@ -87,22 +87,38 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes
             // Both fine and coarse grids need to be constructed
             int nc = nf / 2;
             double hc = 1.0 / nc;
-            double dtc = lam * hc * hc;
             int timesteps_c = nc * nc;
 
             std::vector<double> uc((nc + 1) * N2);
             std::vector<double> uf_new((nf + 1) * N2, 0.0);
             std::vector<double> uc_new((nc + 1) * N2, 0.0);
+
+            // half cell 
+            int num_half_cells = 2 * (nf - 1);
+            double std_half = std::sqrt(hf * dtf / 2.0);
+
             for (int tc = 0; tc < timesteps_c; ++tc) { // loop over coarse timesteps
-                std::vector<double> dWc((nc - 1) * N2);
+                std::vector<double> dWc((nc - 1) * N2, 0.0);
+
                 for (int s = 0; s < 4; ++s) { // loop through 4 fine timesteps per coarse timestep
+                    
+                    // 1. Generate half-cell noises
+                    std::vector<double> half_cell_noises(num_half_cells * N2);
+                    for(int i = 0; i < num_half_cells * N2; ++i) {
+                        half_cell_noises[i] = std_half * Z(RNG);
+                    }
 
-                    // Construct dWf
+                    // 2. Construct fine cell noises
                     std::vector<double> dWf((nf - 1) * N2);
-                    for (int i = 0; i < (nf - 1) * N2; ++i)
-                        dWf[i] = std_f * Z(RNG);
+                    for (int i = 0; i < nf - 1; ++i) {
+                        for (int n = 0; n < N2; ++n) {
+                            double zeta_L = half_cell_noises[idx(2 * i, n, N2)];
+                            double zeta_R = half_cell_noises[idx(2 * i + 1, n, N2)];
+                            dWf[idx(i, n, N2)] = (zeta_L + zeta_R) / hf;
+                        }
+                    }
 
-                    // Perform uf updates
+                    // 3. Perform uf updates
                     for (int i = 1; i < nf; ++i) {// loop over internal fine points
                         for (int n = 0; n < N2; ++n) {// loop over trials
                             uf_new[idx(i, n, N2)] = uf[idx(i, n, N2)] + lam * (uf[idx(i + 1, n, N2)] - 2 * uf[idx(i, n, N2)] + uf[idx(i - 1, n, N2)])
@@ -111,18 +127,26 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes
                     }
                     uf.swap(uf_new);
 
-                    // Coupling: sum adjacent fine increments for coarse
-                    for (int ic = 0; ic < nc - 1; ++ic) // loop over internal coarse points
-                        for (int n = 0; n < N2; ++n) // loop over numbers for each trial
-                                // Each dWc internal ic point is constructed by summing two left most dWf points 
-                                dWc[idx(ic, n, N2)] += dWf[idx(2 * ic, n, N2)] + dWf[idx(2 * ic + 1, n, N2)];
-                }
+                    // 4. Construct and accumulate coarse grid noise (dWc) from half-cells
+                    for (int ic = 0; ic < nc - 1; ++ic) {
+                        for (int n = 0; n < N2; ++n) {
+                            // Sum the four half-cell noises corresponding to the coarse cell
+                                double zeta_2k_L = half_cell_noises[idx(4 * ic, n, N2)];
+                                double zeta_2k_R = half_cell_noises[idx(4 * ic + 1, n, N2)];
+                                double zeta_2kp1_L = half_cell_noises[idx(4 * ic + 2, n, N2)];
+                                double zeta_2kp1_R = half_cell_noises[idx(4 * ic + 3, n, N2)];
+                                
+                                dWc[idx(ic, n, N2)] += (zeta_2k_L + zeta_2k_R + zeta_2kp1_L + zeta_2kp1_R);
+                        }
+                    }
+                }                
+                
                 // Coarse update (dWc scaled by 0.5)
                 for (int ic = 1; ic < nc; ++ic)
                     for (int n = 0; n < N2; ++n)
                         uc_new[idx(ic, n, N2)] = uc[idx(ic, n, N2)] + 
                             lam * (uc[idx(ic + 1, n, N2)] -2 * uc[idx(ic, n, N2)] + uc[idx(ic - 1, n, N2)])
-                            + 0.5 * dWc[idx(ic - 1, n, N2)];
+                            + (1.0 / hc) * dWc[idx(ic - 1, n, N2)];
                 uc.swap(uc_new);
             }
             // Compute Pf and Pc

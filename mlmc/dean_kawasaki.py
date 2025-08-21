@@ -102,6 +102,3 @@ def dean_kawasaki_eqn_l(l, N):
         sum2[1] += np.sum(Pf**2)
 
     return sum1, sum2
-
-    
-
