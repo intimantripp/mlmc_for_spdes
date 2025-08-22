@@ -1,0 +1,38 @@
+\section{Introduction}
+
+Stochastic partial differential equations (SPDEs) commonly arise in the mathematical modelling of systems 
+whose evolution is significantly influenced by random fluctuations. They have been employed in models of turbulence,
+population dynamics, neurophysiology, finance, fluid dynamics and climate modelling \cite{pardoux2021stochastic}
+\cite{alonso2020modelling}. Solving SPDEs is often inherently challenging however. Very few cases have analytical
+solutions, and numerical solutions have their own obstacles.
+Additional dimensionality imposes a higher computational cost, one may have to 
+sample over many realisations of the noise, and some SPDEs are highly singular.
+
+The Monte Carlo method is a natural avenue of approach when trying to solve SPDEs. Repeated samples of 
+finite-difference or finite-element derived quantities may be obtained, and an estimate of a 
+desired quantity of interest therefore computed. They can be exhoribitantly costly however. To achieve an 
+accuracy of $\epsilon$ in one's estimate, the standard Monte Carlo
+estimator requires $O(\epsilon^{-2})$ samples be computed. To improve on this a number
+of variance reduction techniques have been introduced, their aim being to achieve an equivalent accuracy 
+at a reduced cost.
+
+The Multilevel Monte Carlo (MLMC) method is one such technique. Its tenet is to sample from a blend of 
+cheap, less accurate samples and expensive, more accurate samples, and then combine those to obtain 
+one's estimate. Provided this is implemented apprpriately, this can result in a cost reduction when compared
+to standard Monte Carlo. 
+
+This dissertation investigates applying the MLMC to solve SPDEs. In particular,
+this dissertation has the following goals:
+\begin{itemize}
+    \item Quantify the cost reductions achievable with MLMC methods, using MC methods as a baseline.
+    \item Explore variations in MLMC implementations across different SPDEs.
+    \item Present performance improvements achievable with high-performance implementations on GPUs
+\end{itemize}
+
+
+This dissertation will have the following structure. Section ?? will cover the relevant prerequisites. It will 
+give an overview of the MLMC method as it pertains to SPDEs, before illustrating with a simple example. A review 
+of the relevant literature will then be given. Finally, some relevant definitions will be covered. Section ??
+will then begin by introducing the implemented MLMC process. Much of the section is given over to validation 
+of quantities, with particular focus given to the stochastic heat equation. Finally we go onto investigating results.
+

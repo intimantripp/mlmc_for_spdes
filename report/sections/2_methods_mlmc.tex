@@ -1,0 +1,82 @@
+\section{MLMC Algorithm}\label{sec:mlmc_algorithm}
+
+Having outlined the MLMC theory in Section \ref{sec:intro_mlmc}, we now present 
+the MLMC algorithm that is implemented in this dissertation. This is 
+based on the MLMC implementation provided by Giles \cite{giles2015multilevel}.
+The practical implementation of the MLMC method follows a two phase approach.
+The first phase is dedicated to empirically estimating the parameters 
+of the MLMC Complexity Theorem \ref{theorem:mlmc_complexity}, while the
+second phase uses these paramaters in an adaptive algorithm 
+to achieve a final result.
+
+Before running the main adaptive algorithm, A fixed, large number of $N$ 
+samples is simulated on a specified range of discretisation levels. From 
+these simulations we gather empirical estimates of $|\mathbb{E}[Y_\ell]|, 
+V_\ell, C_\ell$. Performing linear regression on the logarithms on these
+quantities against the index level we obtain estimates for the weak error 
+decay rate, variance decay rate, and cost growth rate, $\alpha$, $\beta$ and $\gamma$ 
+respectively. 
+
+Those estimates can then be passed to the MLMC algorithm presented here.
+
+\begin{algorithm}
+\caption{Adaptive Multilevel Monte Carlo Algorithm}
+\label{alg:mlmc_detailed}
+\begin{algorithmic}[1]
+\Statex \textbf{Input:} Target RMSE $\varepsilon > 0$, initial number of samples
+$N_0$, $\alpha$, $\beta$ and $\gamma$ estimates.
+\Statex \textbf{Output:} MLMC estimate $\hat{P}_{\mathrm{MLMC}}$, sample counts
+$N_\ell$, variances $V_\ell$, and costs $C_\ell$ for each level.
+
+\State \textbf{Initialize:}
+\State Set finest level $L \gets 2$.
+\State Set initial required samples $\Delta N_\ell \gets N_0$ for $\ell = 0, 
+\dots, L$.
+\State Set current sample counts $N_\ell \gets 0$ for $\ell = 0, \dots, L$.
+\State Initialize statistical accumulators for sums of $Y_\ell$ and $Y_\ell^2$.
+
+\State
+\While{$\sum_{\ell=0}^L \Delta N_\ell > 0$} \Comment{Loop until all levels have
+sufficient samples}
+    \State \Comment{\textit{1: Generate Samples}}
+    \ForAll{$\ell = 0, \dots, L$}
+        \If{$\Delta N_\ell > 0$}
+            \State Simulate $\Delta N_\ell$ new samples of the correction term 
+            $Y_\ell = P_\ell - P_{\ell-1}$.
+            \State Update the statistical accumulators (sums of $Y_\ell$ and 
+            $Y_\ell^2$).
+            \State Update the current sample count: $N_\ell \gets N_\ell + 
+            \Delta N_\ell$.
+        \EndIf
+    \EndFor
+    \State
+    \State \Comment{\textit{2: Update Estimates and Optimal Allocation}}
+    \ForAll{$\ell = 0, \dots, L$}
+        \State Compute the current estimate of the variance $V_\ell \gets 
+        \mathbb{V}[Y_\ell]$ from the accumulators.
+    \EndFor
+    \State Calculate the optimal number of samples $N_\ell^{\text{opt}}$ for all 
+    levels using the current variance estimates $V_\ell$ and the cost per sample 
+    $C_\ell$ in equation \eqref{eq:optimal_N_l} with a target statistical variance of $\varepsilon^2/2$.
+    \State Compute the required additional samples: $\Delta N_\ell \gets \max(0, 
+    N_\ell^{\text{opt}} - N_\ell)$.
+    \State
+    \State \Comment{\textit{3: Check for Bias Convergence}}
+    \If{$\sum \Delta N_\ell < 0.01 \sum N_\ell$} \Comment{Check only if sampling
+    has stabilized}
+        \State Compute the mean of the finest correction, $|\hat{Y}_L| = 
+        \left|\frac{1}{N_L}\sum_{n=1}^{N_L}Y_L^{(n)}\right|$.
+        \If{$|\hat{Y}_L| \ge \varepsilon/\sqrt{2}$} \Comment{If bias is still 
+        too large}
+            \State $L \gets L+1$. \Comment{Add a new, finer level.}
+            \State Initialize accumulators, $N_L$, and $\Delta N_L$ for the 
+            new level.
+        \EndIf
+    \EndIf
+\EndWhile
+
+\State
+\State \textbf{Compute Final Estimate:} $\hat{P}_{\mathrm{MLMC}} \gets 
+\sum_{\ell=0}^L \left( \frac{1}{N_\ell} \sum_{n=1}^{N_\ell} Y_\ell^{(n)} \right)$.
+\end{algorithmic}
+\end{algorithm}

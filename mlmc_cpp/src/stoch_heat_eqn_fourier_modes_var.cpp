@@ -26,15 +26,17 @@ void run_stoch_heat_eqn_fourier_modes_var(const int N) {
     int M = 8;
     int L = 6;
     int N0 = 100;
-    std::vector<double> Eps = {0.005, 0.01, 0.02, 0.05, 0.1};
+    std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
 
     std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode_var.csv";
     std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode_var.csv";
+    std::string output_regression_filename = "../outputs/mlmc_regression_stoch_heat_eqn_fourier_mode_var.csv";
     
 
     mlmc_test(
         [=](int l, int N) { return stoch_heat_eqn_fourier_modes_var_l(l, N); }, 
-        M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename);
+        M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename,
+        output_regression_filename);
 }
 
 std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_var_l(int l, int N) {

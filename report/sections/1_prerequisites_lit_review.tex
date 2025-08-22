@@ -1,0 +1,66 @@
+\section{Literature Review}
+
+The MLMC method was formally introduced and popularised by 
+Giles for SDE path simulation in 2008 \cite{giles2008multilevel}, 
+building on earlier foundational work on multilevel integration by 
+Heinrich starting in 1998 \cite{heinrich1998monte}. Early works focussed 
+predominantly on application to SDEs, particularly in computational 
+finance. Other research extended the method's application to a wider range 
+of topics, including various classes of SDEs \cite{abdulle2013stabilized,
+rhee2015unbiased}, Lévy processes \cite{giles2017multilevel}, 
+Numerical Linear Algebra \cite{acebron2020probabilistic},
+and Reliability theory \cite{aslett2017multilevel}.
+
+MLMC for SPDEs is a more recent and active area of research. 
+A search on Scopus \cite{scopus} of "Multilevel Monte Carlo Stochastic
+Partial Differential Equations" at the time of writing returns 88 documents. Changing 
+this to "Multilevel Monte Carlo Parabolic Stochastic Partial Differential Equations" refines 
+this down to 18. Of the work examining MLMC for SPDEs, much of the focus has been on 
+elliptic SPDEs (for example \cite{abdulle2013multilevel, kornhuber2014multilevel, luo2019multilevel}).
+
+This dissertation is concerned with parabolic SPDEs, for which the literature 
+provides a smaller but highly relevant set of foundational papers. This review will focus on 
+three key works that inform the central questions of this research: establishing the theoretical 
+basis for MLMC's efficiency, demonstrating its practical validation, and exploring 
+its application to highly singular equations with different coupling strategies. 
+
+
+Barth, Lang, and Schwab \cite{barth2013multilevel} provide a foundational 
+analysis of the convergence and complexity of the MLMC method for a general class of 
+parabolic SPDEs. Using a Galerkin method in space and a Euler-Maruyama scheme in time, they 
+prove that the  MLMC estimator significantly reduces the computational work required 
+to achieve a given accuracy compared to a standard single-level method. Their 
+key result shows that the computational complexity can be reduced from $O(h_L^{-(d+4)})$
+for a standard MC method to nearly $O(h_L^{-(d+2)})$ for MLMC, where $d$ is the 
+spatial dimension and $h_L$ is the finest mesh width. Their work provides 
+theoretical underpinning for the cost savings this dissertation seeks to quantify for 
+the stochastic heat and Dean-Kawasaki equations. However, their analysis does not explore
+the practical performance improvements of different noise coupling strategies.
+
+In \cite{giles2012stochastic}, Giles and Reisinger provide a practical demonstration of 
+MLMC's performance improvements for a class of parabolic SPDEs arising in financial modelling. 
+The authors develop and analyse a Milstein finite difference scheme, proving it converges with 
+first-order accuracy in time and second-order in space. They demonstrate a concrete reduction
+in computational complexity from $O(\varepsilon^{-7/2})$ for a standard MC approach to the optimal 
+$O(\varepsilon^{-2})$ for their MLMC implementation, validating this gain through 
+numerical experiments. This work serves as a methodological benchmark, demonstrating how to 
+empirically confirm the theoretical performance gains of the MLMC method.
+
+A very recent and highly relevant contribution is the 2024 paper by 
+Cornalba and Fischer, which 
+develops and analyses an MLMC method specifically for the Dean-Kawasaki equation, 
+one of the two case studies in this dissertation. Their work tackles a highly singular SPDE 
+for which standard convergence proofs fail. By formulating their analysis in terms 
+of the convergence of probability distributions, they prove that MLMC provides a 
+significant computational improvement over standard MC, provided average 
+particle density is sufficiently large. Crucially, they propose and 
+analyse two distinct noise coupling strategies:
+a "Fourier coupling" and a "Right-Most Nearest Neighbours (NN) coupling". We build directly
+on this work in this dissertation by also investigating the Dean-Kawasaki equation and proposing 
+an alternative noise coupling strategy.
+
+NEED TO ADD REGARDING HPC MLMC IMPLEMENTATIONS AND SPDES (believe none done)
+
+
+
+

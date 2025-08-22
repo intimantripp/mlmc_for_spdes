@@ -1,0 +1,38 @@
+\chapter{Methodologies and Validation}\label{chap:method_and_validation}
+
+This chapter details the practical methodologies and numerical validation 
+that form the foundation for the investigations in this dissertation. Having 
+presented the theoretical groundwork in the preceding chapter, we now 
+turn to the numerical implementations.
+
+This chapter is organised into 3 main parts. First, 
+we present the MLMC algorithm that is implemented throughout this work.
+
+
+Second, we focus on the Stochastic Heat Equation (SHE). We begin
+by defining the specific SHE problem to be analysed and 
+deriving the explicit finite difference scheme 
+used for its numerical solution. We then 
+detail the MLMC implementation,
+including the three distinct noise coupling strategies to be investigated. 
+To validate this implementation, we apply the method to two  
+chosen quantities of interest: the squared amplitude of
+Fourier modes and the system's total energy. We first derive 
+theoretical convergence values and rates for these quantities, and then demonstrate that
+our implementation aligns with these.
+
+Third, we address the Dean-Kawasaki equation. Following 
+the approach of Cornalba and Fischer \cite{cornalba2025multilevel}, 
+we present the finite difference scheme, MLMC implementation and target 
+quantity of interest. 
+We then again validate our implementation
+by demonstrating its convergence and alignment with the results of Cornalba and Fischer.
+
+By establishing and then rigorously verifying our numerical methods, this chapter 
+provides the necessary groundwork for the performance analysis that follows.
+
+\input{sections/2_methods_mlmc}
+\input{sections/2_methods_she}
+\input{sections/2_methods_she_qoi}
+\input{sections/2_methods_she_validation}
+\input{sections/2_methods_dk}

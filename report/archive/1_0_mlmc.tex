@@ -1,0 +1,84 @@
+\section{Preliminary Concepts and Methods}
+
+In this section we will outline the relevant prerequisites required to 
+justify and present the investigations performed in this dissertation. 
+These encompass outlining the Multilevel Monte Carlo (MLMC)
+method in further depth than that given in Section \ref{sec:introduction}, 
+presenting the SPDEs investigated and the finite difference schemes derived for them,
+and a review of the relevant literature.
+\cite{giles2015multilevel}
+
+\subsection{Multilevel Monte Carlo method}
+
+Let $P$ be a random variable defined implicitly through the solution of a stochastic
+differential equation, and let $P_L$ denote its numerical approximation 
+obtained using a discretisation of level $L$, such that 
+$\mathbb{E}[P] \approx \mathbb{E}[P_L]$. We define additional estimators $P_\ell$ 
+for less accurate levels $\ell \in \{0, 1, ..., L\}$.
+For example, in later  
+finite difference schemes we will use spatial step size $h_\ell = 2^{-(\ell+1)}$.
+
+We express $\mathbb{E}[P_L]$ via the following telescopic sum
+
+\begin{equation*}
+    \mathbb{E}[P_L] = \sum_{\ell = 0}^L \mathbb{E}\left[P_\ell - P_{\ell - 1}\right] 
+    \quad \text{where } P_{-1} \equiv 0.
+\end{equation*}
+
+We define the following unbiased estimator for $\mathbb{E}[P_L]$ to be the MLMC estimator:
+
+\begin{definition}[MLMC Estimator]\label{def:mlmc_estimator}
+    Given $N_\ell \in \mathbb{N}$ samples on each level $\ell = 0, \dots, L$, the 
+    MLMC estimator for $\mathbb{E}[P_L]$ is
+    \[
+    \hat{P}_{\mathrm{MLMC}} 
+    \;=\; \sum_{\ell=0}^L 
+    \frac{1}{N_\ell} \sum_{n=1}^{N_\ell}
+    \big( P_\ell^{(n,\ell)} - P_{\ell-1}^{(n,\ell)} \big),
+    \]
+    with the convention $P_{-1}^{(n, -1)} \equiv 0$ and where $P_\ell^{(n, \ell)},
+    P_{\ell - 1}^{(n, \ell)}$ are coupled coarse/fine samples sharing the same random inputs.
+\end{definition}
+
+For each level $\ell$ we also define the following quantities, following the notation
+used in \cite{giles2015multilevel}:
+\begin{equation*}
+    Y_\ell := \frac{1}{N_\ell} \sum_{n=1}^{N_\ell}
+    \big( P_\ell^{(n,\ell)} - P_{\ell-1}^{(n,\ell)} \big) 
+    \quad
+    V_\ell :=  \mathbb{V}[P_\ell - P_{\ell - 1}]
+\end{equation*}
+
+Denoting by $C_\ell$ the expected cost of a single sample for $P_\ell - P_{\ell - 1}$,
+we obtain an overall cost for the MLMC estimator of $\sum_{\ell=0}^L C_\ell N_\ell$ and 
+an overall variance of $\sum_{\ell=0}^L N_\ell^{-1} V_\ell$.
+
+We wish to determine $N_\ell$ that minimises the total cost for a fixed variance $\varepsilon^2$.
+Using a largange multiplier $\mu^2$ gives $N_\ell = \mu \sqrt{V_\ell / C_\ell}$. 
+Via the variance constraint we obtain $\mu = \varepsilon^{-2} \sum_{\ell=0}^L\sqrt{V_\ell C_\ell}$. 
+Thus, the overall cost is
+
+\begin{equation}\label{eq:mlmc_tot_cost}
+    C_{MLMC} = \varepsilon^{-2}\big(\sum_{\ell=0}^L\sqrt{V_\ell C_\ell}\big)^2
+\end{equation}
+
+The dominant cost is determined by whether the product $V_\ell C_\ell$ increases or decreases with 
+$\ell$. If the product increases with $\ell$, the dominant cost comes from $V_L C_L$ such that 
+$C_{MLMC} \approx \varepsilon^{-2} V_L C_L$. Conversely, if the product decreases with $\ell$ 
+then $C_{MLMC} \approx \varepsilon^{-2}V_0C_0$ \cite{giles2015multilevel}. In contrast, 
+the Monte Carlo estimator has total cost $\mathbb{\varepsilon^{-2}V_0C_L}$
+
+We also define the following unbiased Monte Carlo estimator for $\mathbb{E}[P_L]$ also
+
+\begin{definition}[MC Estimator]\label{def:mc_estimator}
+    Given $N_L \in \mathbb{N}$ independent samples obtained at level $L$, the MC estimator for 
+    $\mathbb{E}[P_L]$ is
+    \[
+    \hat{P}_{MC} = \frac{1}{N_L}\sum_{n=1}^{N_L}P_L^{(n)}
+    \]
+\end{definition}
+
+The cost of the MC estimator therefore is $N_L C_L$, assuming that the cost of computing 
+$P_L - P_{L-1}$ is smilar to the cost of computing $P_L$. 
+
+

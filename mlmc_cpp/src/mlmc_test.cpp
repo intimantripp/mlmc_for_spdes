@@ -18,7 +18,8 @@ void mlmc_test(
     std::function<std::pair<std::vector<double>, std::vector<double>>(int, int)> mlmc_fn,
     int M, int N, int L, int N0, const std::vector<double>& Eps,
     const std::string& output_convergence_filename, 
-    const std::string& output_complexity_filename
+    const std::string& output_complexity_filename,
+    const std::string& output_regression_filename
 ) {
     std::vector<double> del1, del2, var1, var2, kur1, chk1, cost;
     std::vector<int> levels;
@@ -113,6 +114,15 @@ void mlmc_test(
     printf("\n alpha = %f  (exponent for MLMC weak convergence)\n", alpha);
     printf(" beta  = %f  (exponent for MLMC variance) \n", beta);
     printf(" gamma = %f  (exponent for MLMC cost) \n", gamma);
+
+    // Output regression coefficients
+    if (!output_regression_filename.empty()) {
+        std::ofstream reg_out(output_regression_filename);
+        reg_out << "alpha,beta,gamma\n";
+        reg_out << alpha << "," << beta << "," << gamma << "\n";
+        reg_out.close();
+        std::cout << "\nWrote regression coefficients to " << output_regression_filename << "\n";
+    }
 
     // Output results to file
     std::ofstream file_out(output_convergence_filename);

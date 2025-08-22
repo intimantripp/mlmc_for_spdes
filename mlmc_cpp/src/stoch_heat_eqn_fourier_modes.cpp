@@ -30,11 +30,13 @@ void run_stoch_heat_eqn_fourier_modes(const int N) {
 
     std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_fourier_mode.csv";
     std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_fourier_mode.csv";
+    std::string output_regression_filename = "../outputs/mlmc_regression_stoch_heat_eqn_fourier_mode.csv";
     
 
     mlmc_test(
         [=](int l, int N) { return stoch_heat_eqn_fourier_modes_l(l, N); }, 
-        M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename);
+        M, N, L, N0, Eps, output_convergence_filename, output_complexity_filename,
+        output_regression_filename);
 }
 
 std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_fourier_modes_l(int l, int N) {

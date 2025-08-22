@@ -1,13 +1,15 @@
 import math
 import time
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.gridspec  as gridspec
 from mlmc.mlmc import mlmc
 
         
 
-def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, **mlmc_l_kwargs):
+def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, 
+              output_path=None, **mlmc_l_kwargs):
     """
     Runs a MLMC test for a given function mlmc_fn, number of levels L,
     number of samples N, initial sample size N0, and a list of desired accuracies Eps.
@@ -266,7 +268,19 @@ def mlmc_test(mlmc_fn, M, N, L, N0, Eps, validate=False, validation_value=None, 
         # results_convergence_ax.set_ylim(validation_value - y_margin, validation_value + y_margin)
         results_convergence_ax.axhline(validation_value, linestyle='--', color='crimson', label='True QoI')
 
-
+    if output_path:
+        # Create a dictionary with the results
+        results_data = {
+            'epsilon': Eps,
+            'mlmc_estimate': mlmc_solns,
+            'mlmc_cost': mlmc_cost,
+            'std_mc_cost': std_cost
+        }
+        # Create a pandas DataFrame
+        df_results = pd.DataFrame(results_data)
+        # Save the DataFrame to a CSV file
+        df_results.to_csv(output_path, index=False)
+        print(f"\nResults saved to {output_path}")
 
     plt.tight_layout()
     plt.show()
