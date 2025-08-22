@@ -37,7 +37,7 @@ inner product of $u$ with $\phi_n$:
 thus our QoI, the expected squared Fourier Amplitude is given by:
 
 \begin{equation*}
-    \mathbb{E}\left[u_n(t)^2\right] = 
+    P = \mathbb{E}\left[u_n(t)^2\right] = 
     \mathbb{E}\left[\left(\int_0^1 u(t,x)\phi_k(x)\mathrm{d}x\right)^2\right]
 \end{equation*}
 
@@ -47,7 +47,7 @@ as defined in \cite{suli2025nspdes}.
 \begin{definition}[Discrete Inner Product]
     \label{def:discrete_inner_product}
     For two functions $V$ and $W$ defined at interior mesh-points 
-    $x_i$ for $i = 1, \dots, N$ with spatial step size $h$
+    $x_i$ for $i = 1, \dots, N$ with spatial step size $h$,
     \begin{equation*}
         (V,W)_h := \sum_{i = 1}^{N} h V_i W_i
     \end{equation*}
@@ -119,7 +119,7 @@ Thus,
 \begin{align}
     u_n(t) &\sim \mathcal{N}(0, 
     \frac{1-e^{-2\lambda_n^2t}}{2\lambda_n^2}), 
-    \quad \lambda_n = \pi^2 n^2
+    \quad \lambda_n = \pi n
     \nonumber
     \\
     \mathbb{E}\left[u_n(t)^2\right] &= \frac{1 - e^{-2\lambda_n^2t}}{2\lambda_n^2}
@@ -148,7 +148,8 @@ of a single Fourier mode.
     is of order $\mathcal{O}((\Delta x)^2)$. 
 \end{proposition}
 
-Before presenting our proof, we conclude from it that
+Before presenting our proof, we conclude from Proposition 
+\ref{prop:weak_error_for_fourier_mode}
 that, recalling Theorem \ref{theorem:mlmc_complexity}, 
 we have a decay in the weak error of $\alpha = 2$. This follows from Proposition 
 \ref{prop:weak_error_for_fourier_mode} as:
@@ -175,8 +176,8 @@ stationary variance of the $n$-th Fourier mode is the following:
 \end{equation}
 
 Recalling our finite difference scheme in \eqref{eq:she_scheme},
-we express it instead in matrix vector form, with $N$ 
-internal points.
+we express it instead in matrix-vector form, with $N$ 
+internal points:
 
 \begin{align}
     \mathbf{U}^j := 
@@ -193,24 +194,16 @@ internal points.
         \vdots \\
         Z_N^j
     \end{bmatrix}
-    &\overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, \mathbf{I}_N),
-    \quad
-    \boldsymbol{\phi}_n := \sqrt{2}
-    \begin{bmatrix}
-        \sin\left( \frac{n \pi}{N+1} \cdot 1 \right) \\
-        \vdots \\
-        \sin\left( \frac{n \pi}{N+1} \cdot N \right)
-    \end{bmatrix}
-    \in \mathbb{R}^N, \\
+    &\overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, \mathbf{I}_N), \\
     \mathbf{U}^{j+1} &= \mathbf{U}^j + \Delta t A \mathbf{U}^j
-    + \sqrt{\frac{\Delta t}{\Delta x}} \mathbf{Z}^j \label{eq:scheme_matrix_vector}\\
+    + \sqrt{\frac{\Delta t}{\Delta x}} \mathbf{Z}^j, \label{eq:scheme_matrix_vector}\\
     \text{where } A &= \frac{1}{(\Delta x)^2}
     \begin{bmatrix}
         -2 & 1 & & \\
         1 & -2 & 1  \\
         & \ddots & \ddots & \ddots \\
         & & 1 & -2
-    \end{bmatrix}
+    \end{bmatrix}.
 \end{align}
 
 We can equivalently express our finite difference estimates $\mathbf{U}^j$
@@ -219,13 +212,20 @@ $\boldsymbol{\phi}$:
 
 \begin{equation*}
     \boldsymbol{U}^j = \sum_{n=1}^N \hat{u}_n^j \boldsymbol{\phi}_n
+    \qquad \text{where }
+    \boldsymbol{\phi}_n := \sqrt{2}
+    \begin{bmatrix}
+        \sin\left( \frac{n \pi}{N+1} \cdot 1 \right) \\
+        \vdots \\
+        \sin\left( \frac{n \pi}{N+1} \cdot N \right)
+    \end{bmatrix}
+    \in \mathbb{R}^N
 \end{equation*}
 
 where $\hat{u}_n^j$ represents our estimate of the $n$-th Fourier 
-mode at time step $j$. We define the discrete inner product now 
-based on the definition presented in \cite{suli2025nspdes}.
+mode at time step $j$.
 
-Our discrete basis functions are orthogonal under Definition \ref{def:discrete_inner_product}
+Our discrete basis functions are orthonormal under Definition \ref{def:discrete_inner_product}
 Discrete Inner product (\cite{strang2007computational}, Chapter 2), i.e.
 
 \begin{equation*}
@@ -313,7 +313,7 @@ $\nu_n^j$ is:
     &= \Delta t
 \end{align*}
 
-where we have used the orthogonality of the basis functions, 
+where we have used the orthonormality of the basis functions, 
 $(\boldsymbol{\phi}_n, \boldsymbol{\phi}_m)_{\Delta x} = 
 \delta_{n,m}$.
 
@@ -602,7 +602,7 @@ for the MLMC implementation:
     Finally, substituting these terms into \eqref{eq:nearly_there_fourier_var}
     results in:
     \begin{align*}
-        \sigma_\ell^4 - \sigma_{\ell-1}^4 - 2\rho^2 \sigma_\ell^2 
+        \sigma_\ell^4 + \sigma_{\ell-1}^4 - 2\rho^2 \sigma_\ell^2 
         \sigma_{\ell-1}^2 &= 2 \sigma^4(1 - \rho^2) + 10 \sigma^2b 
         (\Delta x_\ell)^2(1 - \rho^2) + 
         \mathcal{O}\left((\Delta x_\ell)^2\right) \\
@@ -623,7 +623,7 @@ as the squared $L^2$-norm of the solution $u(t,x)$ at a final time $T$. The
 continuous form of this quantity if given by:
 
 \begin{equation}\label{eq:system_energy}
-    Q_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x
+P_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x
 \end{equation}
 
 To derive the expected energy, $\mathbb{E}[Q_{\text{energy}}]$, 
@@ -642,12 +642,21 @@ $u(t,x) = \sum_{n=1}^\infty u_n(t)\phi_n(x)$. Substituting this into
 
 Taking the expectation:
 
-\begin{align*}
+\begin{align}
     \mathbb{E}\left[\int_0^1 (u(T,x))^2 \mathrm{d}x\right] &= 
-    \mathbb{E}\left[\sum_{n=1}^\infty (u_n(t))^2\right] \\
-    &= \sum_{n=1}^\infty \mathbb{E}\left[(u_n(t))^2\right] \\
+    \mathbb{E}\left[\sum_{n=1}^\infty (u_n(t))^2\right] 
+    \nonumber
+    \\
+    &= \sum_{n=1}^\infty \mathbb{E}\left[(u_n(t))^2\right] 
+    \nonumber
+    \\
     &= \sum_{n=1}^\infty \frac{1-e^{-2\lambda_n t}}{2\lambda_n}
-    \qquad \text{via } \eqref{eq:var_fourier_modes}\\
-    &= \frac{1}{12} - \sum_{n=1}^\infty \frac{e^{-2n^2 \pi^2 t}}{2 n^2 \pi^2}\\
+    \qquad \text{via } \eqref{eq:var_fourier_modes}
+    \nonumber
+    \\
+    &= \frac{1}{12} - \sum_{n=1}^\infty \frac{e^{-2n^2 \pi^2 t}}{2 n^2 \pi^2}
+    \nonumber
+    \\
     &\approx \frac{1}{12} \quad \text{for sufficiently large } t
-\end{align*}
+    \label{eq:she_energy_analytic_soln}
+\end{align}

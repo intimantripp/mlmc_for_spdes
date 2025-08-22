@@ -15,9 +15,9 @@ deriving the explicit finite difference scheme
 used for its numerical solution. We then 
 detail the MLMC implementation,
 including the three distinct noise coupling strategies to be investigated. 
-To validate this implementation, we apply the method to compute several 
-distinct quantities of interest: first and second moments of the solution's
-Fourier modes and its total energy. We first derive 
+To validate this implementation, we apply the method to two  
+chosen quantities of interest: the squared amplitude of
+Fourier modes and the system's total energy. We first derive 
 theoretical convergence values and rates for these quantities, and then demonstrate that
 our implementation aligns with these.
 
@@ -25,13 +25,14 @@ Third, we address the Dean-Kawasaki equation. Following
 the approach of Cornalba and Fischer \cite{cornalba2025multilevel}, 
 we present the finite difference scheme, MLMC implementation and target 
 quantity of interest. 
-We finally validate our implementation
+We then again validate our implementation
 by demonstrating its convergence and alignment with the results of Cornalba and Fischer.
 
 By establishing and then rigorously verifying our numerical methods, this chapter 
-provides the necessary groundwork for the performance analysis that follows. 
+provides the necessary groundwork for the performance analysis that follows.
 
 \input{sections/2_methods_mlmc}
 \input{sections/2_methods_she}
 \input{sections/2_methods_she_qoi}
 \input{sections/2_methods_she_validation}
+\input{sections/2_methods_dk}

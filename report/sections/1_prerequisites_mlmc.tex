@@ -3,9 +3,9 @@
 The primary objective in many applications involving SPDEs is not to find 
 a single, particular solution, but rather to compute the expected value of a quantity of 
 interest that depends on the solution. For example, we may 
-want to find the average temporature at a specific point in a domain 
-governed by the stochastic heat equation, or the average particle density in a
-system described by the Dean-Kawasaki equation.
+want to find the average temperature at a specific point in a domain 
+governed by the stochastic heat equation, or the average particle density fluctuation
+in a system described by the Dean-Kawasaki equation.
 
 Let $P$ represent such a quantity of interest, which we assume to be a real-valued 
 random variable. Our goal throughout this section is to develop an efficient numerical
@@ -15,7 +15,7 @@ turn to computational methods. The most fundamental of these is defined below.
 
 \begin{definition}[Monte Carlo Estimator]\label{def:mc_estimator}
     Let $\{P^{(n)}\}$ for $n = 1, \dots, N$ be a set of $N$ independent and identically
-    distributed samples of a random variable $P$. The standard Monte Carlo estimator,
+    distributed (i.i.d) samples of a random variable $P$. The standard Monte Carlo estimator,
     $\hat{P}_{MC}$, of the expectation $\mathbb{E}[P]$ is the sample mean:
     \[
     \hat{P}_{MC} = \frac{1}{N} \sum_{n=1}^N P^{(n)}
@@ -51,8 +51,8 @@ Its MSE is therefore equal to its variance:
 The framework above assumes we can generate perfect samples of the random 
 variable $P$. In practice, for complex problems such as SPDEs this is typically impossible.
 Instead, we must compute numerical approximations which we will denote by $P_L$, where $L$ 
-represents a level of discretisation. For example, and as will be used later,
-in a finite difference scheme $L$ could correspond to a mesh with spatial grid spacing 
+represents a level of discretisation. For example, and as will be used later
+in a finite difference scheme, $L$ could correspond to a mesh with spatial grid spacing 
 $h_L = 2^{-(L+1)}$. A higher $L$ means a finer mesh and a more accurate - but also more 
 computationally expensive - approximation. 
 
@@ -69,7 +69,7 @@ $N$ samples of the numerical approximation $P_L$, denoted $\hat{P}_{MC, L}$ is:
 \eqref{eq:mc_mse} presents the clear dilemma of the standard MC method. To achieve an overall
 MSE less than a tolerance  $\varepsilon^2$, both terms must be sufficiently small. 
 Reducing the statistical error requires a large number of samples $N$, while 
-reducing the discretisation error requires a fine discretisation lvel $L$.
+reducing the discretisation error requires a fine discretisation level $L$.
 Since the computational cost per sample $C_L$, increases sharply with $L$, the total 
 cost, $N \times C_L$, often becomes prohibitively large. 
 
@@ -189,7 +189,7 @@ precise the cost scaling of the MLMC method:
 To appreciate the significance of the MLMC Complexity Theorem, we first establish the cost of the 
 standard MC method in the above context. To achieve an MSE of 
 $\mathcal{O}(\varepsilon^2)$, both the statistical and discretisation errors must be controlled.
-Controlling the \textbf{bias} to $O(\varepsilon)$ requires using a fine grid with a 
+Controlling the bias to $O(\varepsilon)$ requires using a fine grid with a 
 step size $h_L \propto \varepsilon^{1/\alpha}$. Independently, controlling the 
 statistical error to $O(\varepsilon^2)$ requires 
 $N \propto \varepsilon^{-2}$ samples. The total cost is the product of the number of 
@@ -212,16 +212,16 @@ $N_\ell C_\ell \propto \sqrt{V_\ell C_\ell}$, is approximately constant across
 all levels \cite{giles2015multilevel}. The total cost is therefore proportional to the 
 number of levels, $L$, which must increase as $\mathcal{O}(\log \varepsilon)$ to 
 meet the bias requirement. This results in the total complexity of 
-$\mathcal{O}(\varepsilon^{-2}(\log \varepsilon)^2)$, which remains a vast 
-improvement over the standard method.
+$\mathcal{O}(\varepsilon^{-2}(\log \varepsilon)^2)$, which remains a considerable 
+improvement over the MC method.
 
 In the case $\beta < \gamma$, the cost per level grows with $\ell$, meaning 
 the total cost is dominated by the work on the finest level, $L$. 
 Even in this worst case scenario though, we still arrive at a smaller scaling of cost 
-than the MC estimator. 
+than that of the MC estimator. 
 
 We conclude this section by highlighting the importance of the relationship
-between variance decay rate $\beta$, and the cost growth rate $\gamma$. 
+between the variance decay rate $\beta$, and the cost growth rate $\gamma$. 
 As shown in the Complexity Theorem, the magnitude of the computational savings 
 offered by an MLMC implementation depends critically on whether the variance 
 decreases faster than the cost increases (i.e. if $\beta \ge \gamma$). 

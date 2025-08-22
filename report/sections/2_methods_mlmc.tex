@@ -13,11 +13,11 @@ Before running the main adaptive algorithm, A fixed, large number of $N$
 samples is simulated on a specified range of discretisation levels. From 
 these simulations we gather empirical estimates of $|\mathbb{E}[Y_\ell]|, 
 V_\ell, C_\ell$. Performing linear regression on the logarithms on these
-quantities against the index level we obtain estimates for the weak decay rate,
-variance decay rate, and cost growth rate, $\alpha$, $\beta$ and $\gamma$ 
+quantities against the index level we obtain estimates for the weak error 
+decay rate, variance decay rate, and cost growth rate, $\alpha$, $\beta$ and $\gamma$ 
 respectively. 
 
-Those estimates can then be passed to the MLMC algorithm which we detail here.
+Those estimates can then be passed to the MLMC algorithm presented here.
 
 \begin{algorithm}
 \caption{Adaptive Multilevel Monte Carlo Algorithm}

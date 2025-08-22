@@ -21,11 +21,11 @@ standard MC estimator, can make the standard Monte Carlo method prohibitively
 expensive.
 
 A number of techniques exist that aim to improve on the convergence of 
-the MC estimator. Their goal is to achieve an equivalent variance in their estimate 
-at a reduced computational cost. The MLMC method is one such method. 
-At its heart is an approach of computing a blend of cheaper and more expensive
-samples, unlike the MC estimator which uses only samples of the same cost.
-Many inexpensive samples provide the bulk of the statistical signal, 
+the MC estimator. Their goal is to achieve an equivalent mean squared error
+in their estimate at a reduced computational cost. The MLMC method is one 
+such method. At its heart is an approach of computing a blend of cheaper 
+and more expensive samples, unlike the MC estimator which uses only samples 
+of the same cost. Many inexpensive samples provide the bulk of the statistical signal, 
 while comparitively few more costly samples then correct any residual bias.
 In the context of SPDEs, this means obtaining samples using meshes at 
 varying \textit{levels} of discretisation. By taking many samples at cheaper,
@@ -36,7 +36,7 @@ compared to the MC estimator.
 The practical efficiency of the MLMC method, however, relies on correlating 
 samples obtained at different levels, in a manner analogous to that of the 
 control variates method (\cite{giles2015multilevel}, Section 1.2). 
-This is because the cost savings achievable is dependent on the extent to which 
+This is because the cost savings achievable are dependent on the extent to which 
 samples across two adjacent levels of accuracy covary. Practically, this 
 entails aligning the randomness used to generate pairs of coarse and 
 fine samples, a process referred to as \textit{coupling}.
@@ -94,7 +94,7 @@ for each of these implementations the noise coupling strategies to
 be investigated, and for the Stochastic Heat Equation, derive theoretical 
 targets and convergence rates with which we validate our implementation.
 We further validate our MLMC implementation of the Dean-Kawasaki equation,
-replicating the results of the another paper \cite{cornalba2025multilevel}.
+replicating the results of another paper \cite{cornalba2025multilevel}.
 
 Chapter SECTION HERE presents a comprehensive performance analysis. 
 We directly address our first two research questions by comparing the 
