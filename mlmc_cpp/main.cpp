@@ -21,10 +21,10 @@ int main() {
     // run_stoch_heat_eqn_fourier_modes_var(10000);
     // run_stoch_heat_eqn_fourier_modes_var_cc(10000);
     // run_stoch_heat_eqn_fourier_modes_var_fe(10000);
-    run_stoch_heat_eqn_energy_nn(20000);
-    run_stoch_heat_eqn_energy_cc(20000);
-    run_stoch_heat_eqn_energy_fe(20000);
-    // run_gbm_euler(1000000);
+    // run_stoch_heat_eqn_energy_nn(20000);
+    // run_stoch_heat_eqn_energy_cc(20000);
+    // run_stoch_heat_eqn_energy_fe(20000);
+    run_gbm_euler(100000);
     // run_dean_kawasaki_nn(10000);
     // run_dean_kawasaki_cc(10000);
 

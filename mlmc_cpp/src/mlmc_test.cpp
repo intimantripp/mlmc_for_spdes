@@ -13,6 +13,7 @@
 #include <string>
 #include <iomanip>
 #include <limits>
+#include <chrono>
 
 void mlmc_test(
     std::function<std::pair<std::vector<double>, std::vector<double>>(int, int)> mlmc_fn,
@@ -147,14 +148,22 @@ void mlmc_test(
     std::vector<double> mlmc_estimates;
     std::vector<double> std_costs;
     std::vector<double> mlmc_costs;
+    std::vector<double> mlmc_wall_times;
     std::vector<std::vector<double>> Yls;  // Store per-level estimators for each epsilon
     std::vector<std::vector<double>> Vls; // Store per-level variances for each epsilon
 
     std::cout << "\n*********** Complexity test (MLMC vs standard MC for different eps) ***********\n";
     for (const auto& eps: Eps) {
         std::cout << "Running MLMC for eps = " << eps << "...\n";
+        
+        auto start_time = std::chrono::high_resolution_clock::now();
         auto [P, Nl, suml] = mlmc(N0, eps, mlmc_fn, alpha, beta, gamma);
-
+        auto end_time = std::chrono::high_resolution_clock::now();
+        
+        std::chrono::duration<double> elapsed = end_time - start_time;
+        std::cout << "Eps = " << eps << " completed. Took " << elapsed.count() << " seconds to run \n";
+        mlmc_wall_times.push_back(elapsed.count());
+        
         mlmc_estimates.push_back(P);
         Nls.push_back(Nl);
 
@@ -200,7 +209,7 @@ void mlmc_test(
     for (const auto& Nl : Nls) max_levels = std::max(max_levels, Nl.size());
 
     std::ofstream comp_out(output_complexity_filename);
-    comp_out << "eps,mlmc_estimate,mlmc_cost,std_mc_cost";
+    comp_out << "eps,mlmc_estimate,mlmc_cost,std_mc_cost,mlmc_wall_time";
     for (size_t l = 0; l < Nls[0].size(); ++l)
         comp_out << ",Nl_" << l;
     for (size_t l = 0; l < Yls[0].size(); ++l) {
@@ -212,7 +221,7 @@ void mlmc_test(
     comp_out << "\n";
 
     for (size_t i = 0; i < Eps.size(); ++i) {
-        comp_out << Eps[i] << "," << mlmc_estimates[i] << "," << mlmc_costs[i] << "," << std_costs[i];
+        comp_out << Eps[i] << "," << mlmc_estimates[i] << "," << mlmc_costs[i] << "," << std_costs[i] << "," << mlmc_wall_times[i];
 
         // Pad with zeros if this run didn't have all levels
         for (size_t l = 0; l < max_levels; ++l)
