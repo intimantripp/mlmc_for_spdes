@@ -9,9 +9,6 @@
 #include <random>
 
 // --- Assumed to be available from your existing code ---
-// Global RNG
-static std::mt19937 RNG{ std::random_device{}() };
-static std::normal_distribution<> Z(0.0, 1.0);
 
 
 inline int idx(int i, int n, int N_trials) { return i * N_trials + n; }
@@ -30,9 +27,9 @@ inline void roll(std::vector<double>& vec, int shift, int n_points, int N2) {
 void run_dean_kawasaki_cc(const int N) {
     std::cout << "Running MLMC Dean-Kawasaki - cc\n" << std::endl;
     int M = 8;
-    int L = 5;
+    int L = 4;
     int N0 = 100;
-    std::vector<double> Eps = {0.001, 0.005, 0.01, 0.05};
+    std::vector<double> Eps = {0.01, 0.02, 0.05, 0.1};
 
     std::string output_convergence_filename = "../outputs/mlmc_convergence_dk_cc.csv";
     std::string output_complexity_filename = "../outputs/mlmc_complexity_dk_cc.csv";
@@ -46,27 +43,27 @@ void run_dean_kawasaki_cc(const int N) {
 }
 
 std::pair<std::vector<double>, std::vector<double>>
-dean_kawasaki_eqn_cc_l(int l, int N)
-{
-    // Model/observable setup 
+dean_kawasaki_eqn_cc_l(int l, int N) {
+    std::mt19937 RNG(42+l);
+    std::normal_distribution<> Z(0.0, 1.0);
+    // Constants and Parameters
     const double Z_0 = 1.0 / 8.273782635069178;
     auto rho_0 = [&](double x) {
-        double s = std::sin(x - M_PI / 2.0);
-        return Z_0 * (1.0 + std::exp(-(s * s) / 2.0) / std::sqrt(2.0 * M_PI));
+        double s = std::sin(x - M_PI/2.0);
+        return Z_0 * (1.0 + std::exp(-(s*s) / 2.0) / std::sqrt(2.0 * M_PI));
     };
     auto phi_fn = [&](double x) { return std::sin(x); };
-
     const double N_particles = 2.0e6;
     const double inv_sqrtN   = 1.0 / std::sqrt(N_particles);
-    const double lam         = 0.25;     
-    const int    batch_size  = 1000;
+    const double lam = 0.25;
+    const int    batch_size = 1000;
 
-    // Fine grid
-    int    nf   = 1 << (l + 2);
-    double hf   = 2.0 * M_PI / nf;
-    double dtf  = lam * hf * hf;
-    int    steps_f = nf * nf;
-    const double std_f   = std::sqrt(dtf / hf);
+    // Grid Setup 
+    int    nf  = 1 << (l + 2);
+    double hf  = 2.0 * M_PI / nf;
+    double dtf = lam * hf * hf;
+    int    timesteps_f = nf * nf;
+    const double std_f = std::sqrt(dtf / hf);
     const double inv_2hf = 1.0 / (2.0 * hf);
 
     // Return containers: moments of Pf-Pc (sum1) and Pf alone (sum2)
@@ -76,24 +73,25 @@ dean_kawasaki_eqn_cc_l(int l, int N)
     for (int N1 = 0; N1 < N; N1 += batch_size) {
         int N2 = std::min(batch_size, N - N1);
 
-        // Fine grid x and phi (once per batch)
+        // Fine grid x and phi
         std::vector<double> xf(nf), phi_vals_f(nf);
         for (int i = 0; i < nf; ++i) { xf[i] = i * hf; phi_vals_f[i] = phi_fn(xf[i]); }
 
-        // Deterministic mean (initial profile only; same behavior as your code)
+        // Deterministic mean
         std::vector<double> rho_bar_f(nf);
         for (int i = 0; i < nf; ++i) rho_bar_f[i] = rho_0(xf[i]);
 
-        // Fine state replicated across N2 samples
+        // State arrays
         std::vector<double> rho_f(nf * N2);
         for (int i = 0; i < nf; ++i)
             for (int n = 0; n < N2; ++n)
                 rho_f[i * N2 + n] = rho_bar_f[i];
 
-        // Preallocate fine temporaries
+        // Preallocate temporaries fine 
         std::vector<double> sqrt_rho_f(nf * N2);
-        std::vector<double> dWf       (nf * N2);
-        std::vector<double> flux_f    (nf * N2);
+        std::vector<double> dWf(nf * N2);
+        std::vector<double> flux_f(nf * N2);
+        std::vector<double> rho_f_old(nf * N2);
 
         // Neighbor indices (avoid % in hot loops)
         std::vector<int> iL_f(nf), iR_f(nf);
@@ -105,69 +103,58 @@ dean_kawasaki_eqn_cc_l(int l, int N)
         std::vector<double> Pf(N2, 0.0), Pc(N2, 0.0);
 
         if (l == 0) {
-            // Base level 
-            const int    num_half_cells = 2 * nf;
-            const double std_half       = std::sqrt(dtf / (2.0 * hf));
-            std::vector<double> half_noise(num_half_cells * N2); // reused each step
-
-            for (int t = 0; t < steps_f; ++t) {
-                // half-cell noises -> dWf
-                for (int k = 0; k < num_half_cells * N2; ++k)
-                    half_noise[k] = std_half * Z(RNG);
-
-                for (int i = 0; i < nf; ++i) {
-                    int h0 = (2 * i) * N2;
-                    int h1 = (2 * i + 1) * N2;
-                    int b  = i * N2;
-                    for (int n = 0; n < N2; ++n)
-                        dWf[b + n] = half_noise[h0 + n] + half_noise[h1 + n]; // Var = dtf/hf
-                }
-
-                // sqrt, flux
+            //update buffer
+            // Fine-only evolution
+            for (int t = 0; t < timesteps_f; ++t) {
+                rho_f_old = rho_f;
+                // sqrt(rho), dW, flux
                 for (int k = 0; k < nf * N2; ++k)
                     sqrt_rho_f[k] = std::sqrt(std::max(0.0, rho_f[k]));
                 for (int k = 0; k < nf * N2; ++k)
+                    dWf[k] = std_f * Z(RNG);
+                for (int k = 0; k < nf * N2; ++k)
                     flux_f[k] = sqrt_rho_f[k] * dWf[k];
 
-                // update
+                // stencil update
                 for (int i = 0; i < nf; ++i) {
                     int iL = iL_f[i], iR = iR_f[i];
-                    int base  = i * N2, baseL = iL * N2, baseR = iR * N2;
+                    int base  = i * N2;
+                    int baseL = iL * N2;
+                    int baseR = iR * N2;
                     for (int n = 0; n < N2; ++n) {
-                        int k  = base + n, kL = baseL + n, kR = baseR + n;
+                        int k  = base  + n;
+                        int kL = baseL + n;
+                        int kR = baseR + n;
+
                         double divergence = (flux_f[kR] - flux_f[kL]) * inv_2hf;
-                        double laplacian  = lam * (rho_f[kR] - 2.0 * rho_f[k] + rho_f[kL]) * 0.5;
+                        double laplacian  = lam * (rho_f_old[kR] - 2.0 * rho_f_old[k] + rho_f_old[kL]) * 0.5;
                         rho_f[k] += laplacian + divergence * inv_sqrtN;
                     }
                 }
                 std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
-                roll(rho_bar_f_p1, -1, nf, 1);
-                roll(rho_bar_f_m1, 1, nf, 1);
-                for (int i = 0; i < nf; ++i) {
-                    double laplacian_bar = lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
-                    rho_bar_f[i] += laplacian_bar;
+                    roll(rho_bar_f_p1, -1, nf, 1);
+                    roll(rho_bar_f_m1, 1, nf, 1);
+                    for (int i = 0; i < nf; ++i) {
+                        rho_bar_f[i] += lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
                 }
-
             }
 
             // QoI on fine
             for (int n = 0; n < N2; ++n) {
-                double proj = 0.0;
+                double inner = 0.0;
                 for (int i = 0; i < nf; ++i) {
                     double dev = rho_f[i * N2 + n] - rho_bar_f[i];
-                    proj += dev * phi_vals_f[i];
+                    inner += dev * phi_vals_f[i];
                 }
-                proj *= hf;
-                Pf[n] = N_particles * proj * proj;
+                inner *= hf;
+                Pf[n] = N_particles * inner * inner;
             }
-
         } else {
-            // MLMC level: half-cell coupling 
+            // Coarse grid setup
             int    nc  = nf / 2;
             double hc  = 2.0 * M_PI / nc;
             int    steps_c = nc * nc;
-            double dtc = 4.0 * dtf;
-            (void)dtc; // (only for clarity; not used explicitly)
+            double dtc = lam * hc * hc;
 
             const double inv_2hc = 1.0 / (2.0 * hc);
 
@@ -178,7 +165,8 @@ dean_kawasaki_eqn_cc_l(int l, int N)
             // coarse mean and state
             std::vector<double> rho_bar_c(nc);
             for (int i = 0; i < nc; ++i) rho_bar_c[i] = rho_0(xc[i]);
-            std::vector<double> rho_c(nc * N2);
+
+            std::vector<double> rho_c(nc * N2), rho_c_old(nc * N2);
             for (int i = 0; i < nc; ++i)
                 for (int n = 0; n < N2; ++n)
                     rho_c[i * N2 + n] = rho_bar_c[i];
@@ -194,16 +182,19 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                 iR_c[i] = (i == nc - 1 ? 0 : i + 1);
             }
 
-            // half-cell noises: we generate fresh per fine substep
+            // half-cell noises
             const int    num_half_cells = 2 * nf;
-            const double std_half       = std::sqrt(dtf / (2.0 * hf));
+            const double std_half = std::sqrt(dtf / (2.0 * hf));
             std::vector<double> half_noise(num_half_cells * N2); // reused each substep
 
             for (int t = 0; t < steps_c; ++t) {
                 std::fill(dWc.begin(), dWc.end(), 0.0);
-
+                rho_c_old = rho_c;
                 // 4 fine substeps per coarse step
                 for (int s = 0; s < 4; ++s) {
+
+                    rho_f_old = rho_f;
+
                     // half-cell noises
                     for (int k = 0; k < num_half_cells * N2; ++k)
                         half_noise[k] = std_half * Z(RNG);
@@ -229,7 +220,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                         for (int n = 0; n < N2; ++n) {
                             int k  = base + n, kL = baseL + n, kR = baseR + n;
                             double divergence = (flux_f[kR] - flux_f[kL]) * inv_2hf;
-                            double laplacian  = lam * (rho_f[kR] - 2.0 * rho_f[k] + rho_f[kL]) * 0.5;
+                            double laplacian  = lam * (rho_f_old[kR] - 2.0 * rho_f_old[k] + rho_f_old[kL]) * 0.5;
                             rho_f[k] += laplacian + divergence * inv_sqrtN;
                         }
                     }
@@ -269,7 +260,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                     for (int n = 0; n < N2; ++n) {
                         int k  = base + n, kL = baseL + n, kR = baseR + n;
                         double divergence = (flux_c[kR] - flux_c[kL]) * inv_2hc;
-                        double laplacian  = lam * (rho_c[kR] - 2.0 * rho_c[k] + rho_c[kL]) * 0.5;
+                        double laplacian  = lam * (rho_c_old[kR] - 2.0 * rho_c_old[k] + rho_c_old[kL]) * 0.5;
                         rho_c[k] += laplacian + divergence * inv_sqrtN;
                     }
                 }
@@ -316,6 +307,5 @@ dean_kawasaki_eqn_cc_l(int l, int N)
             sum2[1] += Pf[n] * Pf[n];
         }
     }
-
     return {sum1, sum2};
 }
