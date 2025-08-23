@@ -1,5 +1,24 @@
 \chapter{Performnce Evaluations}\label{chap:performance}
 
+Having validated the numerical implementations in the preceding chapter, 
+we now present a comprehensive performance analysis. This chapter addresses 
+the two of th central research questions of this dissertation 
+by quantifying the computational savings achieved by the 
+Multilevel Monte Carlo method compared the standard Monte Carlo method, 
+and further assessing the impact of the different coupling strategies. 
+
+Performance is assessed by analysing the computational cost requires to achieve a target RMSE, 
+$\varepsilon$. Following the methodology outlined by Giles \cite{giles2015multilevel} 
+and used in the work by Cornalba and Fischer \cite{cornalba2025multilevel}, we present 
+results on a normalised log-log plot of $\varepsilon^2 \time \mathrm{Cost}$ versus $\varepsilon$.
+THis metric is chosen for its direct connection to the MLMC Complexity Theorem:
+an optimal method with a theoretical complexity of $\mathcal{O}(\varepsilon^{-2})$ will 
+appear as a nearly horizontal line on this plot, providing a clear and visual 
+confirmation of the methods efficiency. 
+
+The computational cost is measured as the total wall-clock time for each simulation. 
+All experiemnts 
+
 In this chapter we present an evaluation of the 
 performance of our MLMC implementations for the Stochastic Heat Equation 
 and Dean-Kawasaki equations outlined in the previous chapter. 
