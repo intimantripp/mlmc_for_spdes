@@ -48,7 +48,7 @@ void run_dean_kawasaki_cc(const int N) {
 std::pair<std::vector<double>, std::vector<double>>
 dean_kawasaki_eqn_cc_l(int l, int N)
 {
-    // --- Model/observable setup ---
+    // Model/observable setup 
     const double Z_0 = 1.0 / 8.273782635069178;
     auto rho_0 = [&](double x) {
         double s = std::sin(x - M_PI / 2.0);
@@ -58,10 +58,10 @@ dean_kawasaki_eqn_cc_l(int l, int N)
 
     const double N_particles = 2.0e6;
     const double inv_sqrtN   = 1.0 / std::sqrt(N_particles);
-    const double lam         = 0.25;     // dt = lam * h^2 (explicit Euler)
+    const double lam         = 0.25;     
     const int    batch_size  = 1000;
 
-    // --- Fine grid/time ---
+    // Fine grid
     int    nf   = 1 << (l + 2);
     double hf   = 2.0 * M_PI / nf;
     double dtf  = lam * hf * hf;
@@ -105,8 +105,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
         std::vector<double> Pf(N2, 0.0), Pc(N2, 0.0);
 
         if (l == 0) {
-            // ---------------- Base level (fine only) ----------------
-            // We still use half-cell construction to keep variance scaling consistent.
+            // Base level 
             const int    num_half_cells = 2 * nf;
             const double std_half       = std::sqrt(dtf / (2.0 * hf));
             std::vector<double> half_noise(num_half_cells * N2); // reused each step
@@ -130,7 +129,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                 for (int k = 0; k < nf * N2; ++k)
                     flux_f[k] = sqrt_rho_f[k] * dWf[k];
 
-                // update (no roll)
+                // update
                 for (int i = 0; i < nf; ++i) {
                     int iL = iL_f[i], iR = iR_f[i];
                     int base  = i * N2, baseL = iL * N2, baseR = iR * N2;
@@ -141,6 +140,14 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                         rho_f[k] += laplacian + divergence * inv_sqrtN;
                     }
                 }
+                std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
+                roll(rho_bar_f_p1, -1, nf, 1);
+                roll(rho_bar_f_m1, 1, nf, 1);
+                for (int i = 0; i < nf; ++i) {
+                    double laplacian_bar = lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
+                    rho_bar_f[i] += laplacian_bar;
+                }
+
             }
 
             // QoI on fine
@@ -155,7 +162,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
             }
 
         } else {
-            // ---------------- MLMC level: half-cell coupling ----------------
+            // MLMC level: half-cell coupling 
             int    nc  = nf / 2;
             double hc  = 2.0 * M_PI / nc;
             int    steps_c = nc * nc;
@@ -210,7 +217,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                             dWf[b + n] = half_noise[h0 + n] + half_noise[h1 + n];
                     }
 
-                    // Fine update (no roll)
+                    // Fine update
                     for (int k = 0; k < nf * N2; ++k)
                         sqrt_rho_f[k] = std::sqrt(std::max(0.0, rho_f[k]));
                     for (int k = 0; k < nf * N2; ++k)
@@ -225,6 +232,13 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                             double laplacian  = lam * (rho_f[kR] - 2.0 * rho_f[k] + rho_f[kL]) * 0.5;
                             rho_f[k] += laplacian + divergence * inv_sqrtN;
                         }
+                    }
+
+                    std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
+                    roll(rho_bar_f_p1, -1, nf, 1);
+                    roll(rho_bar_f_m1, 1, nf, 1);
+                    for (int i = 0; i < nf; ++i) {
+                        rho_bar_f[i] += lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
                     }
 
                     // Build matched coarse increment from these half-cells
@@ -259,6 +273,13 @@ dean_kawasaki_eqn_cc_l(int l, int N)
                         rho_c[k] += laplacian + divergence * inv_sqrtN;
                     }
                 }
+
+                std::vector<double> rho_bar_c_p1 = rho_bar_c, rho_bar_c_m1 = rho_bar_c;
+                roll(rho_bar_c_p1, -1, nc, 1);
+                roll(rho_bar_c_m1, 1, nc, 1);
+                for (int i = 0; i < nc; ++i) {
+                    rho_bar_c[i] += lam * (rho_bar_c_p1[i] - 2.0 * rho_bar_c[i] + rho_bar_c_m1[i]) * 0.5;
+                }
             } // end coarse steps
 
             // QoI on fine & coarse
@@ -283,7 +304,7 @@ dean_kawasaki_eqn_cc_l(int l, int N)
             }
         }
 
-        // Accumulate raw moments for MLMC driver
+        // Accumulate moments
         for (int n = 0; n < N2; ++n) {
             double diff = Pf[n] - Pc[n];
             sum1[0] += diff;

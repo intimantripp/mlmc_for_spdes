@@ -218,3 +218,9 @@ Thumbs.db
 *.snm
 *.vrb
 *.xdv
+
+
+
+# Projec specific files and directories
+
+*/outputs_mimic/

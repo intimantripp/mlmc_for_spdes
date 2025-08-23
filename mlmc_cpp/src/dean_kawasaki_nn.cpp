@@ -131,6 +131,12 @@ dean_kawasaki_eqn_nn_l(int l, int N) {
                         double laplacian  = lam * (rho_f[kR] - 2.0 * rho_f[k] + rho_f[kL]) * 0.5;
                         rho_f[k] += laplacian + divergence * inv_sqrtN;
                     }
+                    std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
+                    roll(rho_bar_f_p1, -1, nf, 1);
+                    roll(rho_bar_f_m1, 1, nf, 1);
+                    for (int i = 0; i < nf; ++i) {
+                        rho_bar_f[i] += lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
+                    }
                 }
             }
 
@@ -203,6 +209,14 @@ dean_kawasaki_eqn_nn_l(int l, int N) {
                             rho_f[k] += laplacian + divergence * inv_sqrtN;
                         }
                     }
+
+                    std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
+                    roll(rho_bar_f_p1, -1, nf, 1);
+                    roll(rho_bar_f_m1, 1, nf, 1);
+                    for (int i = 0; i < nf; ++i) {
+                        rho_bar_f[i] += lam * (rho_bar_f_p1[i] - 2.0 * rho_bar_f[i] + rho_bar_f_m1[i]) * 0.5;
+                    }
+
                     // accumulate coarse noise from fine noise (NN coupling)
                     for (int i = 0; i < nc; ++i) {
                         int f0 = (2 * i) * N2;
@@ -237,6 +251,13 @@ dean_kawasaki_eqn_nn_l(int l, int N) {
                         double laplacian  = lam * (rho_c[kR] - 2.0 * rho_c[k] + rho_c[kL]) * 0.5;
                         rho_c[k] += laplacian + divergence * inv_sqrtN;
                     }
+                }
+
+                std::vector<double> rho_bar_c_p1 = rho_bar_c, rho_bar_c_m1 = rho_bar_c;
+                roll(rho_bar_c_p1, -1, nc, 1);
+                roll(rho_bar_c_m1, 1, nc, 1);
+                for (int i = 0; i < nc; ++i) {
+                    rho_bar_c[i] += lam * (rho_bar_c_p1[i] - 2.0 * rho_bar_c[i] + rho_bar_c_m1[i]) * 0.5;
                 }
             }
 
