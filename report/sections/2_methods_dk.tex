@@ -1,7 +1,8 @@
 \section{Dean-Kawasaki Validation}\label{sec:dk_validation}
 
 \subsection{Dean-Kawasaki Implementation}\label{sec:dk_implementation} 
-We now present the Dean-Kawasaki problem considered and the finite-difference scheme,
+We now present the Dean-Kawasaki problem considered, the finite difference scheme
+used,
 following \cite{cornalba2025multilevel}, and our MLMC 
 implementation.
 We consider the Dean-Kawasaki equation on a one dimensional torus
@@ -49,7 +50,7 @@ P = \mathbb{E}\!\left[\,N_p \left(\int_0^{2\pi}
 \end{equation}
 where $\bar\rho$ denotes the deterministic mean-field solution.
 
-In the discrete setting we approximate this by
+In the discrete setting, we approximate this by
 \begin{equation}
 P \;=\; N_p \left( \big(\boldsymbol{\rho}^N - \boldsymbol{\bar\rho}^N,\ 
 \sin(x_h)\big)_h \right)^{\!2},
@@ -65,7 +66,7 @@ used for the Stochastic Heat Equation,
 We set $\Delta x_\ell = 2 \pi / 2^{l + 1}$, $\lambda = \frac{1}{4}$
 and set $\Delta t = \lambda (\Delta x)^2$, ensuring stability 
 \cite{cornalba2025multilevel}.
-For our quantitiy of interest, we take $T=0.25$.
+For our quantity of interest, we take $T=0.25$.
 
 For coupling methods, we implement the NN and CC methods outlined in 
 Section \ref{sec:she_scheme_mlmc_imp}. The NN method is 
@@ -80,7 +81,8 @@ We now verify that our implementation converges. We obtained an estimate of the 
 value of \eqref{eq:dk_qoi} via MC simulation, and now verify convergence 
 of our implementation across a range of accuracies, 
 $\varepsilon \in \{0.001, 0.005, 0.01, 0.05\}$. We also again 
-analyse variance and error decay.
+analyse variance and error decay. The results are summarised in Table 
+\ref{tab:dk_rates} and Figures \ref{fig:dk_validation_combined},
 
 \begin{table}[htbp]
     \centering
@@ -93,7 +95,7 @@ analyse variance and error decay.
         \hline
     \end{tabular}
     \caption{Empirically estimated rates for the DK QoI.}
-    \label{tab:energy_decay_rates}
+    \label{tab:dk_rates}
 \end{table}
 
 \begin{figure}[htbp]
@@ -102,16 +104,16 @@ analyse variance and error decay.
         \centering
         \begin{subfigure}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\linewidth]{graphics/dk_var_decay.png}
-            \caption{MLMC variance decay ($\beta$).}
-            \label{fig:variance_decay}
+            \includegraphics[width=\linewidth]{graphics/dk_err_decay.png}
+            \caption{Weak error decay ($\alpha$).}
+            \label{fig:dk_error_decay}
         \end{subfigure}
         \hfill
         \begin{subfigure}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\linewidth]{graphics/dk_err_decay.png}
-            \caption{Weak error convergence ($\alpha$).}
-            \label{fig:mean_decay}
+            \includegraphics[width=\linewidth]{graphics/dk_var_decay.png}
+            \caption{Variance decay ($\beta$).}
+            \label{fig:dk_variance_decay}
         \end{subfigure}
     \end{subfigure}
     \vspace{1cm}
@@ -121,18 +123,36 @@ analyse variance and error decay.
             \centering
             \includegraphics[width=0.7\linewidth]{graphics/dk_conv.png}
             \caption{Final MLMC estimate vs. target RMSE ($\varepsilon$).}
-            \label{fig:conv_vs_eps}
+            \label{fig:dk_conv_vs_eps}
         \end{subfigure}
         \vspace{0.5cm}
         \begin{subfigure}[b]{\textwidth}
             \centering
             \includegraphics[width=0.7\linewidth]{graphics/dk_cumconv.png}
             \caption{Cumulative estimate vs. level ($\ell$) for $\varepsilon=0.001$.}
-            \label{fig:cumulative_conv}
+            \label{fig:dk_cumulative_conv}
         \end{subfigure}
     \end{subfigure}
     \caption{Validation and convergence plots for the MLMC implementation for the Dean-Kawasaki equation.}
-    \label{fig:she_validation_combined}
+    \label{fig:dk_validation_combined}
 \end{figure}
+
+
+The rates for the DK problem match those observed for the SHE. 
+$\alpha \approx 2$ and $\beta \approx 2$ for both the 
+CC and NN couplings, illustrated in Figures 
+\ref{fig:dk_error_decay} and \ref{fig:dk_variance_decay}, and the 
+expected $\gamma = 3$ for this scheme. Obtaining 
+$\beta = 2$ aligns with the results found by Cornalba and Fischer 
+for their NN coupling \cite{cornalba2025multilevel}, and again
+we observe that the CC method behaves similarly to the NN.
+
+Figure \ref{fig:dk_conv_vs_eps} shows that both coupling methods 
+converge towards the analytic value of 
+QoI across all RMSE tolerances. The cumulative convergence plot, 
+Figure \ref{fig:dk_cumulative_conv}, demonstrates the 
+standard behaviour of the MLMC estimator for both, and we again
+observe equivalence between the two methods at the highest accuracy.
+
 
 

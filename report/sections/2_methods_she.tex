@@ -2,7 +2,7 @@
 \subsection{Problem Specification and Finite Difference Scheme}\label{sec:she_scheme_mlmc_imp}
 
 We consider the one-dimensional SHE on a unit interval $[0,1]$ with
-homogenous Dirichlet boundary conditions and a zero initial condition.
+homogeneous Dirichlet boundary conditions and a zero initial condition.
 This represents the simplest setting for a parabolic SPDE. 
 The problem is formally defined as finding the real-valued 
 function $u(t,x)$ that satisfies:
@@ -19,7 +19,7 @@ function $u(t,x)$ that satisfies:
 To solve \eqref{eq:she_full_problem} numerically, we employ
 an explicit finite difference scheme
 obtained using a finite volume approach \cite{suli2025nspdes} where \eqref{eq:she_pde}
-is integrated over small, discreet space-time control volumes
+is integrated over small, discrete space-time control volumes
 and the resulting integral terms then approximated.
 This scheme is:
 
@@ -41,7 +41,7 @@ $[0, T]$ be discretised into $N$ steps of size $\Delta t
 $n = 0, 1, \dots N$. 
 Our discrete approximations of $u$ are denoted $U_j^n \approx 
 u(t_n, x_j)$ with $U_j^0 = 0$, $U_0^n = U_J^n = 0$ 
-capturing our initial and boundary conditions respectively.
+capturing our initial and boundary conditions, respectively.
 
 We integrate \eqref{eq:she_pde} over a control volume $C_j^n = 
 [x_j - \frac{\Delta x}{2}, x_j + \frac{\Delta x}{2}] \times [t_n, t_n+1]$:
@@ -105,7 +105,7 @@ Finally, the forcing term on the RHS, via equation \eqref{eq:white_noise_result}
 \int_{t_n}^{t_{n+1}} \int_{x_j-\frac{\Delta x}{2}}^{x_j+\frac{\Delta x}{2}} \xi(t,x) \,\mathrm{d}x\mathrm{d}t = \sqrt{\Delta x \Delta t} Z_j^n
 \end{equation*}
 
-where $Z_j^n$ are indepenent and identically distributed standard normal random variables.
+where $Z_j^n$ are independent and identically distributed standard normal random variables.
 Finally, we substitute the discrete approximations for each of the three terms back into the 
 integral equation \eqref{eq:she_integration}. This yields the following relation:
 \begin{equation*}
@@ -121,7 +121,7 @@ $\frac{\Delta t}{(\Delta x)^2} \le \frac{1}{2}$, to be satisfied for convergence
 similar to the corresponding deterministic heat equation \cite{suli2025nspdes}. 
 A proof of this is given in the Appendix (CITE APPENDIX HERE).
 
-\subsection{Stochastic Heat Equation - MLMC Implementation}
+\subsection{MLMC Implementation of the Stochastic Heat Equation }
 
 We now describe how scheme \eqref{eq:she_scheme} is implemented for our MLMC
 algorithm \ref{alg:mlmc_detailed}. This applies for a generic quantity of interest
@@ -129,10 +129,10 @@ algorithm \ref{alg:mlmc_detailed}. This applies for a generic quantity of intere
 \ref{sec:QoI_for_SHE}.
 
 For each level $\ell$, we divide the spatial domain into $n_{\ell} = 2^{l+1}$ subdivisions
-resulting in a spatial step size $\Delta x_\ell = 1 / n_\ell$. We fix CFL number $\lambda = 
-\frac{\Delta t}{(\Delta x)^2} = 0.25$. This yields a timestep of 
+resulting in a spatial step size $\Delta x_\ell = 1 / n_\ell$. We fix the CFL number 
+$\lambda = \frac{\Delta t}{(\Delta x)^2} = 0.25$. This yields a timestep of 
 $\Delta t_\ell = \lambda (\Delta x_\ell)^2$. This means that for any two 
-consecutive levels the refinement ratios are related via
+consecutive levels, the refinement ratios are related via
 
 \begin{equation}\label{eq:she_discrete_relations}
     \Delta x_{\ell - 1} = 2\Delta x_\ell, \qquad \Delta t_{\ell - 1} = 4 \Delta t_\ell.
@@ -148,7 +148,7 @@ we anticipate the cost to scale as $C_\ell \propto 2^{3\ell}$, implying a
 cost growth rate of $\gamma = 3$.
 
 For noise coupling, we investigate 3 strategies: Right-Most Nearest Neighbours (NN)
-used in \cite{cornalba2025multilevel}, Central Coupling (CC) and a Finite Element (FE)
+used in \cite{cornalba2025multilevel}, Central Coupling (CC), and a Finite Element (FE)
 based coupling. We outline each of these now. We follow the convention used in 
 \cite{giles2015multilevel} for coupling, describing the $\ell$-th level as 
 the \textit{fine} level and the $\ell - 1$-th level as the \textit{coarse} level.
@@ -240,7 +240,7 @@ ensures $\Delta W_{j,f}^n$ has the correct variance.
 
 Similarly to the NN coupling, the coarse noise 
 is constructed as an aggregation of 
-the underlying fine noises accummulated over the
+the underlying fine noises accumulated over the
 four fine timesteps that constitute a single
 coarse time step, equivalent to using the 
 exact underlying 16 half-cell noises.
@@ -301,7 +301,7 @@ The approximate solution is written as
     U(t,x) = \sum_{j=1}^{J-1}U_j(t)\phi_j(x).
 \end{equation*}
 
-Here, the $U_j(t)$ are the time-dependent coefficients represents the solution's value at
+Here, the $U_j(t)$ are the time-dependent coefficients that represent the solution's value at
 the spatial nodes $x_j$. By requiring the weak form to hold for every basis function 
 in this space, we obtain a system of SDEs for the vector of coefficients $\mathbf{U}(t)$. 
 
@@ -340,7 +340,7 @@ by considering test functions $\phi_f$ and $\phi_g$:
 \end{align*}
 
 where $\mathbf{1}_{[t, t+\mathrm{d}t]}(s)$ is an indicator function which is 1 for
-$s \in [t, t + \mathrm{dt}]$, $0$ otherwise. Th abstract random variable 
+$s \in [t, t + \mathrm{dt}]$, $0$ otherwise. The abstract random variable 
 $W(\phi_f)$ from Definition \ref{def:whitenoise} now represents the noise tested 
 against the spatial function $f(x)$
 
@@ -383,7 +383,7 @@ function, $\phi_k^c$, can be expressed as a linear combination of the fine grid 
     \phi_k^c(x) = \frac{1}{2} \phi_{2k-1}^f(x) + \phi_{2k}^f(x) + \frac{1}{2}\phi_{2k+1}^f(x).
 \end{equation*}
 
-This provide a natural way to construct the coarse noise from the fine noise. The coarse
+This provides a natural way to construct the coarse noise from the fine noise. The coarse
 noise increment at a coarse node $k$, $\Delta W_{k,c}^m$, is constructed by applying the same 
 linear weighting to the fine noise increments over the corresponding time steps: 
 

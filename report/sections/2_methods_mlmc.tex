@@ -3,7 +3,7 @@
 Having outlined the MLMC theory in Section \ref{sec:intro_mlmc}, we now present 
 the MLMC algorithm that is implemented in this dissertation. This is 
 based on the MLMC implementation provided by Giles \cite{giles2015multilevel}.
-The practical implementation of the MLMC method follows a two phase approach.
+The practical implementation of the MLMC method follows a two-phase approach.
 The first phase is dedicated to empirically estimating the parameters 
 of the MLMC Complexity Theorem \ref{theorem:mlmc_complexity}, while the
 second phase uses these paramaters in an adaptive algorithm 
@@ -12,7 +12,7 @@ to achieve a final result.
 Before running the main adaptive algorithm, A fixed, large number of $N$ 
 samples is simulated on a specified range of discretisation levels. From 
 these simulations we gather empirical estimates of $|\mathbb{E}[Y_\ell]|, 
-V_\ell, C_\ell$. Performing linear regression on the logarithms on these
+V_\ell, C_\ell$. Performing linear regression on the logarithms of these
 quantities against the index level we obtain estimates for the weak error 
 decay rate, variance decay rate, and cost growth rate, $\alpha$, $\beta$ and $\gamma$ 
 respectively. 

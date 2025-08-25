@@ -109,7 +109,8 @@ dean_kawasaki_eqn_nn_l(int l, int N) {
         std::vector<double> Pf(N2, 0.0), Pc(N2, 0.0);
 
         if (l == 0) {
-            // Fine-only evolution
+            // Fine grid, no coarse grid
+            
             for (int t = 0; t < timesteps_f; ++t) {
                 // sqrt(rho), dW, flux
                 for (int k = 0; k < nf * N2; ++k)
