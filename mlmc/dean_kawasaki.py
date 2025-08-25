@@ -4,9 +4,9 @@ from mlmc.mlmc_test import mlmc_test
 def dean_kawasaki_eqn(validation_value=None):
     M = 8
     N = 5000
-    L = 5
+    L = 4
     N0 = 100
-    Eps = [0.0005, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1]
+    Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
 
     del1, del2, var1, var2 = mlmc_test(lambda l, N: dean_kawasaki_eqn_l(l, N), M, N, L, N0, Eps, validation_value=validation_value)
 
@@ -19,7 +19,7 @@ def dean_kawasaki_eqn_l(l, N):
     phi_fn = lambda x: np.sin(x)
     N_particles = 2 * 10**6
 
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(42+l)
 
     lam = 0.25
     nf = 2**(l+2)

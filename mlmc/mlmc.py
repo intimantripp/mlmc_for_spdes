@@ -52,7 +52,7 @@ def mlmc(N0, eps, mlmc_l, alpha_0, beta_0, gamma, **mlmc_l_kwargs):
 
         # if (almost) converged, estimate remaining error and decide whether a new level is required
         # This is the remaining error estimate on page 21 being used
-        if np.sum(dNl > 0.01 * Nl) == 0: #if the additional number of samples is less than 1% of current samples for any level
+        if np.sum(dNl > 0.005 * Nl) == 0: #if the additional number of samples is less than 1% of current samples for any level
             idx_range = np.array([-2, -1, 0])
             rem = np.max(ml[L+idx_range]*2**(alpha*idx_range)) / (2**alpha - 1) # formula for error less than epsilon/sqrt(2)
 

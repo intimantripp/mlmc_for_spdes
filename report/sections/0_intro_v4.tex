@@ -11,7 +11,7 @@ decays $O(N^{-1/2})$ where $N$ is the number
 of independent samples obtained, and therefore achieving a high accuracy 
 estimate requires a high number of samples. As most SPDEs do not admit 
 analytic solutions, the main approach available for estimating expectations of 
-functionals of SPDEs is Monte Carlo methods \cite{giles2015multilevel}. In the context
+functionals of SPDEs are Monte Carlo methods \cite{giles2015multilevel}. In the context
 of SPDEs, obtaining samples typically requires discretising 
 the spatial domain via finite difference or finite element methods
 and then evolving the system to obtain the desired quantity. Accurate 
@@ -26,7 +26,7 @@ in their estimate at a reduced computational cost. The MLMC method is one
 such method. At its heart is an approach of computing a blend of cheaper 
 and more expensive samples, unlike the MC estimator which uses only samples 
 of the same cost. Many inexpensive samples provide the bulk of the statistical signal, 
-while comparitively few more costly samples then correct any residual bias.
+while comparatively few more costly samples then correct any residual bias.
 In the context of SPDEs, this means obtaining samples using meshes at 
 varying \textit{levels} of discretisation. By taking many samples at cheaper,
 coarser levels and fewer at finer, more expensive levels, the MLMC 
@@ -37,13 +37,13 @@ The practical efficiency of the MLMC method, however, relies on correlating
 samples obtained at different levels, in a manner analogous to that of the 
 control variates method (\cite{giles2015multilevel}, Section 1.2). 
 This is because the cost savings achievable are dependent on the extent to which 
-samples across two adjacent levels of accuracy covary. Practically, this 
+samples across two adjacent levels of accuracy are correlated. Practically, this 
 entails aligning the randomness used to generate pairs of coarse and 
 fine samples, a process referred to as \textit{coupling}.
 To provide intuition as to what this means, Figure
 \ref{fig:coarse_vs_fine_grid} illustrates what the finite difference 
 grid used by two adjacent estimators might look like. At each 
-node in these grids, a random noise is required to be generated. 
+node in these grids a random noise is required to be generated. 
 This raises a question: what methods are best suited to aligning the 
 randomness across samples? Further, how large an impact 
 can different coupling methods have?
@@ -65,14 +65,14 @@ can different coupling methods have?
 \end{figure}
 
 
-There are three main questions this dissertation aims to answer therefore. 
+There are three main questions this dissertation aims to answer, therefore. 
 
 \begin{enumerate}
     \item \textbf{What cost savings can MLMC achieve over standard MC in the context 
     of two parabolic SPDEs?}
     \item \textbf{What are the effects of different coupling mechanisms?}
-    \item \textbf{Monte Carlo methods are embarrasingly parallelisable. What further 
-    cost reductions are therefore achievable in high performance implementations 
+    \item \textbf{Monte Carlo methods are embarrassingly parallelisable. What further 
+    cost reductions are therefore achievable in high-performance implementations 
     of these methods if we take advantage of the highly parallel nature of MC methods?}
 \end{enumerate}
 
@@ -96,7 +96,7 @@ targets and convergence rates with which we validate our implementation.
 We further validate our MLMC implementation of the Dean-Kawasaki equation,
 replicating the results of another paper \cite{cornalba2025multilevel}.
 
-Chapter SECTION HERE presents a comprehensive performance analysis. 
+Chapter \ref{chap:performance} presents a comprehensive performance analysis. 
 We directly address our first two research questions by comparing the 
 computational cost of our MLMC implementation against a standard MC 
 estimator for a range of target accuracies. Furthermore, we analyse 

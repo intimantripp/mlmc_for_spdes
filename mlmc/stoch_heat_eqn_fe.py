@@ -26,6 +26,7 @@ def stoch_heat_eqn_fe(qoi_fn=default_qoi, validation_value=None):
     L = 6
     N0 = 100
     Eps = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1]
+    Eps = [0.1, 0.05, 0.02, 0.01, 0.005, 0.001]
     if qoi_fn.__name__=='default_qoi':
         validation_value = 1/12 - np.exp(- 2 * np.pi**2) / (2 * np.pi**2)
     del1, del2, var1, var2 = mlmc_test(lambda l, N: stoch_heat_eqn_l(l, N, qoi_fn), M, N, L, N0, Eps, validation_value=validation_value)

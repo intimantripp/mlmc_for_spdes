@@ -24,11 +24,11 @@ turn to computational methods. The most fundamental of these is defined below.
 
 By linearity of the expectation operator, the MC estimator in Definition \ref{def:mc_estimator} 
 is unbiased. The accuracy of an estimator is typically estimated via its Mean Squared Error (MSE) and 
-Root Mean Square Error (RMSE), which we define now.
+Root Mean Squared Error (RMSE), which we define now.
 
 \begin{definition}[Mean Squared Error and Root Mean Squared Error]\label{def:mse_rmse}
     Let $P$ be a fixed unknown quantity and let $\hat{P}$ be an estimator for $P$. 
-    The \textbf{Mean Square Error (MSE)} of the estimator is the expected value of 
+    The \textbf{Mean Squared Error (MSE)} of the estimator is the expected value of 
     the squared error:
     \[
     \text{MSE}(\hat{P}) = \mathbb{E}[(\hat{P} - P)^2]
@@ -38,7 +38,7 @@ Root Mean Square Error (RMSE), which we define now.
     \text{MSE}(\hat{P}) = \underbrace{\mathbb{V}[\hat{P}]}_{\text{Variance of estimator}}
     + \underbrace{(\mathbb{E}[\hat{P}] - \mathbb{E}[P])^2}_{\text{Bias}^2}
     \]
-    The \textbf{Root Mean Square Error (RMSE)} is the square root of the MSE.
+    The \textbf{Root Mean Squared Error (RMSE)} is the square root of the MSE.
 \end{definition}
 
 Since the standard MC estimator is unbiased, its bias term is zero. 
@@ -49,7 +49,7 @@ Its MSE is therefore equal to its variance:
 \end{equation*}
 
 The framework above assumes we can generate perfect samples of the random 
-variable $P$. In practice, for complex problems such as SPDEs this is typically impossible.
+variable $P$. In practice, for complex problems such as SPDEs, this is typically impossible.
 Instead, we must compute numerical approximations which we will denote by $P_L$, where $L$ 
 represents a level of discretisation. For example, and as will be used later
 in a finite difference scheme, $L$ could correspond to a mesh with spatial grid spacing 
@@ -114,7 +114,7 @@ $V_\ell$. The key is to ensure that $V_\ell$ decreases rapidly as the level $\el
 randomness to generate pairs of samples $(P_\ell, P_{\ell-1})$. This technique, known as
 \textit{coupling}, ensures the samples are strongly correlated. Because 
 $P_\ell$ and $P_{\ell - 1}$ are approximations of the same underlying quantity, their difference 
-is small, and consequently the variance of this difference, $V_\ell$, is much smaller than the 
+is small, and consequently, the variance of this difference, $V_\ell$, is much smaller than the 
 variance of either term individually. As the level $\ell$ increases, $P_\ell$ converges to 
 $P_{\ell - 1}$, and so we expect that $V_\ell \to 0$.
 
@@ -125,7 +125,7 @@ for the cheap, low-level terms where the variance is high. The optimal allocatio
 of samples across levels can be determined by solving a constrained optimisation problem.
 For a fixed variance, $\varepsilon^2$, choosing the optimal $\{N_\ell\}_{\ell=0}^L$ that 
 minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is solveable with 
-Lagrange mutipliers. It yieds the optimal number of samples \cite{giles2015multilevel}:
+Lagrange multipliers. It yields the optimal number of samples \cite{giles2015multilevel}:
 
 \begin{equation}\label{eq:optimal_N_l}
     N_\ell = \left\lceil \frac{1}{\varepsilon_{\text{var}}^2} \sqrt{\frac{V_\ell}{C_\ell}} \sum_{k=0}^L \sqrt{V_k C_k} \right\rceil.
@@ -217,13 +217,13 @@ improvement over the MC method.
 
 In the case $\beta < \gamma$, the cost per level grows with $\ell$, meaning 
 the total cost is dominated by the work on the finest level, $L$. 
-Even in this worst case scenario though, we still arrive at a smaller scaling of cost 
+Even in this worst-case scenario though, we still arrive at a smaller scaling of cost 
 than that of the MC estimator. 
 
 We conclude this section by highlighting the importance of the relationship
 between the variance decay rate $\beta$, and the cost growth rate $\gamma$. 
 As shown in the Complexity Theorem, the magnitude of the computational savings 
 offered by an MLMC implementation depends critically on whether the variance 
-decreases faster than the cost increases (i.e. if $\beta \ge \gamma$). 
+decreases faster than the cost increases (i.e., if $\beta \ge \gamma$). 
 Determining this relationship for specific SPDE applications and coupling 
 strategies is a primary goal of this dissertation.

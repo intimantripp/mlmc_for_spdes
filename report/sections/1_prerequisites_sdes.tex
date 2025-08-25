@@ -20,10 +20,10 @@ The stochastic heat equation (SHE) is a canonical example of a parabolic SPDE.
 Formally, it is the standard heat equation perturbed by a stochastic
 forcing term introducing spatially and temporally uncorrelated 
 fluctuations. Heat diffusing through a metal bar 
-that is also experiencing heat emitting chemical reactions would be the archetypal
+that is also experiencing heat-emitting chemical reactions would be the archetypal
 scenario the SHE describes.
 
-The equation is fully specified by the SPDE itself, an initial condition and 
+The equation is fully specified by the SPDE itself, an initial condition, and 
 a set of boundary conditions \cite{lototsky2017stochastic,pardoux2021stochastic}.
 
 \begin{align}\label{eq:she_spde}
@@ -54,7 +54,7 @@ with a covariance structure given by:
 \]
 \end{definition}
 
-This formal defintion has several important consequences. Firstly, it gives rise 
+This formal definition has several important consequences. Firstly, it gives rise 
 to the more intuitive heuristic covariance expression 
 $\mathbb{E}\left[\xi(t,\mathbf{x})\xi(s,\mathbf{y}\right] = 
 \delta(t-s)\delta(\mathbf{x}-\mathbf{y})$, implying the noise is perfectly uncorrelated 
@@ -94,7 +94,7 @@ result for our finite difference implementations:
     \mathrm{d}x \mathrm{d}t = \sqrt{\Delta t \Delta x} Z_j^n
 \end{equation}
 
-where $Z_j^n$ are idependent and identically distributed standard normal random variables.
+where $Z_j^n$ are independent and identically distributed standard normal random variables.
 
 \subsection{The Dean-Kawasaki Equation}
 
@@ -122,7 +122,7 @@ via the $\sqrt{\rho}$ factor.
 
 
 The equation is highly singular, and ``strong'' or ``pathwise" solutions 
-i.e. solutions that exist as a function of every given realisation 
+i.e., solutions that exist as a function of every given realisation 
 of the noise, do not exist. Instead, the only existing solutions are martingale 
 solutions, where $\rho$ corresponds to empirical measures of the underlying 
 particle system:
@@ -131,7 +131,7 @@ particle system:
     \rho(\mathbf{x},t) \equiv \mu_t^N(\mathbf{x}) := N^{-1} \sum_{i=1}^N\delta(x - X_i(t)).
 \end{equation*}
 
-The solution therefore is not a smooth field but a sum 
+The solution, therefore, is not a smooth field but a sum 
 of Dirac-delta distributions. 
 
 Despite the singular nature of the solution, 
@@ -148,7 +148,7 @@ to a weighted average of the density fluctuations:
 
 These can be computed
 for sufficiently regular test functions $\psi, \phi$, provided $Nh^d >> 1$
-(i.e. as long as on average there is more than one particle per grid cell).
+(i.e., as long as on average there is more than one particle per grid cell).
 For example, choosing $\psi(z) = z^2$ allows for the computation of the 
 variance of the fluctuations.
 
