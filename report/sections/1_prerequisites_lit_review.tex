@@ -59,8 +59,51 @@ a "Fourier coupling" and a "Right-Most Nearest Neighbours (NN) coupling". We bui
 on this work in this dissertation by also investigating the Dean-Kawasaki equation and proposing 
 an alternative noise coupling strategy.
 
-NEED TO ADD REGARDING HPC MLMC IMPLEMENTATIONS AND SPDES (believe none done)
 
+Beyond theoretical convergence and numerical validation, an important 
+direction of research examines how to parallelise MLMC effectively on 
+high performance computing (HPC) systems. Like standard Monte Carlo, 
+MLMC methods naturally lend themselves to parallelisation due to the 
+independence of samples. Parallelism can typically be exploited along 
+two dimensions: across independent samples on each level and across levels. 
+In the context of SPDEs a third dimension can be added, as deterministic 
+PDE solvers for each sample can also be parallelised. We examine several 
+pieces of relevant work that have considered different aspects of 
+HPC implementation for MLMC methods for SPDEs.
 
+Drzisga et al.  \cite{drzisga2017scheduling} analyse how to combine 
+these layers of parallelism efficiently on petascale systems, examining 
+an elliptic SPDE. They 
+introduce the concept of \textit{scalability windows}, showing 
+that solver performance depends strongly on the number of 
+processors allocated per sample. They classify 
+scheduling strategies, including sample-synchronous (all groups 
+calculate samples in lockstep), level-synchronous (groups complete 
+levels in lockstep), homogenous (all processors work on the 
+same level at once), and heterogenous (different processor 
+groups work on different levels concurrently). They demonstrate that 
+careful scheduling is crucial to achieving high utilisation, and report 
+MLMC simulations with over $7 \times 10^{10}$ unknowns 
+on 131,072 cores in under 1.5 hours.
+
+In Baumgarten, Krumscheid, and Wieners \cite{baumgarten2024fully}, the 
+authors propose a budgeted MLMC (BMLMC) method tailored for HPC environments. 
+Instead of fixing an error tolerance, BMLMC minimises the mean square error 
+subject to a fixed computational budget, formulated as a knapsack problem 
+and solved by dynamic programming. To exploit parallelism effectively they 
+introduced a multi-sample finite element method (MS-FEM), which unifies 
+solver- and sample-parallelism in a single distributed data structure. 
+They establish new error--cost bounds that account for parallelisation bias, 
+and demonstrate scalability on thousands of cores for large-scale acoustic 
+wave propagation with random media, a parabolic-type PDE closely related 
+to the equations considered in this dissertation.
+
+Finally, Iliev et al.\ \cite{iliev2021parallel} 
+investigate dynamic scheduling strategies for MLMC in porous media flow, 
+emphasising how sample-to-sample variability can harm utilisation. They 
+compared job-queue and interruption-based schedulers, showing that dynamic 
+strategies maintain efficiency above 0.89 even when scaling to several 
+hundred cores. Their results underline the importance of dynamic load 
+balancing for MLMC applied to SPDEs on parallel hardware.
 
 
