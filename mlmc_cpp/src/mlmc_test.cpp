@@ -40,6 +40,9 @@ void mlmc_test(
     printf("\n l   ave(Pf-Pc)    ave(Pf)   var(Pf-Pc)    var(Pf)    kurtosis     check        cost \n");
     printf("--------------------------------------------------------------------------------------\n");
 
+    using clock_t = std::chrono::steady_clock;
+    auto t0 = clock_t::now();
+
     for (int l = 0; l <= L; ++l) {
         levels.push_back(l);
         auto start = std::chrono::high_resolution_clock::now();
@@ -78,6 +81,9 @@ void mlmc_test(
         
 
     }
+    auto t1 = clock_t::now();
+    double pilot_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    std::cout << "[timing] pilot/regression = " << pilot_ms << " ms\n";
 
     // Print the MLMC estimator
     double estimator = std::accumulate(del1.begin(), del1.end(), 0.0);
