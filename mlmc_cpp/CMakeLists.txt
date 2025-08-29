@@ -23,7 +23,6 @@ set(MLMC_SOURCES_COMMON
   src/stoch_heat_eqn_fourier_modes_var_fe.cpp
   src/stoch_heat_eqn_energy_nn.cpp
   src/stoch_heat_eqn_energy_cc.cpp
-  src/stoch_heat_eqn_energy_fe.cpp
   src/dean_kawasaki_nn.cpp
   src/dean_kawasaki_cc.cpp
 )
@@ -33,7 +32,8 @@ add_library(mlmc_headers INTERFACE)
 target_include_directories(mlmc_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # ---- Serial target (uses serial GBM) ----
-add_executable(mlmc_cpp_serial ${MLMC_SOURCES_COMMON} src/gbm_euler.cpp)
+add_executable(mlmc_cpp_serial ${MLMC_SOURCES_COMMON} src/gbm_euler.cpp
+src/stoch_heat_eqn_energy_fe.cpp)
 target_link_libraries(mlmc_cpp_serial PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   target_compile_options(mlmc_cpp_serial PRIVATE -O3 -march=native)
@@ -42,7 +42,8 @@ elseif (MSVC)
 endif()
 
 # ---- OpenMP target (uses OMP GBM) ----
-add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} src/gbm_euler_omp.cpp)
+add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} src/gbm_euler_omp.cpp 
+src/stoch_heat_eqn_energy_fe_omp.cpp)
 target_link_libraries(mlmc_cpp_omp PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   target_compile_options(mlmc_cpp_omp PRIVATE -O3 -march=native)

@@ -24,7 +24,7 @@ inline int idx(int i, int n, int N2) {return i * N2 + n; }
 void run_stoch_heat_eqn_energy_fe(const int N) {
     std::cout << "Running MLMC Stochastic Heat Equation - Energy FE\n" << std::endl;
     int M = 8;
-    int L = 6;
+    int L = 5;
     int N0 = 100;
     std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
 
