@@ -289,10 +289,10 @@ motion.
 The Galerkin method seeks an approximate solution, $U(t,x)$ within a finite-dimensional
 subspace spanned by a set of basis functions \cite{suli2025fe}. For this problem, 
 we use the standard piecewise linear ``hat'' basis functions $\phi_j(x)$, defined on a 
-uniform grid with spacing $h$:
+uniform grid with spacing $\Delta x$:
 
 \begin{equation*}
-    \phi_j(x) = \max(0, 1 - |x-x_j|/ h).
+    \phi_j(x) = \max(0, 1 - |x-x_j|/ \Delta x).
 \end{equation*}
 
 The approximate solution is written as
@@ -315,13 +315,13 @@ where $M$ is a tri-diagonal matrix with elements $M_{ij} = (\phi_i, \phi_j)$.
 For the hat basis, this gives
 
 \begin{equation*}
-    M_{i,i} = \frac{2}{3}h, \qquad M_{i, i\pm 1} = \frac{1}{6}h.
+    M_{i,i} = \frac{2}{3}\Delta x, \qquad M_{i, i\pm 1} = \frac{1}{6} \Delta x.
 \end{equation*}
 
 $K$ is a tridiagonal matrix with entries $K_{ij} =(\phi'_i, \phi'_j)$. This gives
 
 \begin{equation*}
-    K_{i,i} = \frac{2}{h}, \qquad K_{i, i\pm 1} = - \frac{1}{h}
+    K_{i,i} = \frac{2}{\Delta x}, \qquad K_{i, i\pm 1} = - \frac{1}{\Delta x}
 \end{equation*}
 
 $\mathrm{d}W(t)$ is a vector of normal increments. To determine their variance and covariance, 
@@ -360,12 +360,12 @@ The vector of normal increments have the following expectations:
 \begin{align*}
     \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_j] = \mathbb{E}[(\mathrm{d}W, \phi_i) 
     (\mathrm{d}W, \phi_j)] = (\phi_i, \phi_j)\mathrm{d}t\\
-    \mathbb{E}[\mathrm{d}W_i^2] = \frac{2}{3}h \mathrm{d}t, \qquad 
-    \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_{i\pm 1}] = \frac{1}{6} h \mathrm{d}t
+    \mathbb{E}[\mathrm{d}W_i^2] = \frac{2}{3}\Delta x \mathrm{d}t, \qquad 
+    \mathbb{E}[\mathrm{d}W_i \mathrm{d}W_{i\pm 1}] = \frac{1}{6} \Delta x \mathrm{d}t
 \end{align*}
 
 A common simplification known as mass lumping is used, where
-matrix $M$ is replaced by the diagonal matrix $hI$. 
+matrix $M$ is replaced by the diagonal matrix $\Delta x I$. 
 Applying this to \eqref{eq:fe_sdes_system} yields the scheme:
 
 \begin{equation*}

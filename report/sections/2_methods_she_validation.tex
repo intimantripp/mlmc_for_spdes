@@ -87,7 +87,7 @@ all couplings. Similarly, we obtain estimates of $\alpha \approx 2$ for all coup
 consistent with Proposition \ref{prop:weak_error_for_fourier_mode} which 
 established that the weak convergence rate was independent of coupling.
 Figure \ref{fig:she_sq_amp_mean_decay} illustrates this behaviour. Notably,
-while the NN and CC couplings exhibit almost identical magnitudes of weak error across 
+while the NN and CC couplings exhibit similar magnitudes of weak error across 
 levels, the FE method consistently yields a smaller 
 weak error.
 
@@ -100,12 +100,14 @@ $\beta \approx 2$. Relating this to Proposition
 \ref{prop:variance_decay_fourier}, Figure 
 \ref{fig:she_corrs} shows how $1 - \rho^2$ decays with $\Delta x$ 
 under the three coupling mechanisms. We observe the alignment 
-between the reported variance decay rates and the empirical correlations.
-As expected, the NN method yields weak correlations since it 
+between the reported variance decay rates 
+in Table \ref{tab:she_decay_rates} and MLMC level correlations
+across all coupling methods.
+As expected, the NN method yields weaker correlation since it 
 discards a portion of fine-level noise. The CC method though, 
 despite its more symmetric construction and perfect 
 reuse of fine level noises, doesn't achieve any 
-material improvement in correlations.
+material improvement in correlation over the NN method.
 
 \begin{figure}[htbp]
     \centering
@@ -118,7 +120,7 @@ material improvement in correlations.
 
 For comparison, in Figures \ref{fig:she_sq_amp_mean_decay} and 
 \ref{fig:she_sq_amp_variance_decay}, we also include the behaviour of the standard Monte Carlo 
-estimator, using 10,000 samples at each level. We observe no error decay 
+estimator, also using 10,000 samples at each level. We observe no error decay 
 or variance reduction, as expected.
 
 Finally, Figures \ref{fig:she_sq_amp_conv_vs_eps} and \ref{fig:she_sq_amp_cumulative_conv}
@@ -130,7 +132,7 @@ to the fourth level, while the NN method progresses to the fifth. This is attrib
 to the intrinsic stochasticity of the system affecting the stopping criterion 
 of the MLMC Algorithm, outlined in Algorithm \ref{alg:mlmc_detailed}.
 
-We now provide similar validation results for our SHE MLMC implementation, where our QoI is the system energy. 
+We now provide similar validation results for our SHE MLMC implementation where our QoI is the system energy. 
 We have the true value for the problem, $\approx \frac{1}{12}$, via
 \eqref{eq:she_energy_analytic_soln}.
 
@@ -192,7 +194,7 @@ We have the true value for the problem, $\approx \frac{1}{12}$, via
 
 The rates shown in Table \ref{tab:energy_decay_rates} and Figures 
 \ref{fig:energy_mean_decay} and \ref{fig:energy_variance_decay} 
-are quite different to those obtained for the squared amplitude. 
+difer from those obtained for the squared amplitude. 
 We observe $\gamma = 3$, as expected for this system. However, 
 for the energy we have a slower error decay. $\alpha \approx 1$ for the 
 FE method, $\alpha \approx 0.5$ for the NN and CC methods. Examining 
@@ -205,9 +207,7 @@ This difference from the squared amplitudes is interestin
 Similarly, for the variance decay, we observe again that the FE method
 achieves improved variance decay compared to the NN and CC methods, but 
 not to the same extent, achieving $\beta \approx 3$ compared to 
-$\beta \approx 2$. As we know that the 
-FE coupling perfectly correlates samples at adjacent levels, we 
-can infer that $\beta = 3$ is the largest decay rate achievable.
+$\beta \approx 2$.
 
 
 Convergence to the true value is observed across all methods 
@@ -221,14 +221,15 @@ are required to achieve the desired RMSE compared to the squared
 amplitude case. The FE method converges at approximately 
 level 7, while both NN and CC require progression to levels 
 12 and 11. This is a direct consequence of slower 
-weak error decay (equivalently, larger $\alpha$). 
-The larger value means that more levels are required to 
-sufficiently reduce the discretisation error.
+weak error decay (equivalently, smaller $\alpha$). 
+The smaller value means that the MLMC Algorithm determines more levels 
+are required to sufficiently reduce the discretisation error.
 
-We also observe that the NN and CC estimates are functionally identical
-at small RMSEs, Figure \ref{fig:energy_cumulative_conv}. Their values 
+We also observe in Figure \ref{fig:energy_cumulative_conv} that the
+NN and CC estimates are effectively identical
+at small RMSEs. Their values 
 do differ slightly, but the differences 
-are negligible. This is not observed for lower RMSEs.
+are negligible.
 
 % Finally, we comment on the observation that in Figure \ref{fig:energy_cumulative_conv}, 
 % for both the NN and CC methods the cumulative estimates move away before 
