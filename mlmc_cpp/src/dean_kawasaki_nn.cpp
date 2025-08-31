@@ -32,7 +32,7 @@ std::pair<std::vector<double>, std::vector<double>> dean_kawasaki_eqn_nn_l(int l
 void run_dean_kawasaki_nn(const int N) {
     std::cout << "Running MLMC Dean-Kawasaki - NN\n" << std::endl;
     int M = 8;
-    int L = 4;
+    int L = 5;
     int N0 = 100;
     // std::vector<double> Eps = {0.001, 0.005, 0.01, 0.05};
     std::vector<double> Eps = {0.01, 0.02, 0.05, 0.1};

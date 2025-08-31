@@ -16,6 +16,7 @@
 #include "stoch_heat_eqn_fourier_modes_var_fe.hpp"
 #include "dean_kawasaki_nn.hpp"
 #include "dean_kawasaki_cc.hpp"
+#include "dean_kawasaki_fe.hpp"
 
 struct PerfCase {
     std::string name; // used for folder/file names
@@ -51,8 +52,10 @@ int main(int argc, char** argv) {
         {"she_sqamp_fe",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 3.0, 3.0},
 
         // Dean–Kawasaki
+        {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
         {"dk_nn",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
         {"dk_cc",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
+        {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
     };
 
     std::cout << "Starting performance runs...\n";

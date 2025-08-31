@@ -22,9 +22,9 @@ void roll_inplace(std::vector<double>& vec, int shift, int n_points) {
 void run_dean_kawasaki_fe(const int N) {
     std::cout << "Running MLMC Dean-Kawasaki - FE element noise\n\n";
     int M = 8;
-    int L = 4;
+    int L = 5;
     int N0 = 100;
-    std::vector<double> Eps = {0.01, 0.02, 0.05, 0.1};
+    std::vector<double> Eps = {0.001, 0.005, 0.01, 0.05};
 
     std::string output_convergence_filename = "../outputs/mlmc_convergence_dk_fe.csv";
     std::string output_complexity_filename  = "../outputs/mlmc_complexity_dk_fe.csv";
@@ -122,7 +122,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                         double lap = lam * (rho_f_old[idx(iR, n, N2)]
                                          - 2.0 * rho_f_old[idx(i, n, N2)]
                                          +        rho_f_old[idx(iL, n, N2)]) * 0.5;
-                        double upd = rho_f[idx(i, n, N2)] + lap + eta_f[idx(i, n, N2)];
+                        double upd = rho_f[idx(i, n, N2)] + lap + eta_f[idx(i, n, N2)] / hf;
                         rho_f[idx(i, n, N2)] = std::max(0.0, upd);
                     }
                 }
@@ -215,7 +215,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                             double lap = lam * (rho_f_old[idx(iR, n, N2)]
                                              - 2.0 * rho_f_old[idx(i, n, N2)]
                                              +        rho_f_old[idx(iL, n, N2)]) * 0.5;
-                            double upd = rho_f[idx(i, n, N2)] + lap + eta_f[idx(i, n, N2)];
+                            double upd = rho_f[idx(i, n, N2)] + lap + eta_f[idx(i, n, N2)] / hf;
                             rho_f[idx(i, n, N2)] = std::max(0.0, upd);
                         }
                     }
@@ -238,7 +238,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                 for (int i = 0; i < nc; ++i) {
                     int ip1 = iR_c[i];
                     for (int n = 0; n < N2; ++n) {
-                        double gamma_E_c = 0.5 * gamma_E_accum[idx(i, n, N2)]; // variance-preserving scale
+                        double gamma_E_c = gamma_E_accum[idx(i, n, N2)] / std::sqrt(8.0);
                         double rho_edge_c = 0.5 * (std::max(0.0, rho_c_old[idx(i,   n, N2)]) +
                                                    std::max(0.0, rho_c_old[idx(ip1, n, N2)]));
                         rho_edge_c = std::max(rho_edge_c, eps);
@@ -256,7 +256,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                         double lap = lam * (rho_c_old[idx(iR, n, N2)]
                                          - 2.0 * rho_c_old[idx(i, n, N2)]
                                          +        rho_c_old[idx(iL, n, N2)]) * 0.5;
-                        double upd = rho_c[idx(i, n, N2)] + lap + eta_c[idx(i, n, N2)];
+                        double upd = rho_c[idx(i, n, N2)] + lap + eta_c[idx(i, n, N2)] / hc;
                         rho_c[idx(i, n, N2)] = std::max(0.0, upd);
                     }
                 }

@@ -7,6 +7,7 @@ def run_dean_kawasaki_eqn_fe(validation_value=None):
     L = 4
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
+    validation_value=0.5
 
     del1, del2, var1, var2 = mlmc_test(lambda l, N: dean_kawasaki_eqn_l(l, N), M, N, L, N0, Eps, validation_value=validation_value)
 
@@ -76,7 +77,7 @@ def dean_kawasaki_eqn_l(l, N):
                 laplacian = lam * (np.roll(rho_f, -1, axis=0) - 2*rho_f + np.roll(rho_f, 1, axis=0)) / 2
 
                 # Update
-                rho_f += laplacian + eta_f
+                rho_f += laplacian + eta_f / hf
                 rho_f = np.maximum(rho_f, 0.0)
 
                 # Deterministic mean solves the diffusion only
@@ -112,7 +113,7 @@ def dean_kawasaki_eqn_l(l, N):
 
                     # Drift on fine
                     laplacian = lam * (np.roll(rho_f, -1, axis=0) - 2*rho_f + np.roll(rho_f, 1, axis=0)) / 2
-                    rho_f += laplacian + eta_f
+                    rho_f += laplacian + eta_f / hf
                     rho_f = np.maximum(rho_f, 0.0)
 
                     # Deterministic mean (fine) for reference
@@ -139,7 +140,7 @@ def dean_kawasaki_eqn_l(l, N):
 
                 # Drift on coarse
                 laplacian_c = lam * (np.roll(rho_c, -1, axis=0) - 2*rho_c + np.roll(rho_c, 1, axis=0)) / 2
-                rho_c += laplacian_c + eta_c
+                rho_c += laplacian_c + eta_c / hc
                 rho_c = np.maximum(rho_c, 0.0)
 
                 # Deterministic mean (coarse)
