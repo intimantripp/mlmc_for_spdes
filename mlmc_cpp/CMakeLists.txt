@@ -14,7 +14,6 @@ endif()
 
 # ---- Common sources (NOTE: no GBM file here) ----
 set(MLMC_SOURCES_COMMON
-  main.cpp
   src/mlmc.cpp
   src/mlmc_test.cpp
   src/stoch_heat_eqn_fourier_modes.cpp
@@ -25,6 +24,7 @@ set(MLMC_SOURCES_COMMON
   src/stoch_heat_eqn_energy_cc.cpp
   src/dean_kawasaki_nn.cpp
   src/dean_kawasaki_cc.cpp
+  src/dean_kawasaki_fe.cpp
 )
 
 # Headers
@@ -32,7 +32,7 @@ add_library(mlmc_headers INTERFACE)
 target_include_directories(mlmc_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # ---- Serial target (uses serial GBM) ----
-add_executable(mlmc_cpp_serial ${MLMC_SOURCES_COMMON} src/gbm_euler.cpp
+add_executable(mlmc_cpp_serial main.cpp ${MLMC_SOURCES_COMMON} src/gbm_euler.cpp
 src/stoch_heat_eqn_energy_fe.cpp)
 target_link_libraries(mlmc_cpp_serial PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
@@ -41,8 +41,16 @@ elseif (MSVC)
   target_compile_options(mlmc_cpp_serial PRIVATE /O2)
 endif()
 
+# --- Performance serial runs ---
+add_executable(run_performance src/run_performance.cpp 
+src/mlmc_test_performance.cpp
+${MLMC_SOURCES_COMMON} src/stoch_heat_eqn_energy_fe.cpp)
+target_link_libraries(run_performance PRIVATE mlmc_headers)
+
 # ---- OpenMP target (uses OMP GBM) ----
-add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} src/gbm_euler_omp.cpp 
+add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} 
+src/main_omp.cpp
+src/gbm_euler_omp.cpp 
 src/stoch_heat_eqn_energy_fe_omp.cpp)
 target_link_libraries(mlmc_cpp_omp PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
