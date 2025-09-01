@@ -20,8 +20,6 @@ set(MLMC_SOURCES_COMMON
   src/stoch_heat_eqn_fourier_modes_var.cpp
   src/stoch_heat_eqn_fourier_modes_var_cc.cpp
   src/stoch_heat_eqn_fourier_modes_var_fe.cpp
-  src/stoch_heat_eqn_energy_nn.cpp
-  src/stoch_heat_eqn_energy_cc.cpp
   src/dean_kawasaki_nn.cpp
   src/dean_kawasaki_cc.cpp
   src/dean_kawasaki_fe.cpp
@@ -33,7 +31,9 @@ target_include_directories(mlmc_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/in
 
 # ---- Serial target (uses serial GBM) ----
 add_executable(mlmc_cpp_serial main.cpp ${MLMC_SOURCES_COMMON} src/gbm_euler.cpp
-src/stoch_heat_eqn_energy_fe.cpp)
+src/stoch_heat_eqn_energy_fe.cpp
+src/stoch_heat_eqn_energy_cc.cpp
+src/stoch_heat_eqn_energy_nn.cpp)
 target_link_libraries(mlmc_cpp_serial PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   target_compile_options(mlmc_cpp_serial PRIVATE -O3 -march=native)
@@ -44,14 +44,33 @@ endif()
 # --- Performance serial runs ---
 add_executable(run_performance src/run_performance.cpp 
 src/mlmc_test_performance.cpp
-${MLMC_SOURCES_COMMON} src/stoch_heat_eqn_energy_fe.cpp)
+src/stoch_heat_eqn_energy_cc.cpp
+${MLMC_SOURCES_COMMON} 
+src/stoch_heat_eqn_energy_fe.cpp
+src/stoch_heat_eqn_energy_nn.cpp)
 target_link_libraries(run_performance PRIVATE mlmc_headers)
+
+
+# -- Performance OpenMP runs -- 
+add_executable(run_performance_omp
+  src/run_performance_omp.cpp
+  src/mlmc_test_performance.cpp
+  ${MLMC_SOURCES_COMMON}
+  src/gbm_euler_omp.cpp
+  # OMP kernels you have:
+  src/stoch_heat_eqn_energy_fe_omp.cpp
+  src/stoch_heat_eqn_energy_cc_omp.cpp
+  src/stoch_heat_eqn_energy_nn_omp.cpp
+)
+target_link_libraries(run_performance_omp PRIVATE mlmc_headers)
 
 # ---- OpenMP target (uses OMP GBM) ----
 add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} 
 src/main_omp.cpp
 src/gbm_euler_omp.cpp 
-src/stoch_heat_eqn_energy_fe_omp.cpp)
+src/stoch_heat_eqn_energy_fe_omp.cpp
+src/stoch_heat_eqn_energy_cc_omp.cpp
+src/stoch_heat_eqn_energy_nn.cpp)
 target_link_libraries(mlmc_cpp_omp PRIVATE mlmc_headers)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   target_compile_options(mlmc_cpp_omp PRIVATE -O3 -march=native)

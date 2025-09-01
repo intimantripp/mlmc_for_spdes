@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
     // --- knobs you’ll tweak most often ---
     const int   M            = 8;        // refinement factor
     int         N0           = 100;     // base samples per level in mlmc()
-    int         loops_per_eps= 10;        // repeats per epsilon
-    std::vector<double> Eps  = {0.0005, 0.001, 0.005, 0.01, 0.05};
+    int         loops_per_eps= 5;        // repeats per epsilon
+    std::vector<double> Eps  = {0.01, 0.001, 0.0001, 0.00001, 0.00001};
 
     // optional quick CLI: ./run_performance N0 loops
     if (argc >= 2) N0 = std::max(1, std::atoi(argv[1]));
@@ -55,7 +55,6 @@ int main(int argc, char** argv) {
         {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
         {"dk_nn",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
         {"dk_cc",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
-        {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
     };
 
     std::cout << "Starting performance runs...\n";

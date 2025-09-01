@@ -16,9 +16,9 @@ inline int idx(int i, int n, int N2) {return i * N2 + n; }
 void run_stoch_heat_eqn_energy_nn(const int N) {
     std::cout << "Running MLMC Stochastic Heat Equation - Energy NN\n" << std::endl;
     int M = 8;
-    int L = 6;
+    int L = 8;
     int N0 = 100;
-    std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
+    std::vector<double> Eps = {0.01, 0.05, 0.001, 0.005};
 
     std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_energy_nn.csv";
     std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_energy_nn.csv";

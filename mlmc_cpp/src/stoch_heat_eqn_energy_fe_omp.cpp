@@ -30,15 +30,15 @@ static const int mode = 1;
 inline int idx(int i, int n, int N2) {return i * N2 + n; }
 
 void run_stoch_heat_eqn_energy_fe(const int N) {
-    std::cout << "Running MLMC Stochastic Heat Equation - Energy FE\n" << std::endl;
+    std::cout << "Running MLMC Stochastic Heat Equation - Energy FE(OpenMP)\n" << std::endl;
     int M = 8;
-    int L = 5;
+    int L = 8;
     int N0 = 100;
     std::vector<double> Eps = {0.00025, 0.0005, 0.001, 0.005, 0.01};
 
-    std::string output_complexity_filename = "../outputs/mlmc_complexity_stoch_heat_eqn_energy_fe.csv";
-    std::string output_convergence_filename = "../outputs/mlmc_convergence_stoch_heat_eqn_energy_fe.csv";
-    std::string output_regression_filename = "../outputs/mlmc_regression_stoch_heat_eqn_energy_fe.csv";
+    std::string output_complexity_filename = "../outputs_omp/mlmc_complexity_stoch_heat_eqn_energy_fe.csv";
+    std::string output_convergence_filename = "../outputs_omp/mlmc_convergence_stoch_heat_eqn_energy_fe.csv";
+    std::string output_regression_filename = "../outputs_omp/mlmc_regression_stoch_heat_eqn_energy_fe.csv";
     
 
     mlmc_test(

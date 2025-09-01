@@ -4,7 +4,7 @@ from mlmc.mlmc_test import mlmc_test
 def run_dean_kawasaki_eqn_fe(validation_value=None):
     M = 8
     N = 1000
-    L = 4
+    L = 5
     N0 = 100
     Eps = [0.005, 0.01, 0.02, 0.05, 0.1]
     validation_value=0.5
@@ -126,7 +126,7 @@ def dean_kawasaki_eqn_l(l, N):
                     gamma_E_accum += gamma_e[e0, :] + gamma_e[e1, :]
 
                 # Coarse normal per element for the coarse step
-                gamma_E_c = 0.5 * gamma_E_accum  # Var match: dtc = 4*dtf ⇒ factor 1/2 on sum of 4 subs
+                gamma_E_c = gamma_E_accum / np.sqrt(8.0) # Var match: dtc = 4*dtf ⇒ factor 1/2 on sum of 4 subs
 
                 # ----- FE element noise on coarse grid using gamma_E_c -----
                 rho_edge_c = 0.5 * (rho_c + rho_c[ip1_c, :])
