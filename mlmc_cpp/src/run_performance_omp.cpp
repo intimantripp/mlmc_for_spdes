@@ -9,6 +9,12 @@
 #include "stoch_heat_eqn_energy_nn.hpp"
 #include "stoch_heat_eqn_energy_cc.hpp"
 #include "stoch_heat_eqn_energy_fe.hpp"
+#include "stoch_heat_eqn_fourier_modes_var.hpp"
+#include "stoch_heat_eqn_fourier_modes_var_cc.hpp"
+#include "stoch_heat_eqn_fourier_modes_var_fe.hpp"
+#include "dean_kawasaki_nn.hpp"
+#include "dean_kawasaki_cc.hpp"
+#include "dean_kawasaki_fe.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -34,10 +40,10 @@ int main(int argc, char** argv) {
     // Tunables
     const int   M  = 8;
     int         N0 = 100;
-    int         loops_per_eps = 10;
-    std::vector<double> Eps   = {0.0005, 0.001, 0.005, 0.01, 0.05};
+    int         loops_per_eps = 5;
+    std::vector<double> Eps   = {0.01, 0.001, 0.0001, 0.00001, 0.000001};
 
-    // Optional CLI: ./run_performance_omp N0 loops
+    //
     if (argc >= 2) N0 = std::max(1, std::atoi(argv[1]));
     if (argc >= 3) loops_per_eps = std::max(1, std::atoi(argv[2]));
 
@@ -48,14 +54,19 @@ int main(int argc, char** argv) {
     // Choose OMP cases you actually have implemented
     std::vector<PerfCase> cases = {
         // SHE Energy (OMP versions)
-        {"she_energy_nn_omp", stoch_heat_eqn_energy_nn_l,  2.0, 2.0, 3.0},
-        {"she_energy_cc_omp", stoch_heat_eqn_energy_cc_l,  2.0, 2.0, 3.0},
-        {"she_energy_fe_omp", stoch_heat_eqn_energy_fe_l,  2.0, 3.0, 3.0},
+        {"she_energy_nn_omp", stoch_heat_eqn_energy_nn_l,  1.0, 2.0, 3.0},
+        {"she_energy_cc_omp", stoch_heat_eqn_energy_cc_l,  1.0, 2.0, 3.0},
+        {"she_energy_fe_omp", stoch_heat_eqn_energy_fe_l,  1.0, 3.0, 3.0},
         // Add more once you have OMP variants:
         // {"she_sqamp_nn_omp",  stoch_heat_eqn_fourier_modes_var_l,    1.0, 2.0, 3.0},
         // {"she_sqamp_cc_omp",  stoch_heat_eqn_fourier_modes_var_cc_l, 1.0, 2.0, 3.0},
-        // {"she_sqamp_fe_omp",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 3.0, 3.0},
-        // {"dk_nn_omp", dean_kawasaki_eqn_nn_l, 2.0, 2.0, 3.0}, etc.
+        // {"she_sqamp_fe_omp",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 4.0, 3.0},
+
+        // // Dean–Kawasaki
+        // {"dk_fe_omp",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
+        // {"dk_nn_omp",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
+        // {"dk_cc_omp",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
+        
     };
 
     std::cout << "Starting OMP performance runs...\n";

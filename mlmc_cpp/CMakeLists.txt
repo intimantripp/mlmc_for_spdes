@@ -12,6 +12,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+option(ENABLE_OPENMP "Enable OpenMP parallelization" ON)
+
 # ---- Common sources (NOTE: no GBM file here) ----
 set(MLMC_SOURCES_COMMON
   src/mlmc.cpp
@@ -57,7 +59,6 @@ add_executable(run_performance_omp
   src/mlmc_test_performance.cpp
   ${MLMC_SOURCES_COMMON}
   src/gbm_euler_omp.cpp
-  # OMP kernels you have:
   src/stoch_heat_eqn_energy_fe_omp.cpp
   src/stoch_heat_eqn_energy_cc_omp.cpp
   src/stoch_heat_eqn_energy_nn_omp.cpp
@@ -65,30 +66,30 @@ add_executable(run_performance_omp
 target_link_libraries(run_performance_omp PRIVATE mlmc_headers)
 
 # ---- OpenMP target (uses OMP GBM) ----
-add_executable(mlmc_cpp_omp ${MLMC_SOURCES_COMMON} 
-src/main_omp.cpp
-src/gbm_euler_omp.cpp 
-src/stoch_heat_eqn_energy_fe_omp.cpp
-src/stoch_heat_eqn_energy_cc_omp.cpp
-src/stoch_heat_eqn_energy_nn.cpp)
+add_executable(mlmc_cpp_omp
+  ${MLMC_SOURCES_COMMON} 
+  src/main_omp.cpp
+  src/gbm_euler_omp.cpp 
+  src/stoch_heat_eqn_energy_fe_omp.cpp
+  src/stoch_heat_eqn_energy_cc_omp.cpp
+  src/stoch_heat_eqn_energy_nn_omp.cpp
+)
 target_link_libraries(mlmc_cpp_omp PRIVATE mlmc_headers)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   target_compile_options(mlmc_cpp_omp PRIVATE -O3 -march=native)
+  target_compile_options(run_performance_omp PRIVATE -O3 -march=native)
 elseif (MSVC)
   target_compile_options(mlmc_cpp_omp PRIVATE /O2)
+  target_compile_options(run_performance_omp PRIVATE /O2)
 endif()
 
-# OpenMP for C++ only (no need for the C component)
-find_package(OpenMP COMPONENTS CXX)
-if (OpenMP_CXX_FOUND)
-  target_link_libraries(mlmc_cpp_omp PRIVATE OpenMP::OpenMP_CXX)
+# -------- OpenMP enablement (REQUIRED) --------
+if (ENABLE_OPENMP)
+  find_package(OpenMP REQUIRED COMPONENTS CXX)
+  target_link_libraries(mlmc_cpp_omp        PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(run_performance_omp PRIVATE OpenMP::OpenMP_CXX)
+  message(STATUS "OpenMP enabled for mlmc_cpp_omp and run_performance_omp")
 else()
-  message(WARNING "OpenMP CXX not found; mlmc_cpp_omp will build but run serially. \
-If on macOS, use Homebrew LLVM (preferred) or install libomp.")
-  # Optional AppleClang+libomp fallback (uncomment if you stick with AppleClang):
-  # set(LIBOMP_ROOT "/opt/homebrew/opt/libomp")   # Intel Macs: "/usr/local/opt/libomp"
-  # target_compile_options(mlmc_cpp_omp PRIVATE -Xpreprocessor -fopenmp)
-  # target_include_directories(mlmc_cpp_omp PRIVATE ${LIBOMP_ROOT}/include)
-  # target_link_directories(mlmc_cpp_omp PRIVATE ${LIBOMP_ROOT}/lib)
-  # target_link_libraries(mlmc_cpp_omp PRIVATE omp)
+  message(STATUS "OpenMP explicitly disabled (ENABLE_OPENMP=OFF)")
 endif()

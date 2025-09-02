@@ -6,7 +6,7 @@ used,
 following \cite{cornalba2025multilevel}, and our MLMC 
 implementation.
 We consider the Dean-Kawasaki equation on a one dimensional torus
-$\Omega=[0,2\pi)$ with periodic boundary conditions and final time $T>0$.
+$\mathbb{T}=[0,2\pi)$ with periodic boundary conditions and final time $T>0$.
 The particle number is denoted $N_p$. The density 
 field $\rho$ evolves according to
 
@@ -25,7 +25,7 @@ field $\rho$ evolves according to
 where $\xi$ is space-time white noise and $Z_0 \approx 
 0.12$ is a normalisation constant.
 
-We discretise $\Omega$ with a uniform grid of spacing 
+We discretise $\mathbb{T}$ with a uniform grid of spacing 
 $\Delta x, \Delta t$ and denote by $\rho_j^n$ the approximation
 to $\rho(t_n, x_j)$ at time $t_n = n \Delta t$ and position $x_j = 
 \Delta x$.
@@ -68,12 +68,93 @@ and set $\Delta t = \lambda (\Delta x)^2$, ensuring stability
 \cite{cornalba2025multilevel}.
 For our quantity of interest, we take $T=0.25$.
 
-For coupling methods, we implement the NN and CC methods outlined in 
-Section \ref{sec:she_scheme_mlmc_imp}. The NN method is 
-used to replicate the results from Cornalba and Fischer \cite{cornalba2025multilevel}.
-We then compare this with the proposed CC method to assess 
-whether the symmetric coupling provides any tangible performance 
-improvements.
+For coupling methods, we implement the NN, CC and FE methods outlined in 
+Section \ref{sec:she_scheme_mlmc_imp}. The NN method is included to replicate 
+the results of Cornalba and Fischer \cite{cornalba2025multilevel}. To test whether 
+a more symmetric construction of the coarse noise can improve correlations, 
+we additionally implement the CC method on the same DK problem. Finally, 
+motivated by the significant gains observed in the SHE case, we also extend the 
+FE coupling approach to the DK equation.
+
+Cornalba and Fischer restrict their analysis to the NN method and a Fourier-based 
+coupling. As outlined previously, the NN method discards part of the fine-level noise, 
+introducing imperfect correlation between fine and coarse samples. The CC method 
+avoids this by reusing all fine-level increments, while the FE approach derives the 
+noise structure from a Galerkin discretisation, producing a natural relation 
+from coarse to fine samples.
+
+The NN and CC methods are implemented as described in 
+Section \ref{sec:she_scheme_mlmc_imp}, where the FE method was also introduced 
+in the context of the SHE. We now derive the FE coupling for the DK equation.
+\newline
+
+\textbf{Finite Element Coupling for the Dean-Kawasaki Equation}
+
+Recall the one-dimensional DK equation:
+\[
+\frac{\partial \rho}{\partial t} \;=\; \tfrac{1}{2}\,\rho_{xx}
+\;+\; N_p^{-1/2}\,\partial_x\!\big(\sqrt{\rho}\,\xi\big).
+\]
+
+We multiply again by hat basis function $\phi_i$ and integrate over the domain, yielding
+\[
+\left(\dot\rho,\phi_i\right) + \tfrac{1}{2}\,(\rho_x,\phi'_i)
+\;=\; -N_p^{-1/2}\,\big(\sqrt{\rho}\,\xi,\,\phi'_i\big),
+\]
+
+With a Galerkin approximation 
+$\rho_{\Delta x}(x,t)=\sum_j \rho_j(t)\phi_j(x)$ we obtain the semi-discrete system
+
+\[
+M\,\dot{\boldsymbol{\rho}} + \tfrac{1}{2}K\,\boldsymbol{\rho} = d\boldsymbol{\eta},
+\]
+
+where $M_{ij}=(\phi_i,\phi_j)$ and $K_{ij}=(\phi'_i,\phi'_j)$ are the matrices 
+obtained in the derivation of the FE SHE implementation, 
+Section \ref{sec:she_scheme_mlmc_imp}.
+$\boldsymbol{\eta}$ is our noise vector, with elements equal to:
+
+\[
+\eta_i = -N_p^{-1/2}\int_0^{2\pi}\sqrt{\rho_{\Delta x}(x,t)}\,\phi'_i(x)\,dW(x).
+\]
+
+Since $\phi_i'$ is piecewise constant, $\phi_i'(x)=+1/\Delta x$ on $(x_{i-1},x_i)$ and
+$\phi_i'(x)=-1/\Delta x$ on $(x_i,x_{i+1})$. Over one time step $[t_n,t_{n+1}]$ we therefore have
+\[
+\eta_i^n
+= -N_p^{-1/2}\!\int_{t_n}^{t_{n+1}}\!\!\int_0^{2\pi}\!\sqrt{\rho_{\Delta x}(x,t)}\,\phi_i'(x)\,\xi(x,t)\,dx\,dt
+= \frac{1}{\Delta x}\Big(F_{i+\frac12}^n - F_{i-\frac12}^n\Big),
+\]
+where $F_i^n$ correspond to the flux elements defined in our finite difference scheme, \eqref{eq:dk_fd}. 
+
+This shows that the FE projection recovers the same conservative divergence form
+appearing in our finite difference scheme.
+
+
+The edge flux increments are sampled using one Gaussian per edge time cell,
+\[
+F_{j+\frac12}^n \;=\; \sqrt{\rho_{j+\frac12}^{\,n,\star}}\;\Delta W_{j+\frac12}^n,
+\qquad
+\rho_{j+\frac12}^{\,n,\star}:=\tfrac12\!\big([\rho_j^n]_+ + [\rho_{j+1}^n]_+\big),
+\qquad
+\Delta W_{j+\frac12}^n \sim \mathcal N(0,\Delta t\,\Delta x).
+\]
+This construction enforces equal and opposite contributions on neighbouring nodes, 
+and yields $\mathrm{Cov}[\boldsymbol{\eta}^n] = (\Delta t/N_p)\,K(\rho^n)$, 
+where 
+
+\begin{equation*} 
+    K(\rho) =  
+    \tfrac{\rho_{j+\frac12}^{\,n,\star}}{\Delta x}
+    \!\begin{bmatrix}1&-1\\-1&1\end{bmatrix}
+\end{equation*} 
+
+is the $\rho$-weighted stiffness matrix with local element contributions.
+
+For our MLMC setting, noises are resolved from fine to coarse levels in exactly the
+same way as for the SHE FE coupling: we aggregate coarse fluxes by summing  
+fine child fluxes over the corresponding four fine substeps, with variances adding
+naturally to ensure the correct coarse variance is achieved.
 
 \subsection{Dean-Kawasaki Validation}\label{sec:dk_validation}
 
@@ -92,6 +173,7 @@ analyse variance and error decay. The results are summarised in Table
         \hline
         Nearest Neighbour & 2.11 & 1.95 & 3.0\\
         Central Coupling & 1.95 & 1.95 & 2.98 \\
+        Finite Element &  2.05 & 1.92 & 3.03 \\
         \hline
     \end{tabular}
     \caption{Empirically estimated rates for the DK QoI.}
@@ -137,22 +219,27 @@ analyse variance and error decay. The results are summarised in Table
     \label{fig:dk_validation_combined}
 \end{figure}
 
+The rates for the DK problem mirror those obtained for the SHE 
+squared amplotide QoI under the NN and CC couplings, with 
+$\alpha \approx 2$ and $\beta \approx 2$ for both. In 
+contrast to the SHE case however, the FE coupling provides 
+no improvement. Its variance decay rate is again $\beta \approx 2$, 
+matching the NN and CC rather than exhibiting the faster
+decay observed previously. These results are shown in Figures 
+\ref{fig:dk_error_decay} and \ref{fig:dk_variance_decay}. 
+The cost growth remains consistent with $\gamma \approx 3$ 
+across all mechanisms. The finding $\beta = 2$ agrees with Cornalba 
+and Fischer's results for the NN method 
+\cite{cornalba2025multilevel}, and once again we see CC behaving
+almost identically to NN. We also observe that the 
+FE method, akin to the squared amplitude for the SHE, has a 
+systematically lower weak error, while decaying at the 
+same rate.
 
-The rates for the DK problem match those observed for the SHE. 
-$\alpha \approx 2$ and $\beta \approx 2$ for both the 
-CC and NN couplings, illustrated in Figures 
-\ref{fig:dk_error_decay} and \ref{fig:dk_variance_decay}, and the 
-expected $\gamma = 3$ for this scheme. Obtaining 
-$\beta = 2$ aligns with the results found by Cornalba and Fischer 
-for their NN coupling \cite{cornalba2025multilevel}, and again
-we observe that the CC method behaves similarly to the NN.
-
-Figure \ref{fig:dk_conv_vs_eps} shows that both coupling methods 
-converge towards the analytic value of 
-QoI across all RMSE tolerances. The cumulative convergence plot, 
-Figure \ref{fig:dk_cumulative_conv}, demonstrates the 
-standard behaviour of the MLMC estimator for both, and we again
-observe equivalence between the two methods at the highest accuracy.
-
-
-
+Figure \ref{fig:dk_conv_vs_eps} shows that all three coupling mechanisms 
+converge towards the true value of 
+the QoI across all RMSE tolerances. The cumulative convergence plot, 
+Figure \ref{fig:dk_cumulative_conv}, illustrates the standard stabilisation 
+of the MLMC estimator as levels are added. NN and CC 
+again remain closely aligned at all accuracies, while FE 
+converges along its own trajectory.

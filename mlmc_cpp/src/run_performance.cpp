@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     const int   M            = 8;        // refinement factor
     int         N0           = 100;     // base samples per level in mlmc()
     int         loops_per_eps= 5;        // repeats per epsilon
-    std::vector<double> Eps  = {0.01, 0.001, 0.0001, 0.00001, 0.00001};
+    std::vector<double> Eps  = {0.01, 0.007, 0.005, 0.002};
 
     // optional quick CLI: ./run_performance N0 loops
     if (argc >= 2) N0 = std::max(1, std::atoi(argv[1]));
@@ -42,19 +42,19 @@ int main(int argc, char** argv) {
     // ---- choose which cases to run by (un)commenting ----
     std::vector<PerfCase> cases = {
         // SHE Energy
-        {"she_energy_nn", stoch_heat_eqn_energy_nn_l,  /*alpha*/2.0, /*beta*/2.0, /*gamma*/3.0},
-        {"she_energy_cc", stoch_heat_eqn_energy_cc_l,  /*alpha*/2.0, /*beta*/2.0, /*gamma*/3.0},
-        {"she_energy_fe", stoch_heat_eqn_energy_fe_l,  /*alpha*/2.0, /*beta*/4.0, /*gamma*/3.0}, // change to your analytics
+        {"she_energy_nn", stoch_heat_eqn_energy_nn_l,  /*alpha*/1.0, /*beta*/2.0, /*gamma*/3.0},
+        {"she_energy_cc", stoch_heat_eqn_energy_cc_l,  /*alpha*/1.0, /*beta*/2.0, /*gamma*/3.0},
+        {"she_energy_fe", stoch_heat_eqn_energy_fe_l,  /*alpha*/1.0, /*beta*/3.0, /*gamma*/3.0}, // change to your analytics
 
         // SHE Squared amplitude (variance QoI)
-        {"she_sqamp_nn",  stoch_heat_eqn_fourier_modes_var_l,    1.0, 2.0, 3.0},
-        {"she_sqamp_cc",  stoch_heat_eqn_fourier_modes_var_cc_l, 1.0, 2.0, 3.0},
-        {"she_sqamp_fe",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 3.0, 3.0},
+        // {"she_sqamp_nn",  stoch_heat_eqn_fourier_modes_var_l,    1.0, 2.0, 3.0},
+        // {"she_sqamp_cc",  stoch_heat_eqn_fourier_modes_var_cc_l, 1.0, 2.0, 3.0},
+        // {"she_sqamp_fe",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 3.0, 3.0},
 
-        // Dean–Kawasaki
-        {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
-        {"dk_nn",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
-        {"dk_cc",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
+        // // Dean–Kawasaki
+        // {"dk_fe",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
+        // {"dk_nn",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
+        // {"dk_cc",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
     };
 
     std::cout << "Starting performance runs...\n";

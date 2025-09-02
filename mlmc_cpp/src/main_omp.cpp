@@ -23,9 +23,9 @@ int main() {
 
     auto start = high_resolution_clock::now();
 
-    run_stoch_heat_eqn_energy_cc(10000);
-    // run_stoch_heat_eqn_energy_fe(10000);
-    run_stoch_heat_eqn_energy_nn(10000);
+    // run_stoch_heat_eqn_energy_cc(5000);
+    run_stoch_heat_eqn_energy_fe(5000);
+    run_stoch_heat_eqn_energy_nn(5000);
 
     auto end = high_resolution_clock::now();
     std::cout << "Done in " << duration<double>(end - start).count() << " s\n";

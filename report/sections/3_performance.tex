@@ -143,7 +143,7 @@ provides an extremely significant improvement over this.
 
 We now present the performance analysis for the Dean-Kawasaki equation. The results compare 
 the efficiency of the standard Monte Carlo method against our MLMC implementations using 
-both the NN and CC strategies. The key performance metrics are displayed in 
+the NN, CC and FE strategies. The key performance metrics are displayed in 
 Figure \ref{fig:performance_results_dk}, with the overall speed-up factors 
 summarised in Table \ref{tab:dk_cost_scalings}.
 
@@ -176,6 +176,7 @@ summarised in Table \ref{tab:dk_cost_scalings}.
         \hline
         Nearest Neighbour & 3.0x-62.2x \\
         Central Coupling & 2.7x-62.5x \\
+        Finite Element & 2.7x-240.7x \\
         \hline
     \end{tabular}
     \caption{Range of speed-up factors of MLMC over standard MC for the Dean-Kawasaki problem, for the 
@@ -184,24 +185,72 @@ summarised in Table \ref{tab:dk_cost_scalings}.
 \end{table}
 
 
-The results clearly demonstrate that the MLMC method provides a significant 
-computational advantage over the standard MC method for this problem. 
-As shown in Figure \ref{fig:dk_performance}, the cost for both MLMC
-implementations is substantially lower
-than that of the standard MC estimator, aligning with the efficiency 
-gains predicted by the MLMC theory.
 
-We also observe that the Nearest Neighbour and Central Coupling strategies again 
-exhibit 
-identical performance. This is evident across all metrics. The normalised 
-cost curves in Figure \ref{fig:dk_performance} are almost perfectly overlapping, 
-the sample allocations in Figure \ref{fig:dk_num} are indistinguishable, 
-and the final speed-up factors in Table \ref{tab:dk_cost_scalings} 
-are the same. 
+The results clearly demonstrate that the MLMC method 
+provides a significant computational advantage over 
+standard MC for this problem. As shown in Figure 
+\ref{fig:dk_performance}, all three MLMC 
+implementations achieve achieve markedly lower costs 
+than MC, in line with the efficiency gains predicted by 
+MLMC theory.
 
-This result is consistent with the results from our validations, and demonstrate that 
-neither method achieves a sufficient sample correlation similar to that achieved by the 
-FE method. It was considered that the difference in symmetry, with the NN 
-method discarding some noise and the CC method more symmetrically aligning obtaining 
-some performance gains due to improved correlation between samples, but this 
-does not appear to have any tangible impact on the efficiency for this problem.
+Performance between coupling mechanisms is very 
+similar. NN and CC track each other, while FE follows a slightly different trajectory. 
+FE shows a larger cost reduction, although 
+given that all methods share the same 
+variance decay rate, it is unlikely that this improvement is systematic, 
+and more plausibly it is a consequence of 
+estimator stochasticity. Nonetheless, 
+the size of the observed reductions, reported in 
+Table \ref{tab:dk_cost_scalings} is striking 
+when compared with NN and CC.
+
+Figure \ref{fig:dk_num} shows broadly 
+similar sample allocations across all three couplings, with 
+FE assigning slightly fewer samples, 
+particularly at the smallest RMSEs.
+
+
+Overall, these findings are consistent with the validation results. 
+The DK problem 
+does not exhibit the stronger 
+correlations achieved by FE coupling in the SHE case, and 
+the CC method provides no observable improvement 
+over NN as was initially considered it could. 
+Instead, all three methods deliver similar performance.
+
+\section{Parallelisation of MLMC Implementations}
+
+A final consideration in assessing the practical efficiency of MLMC 
+concerns parallelism. Monte Carlo methods are naturaly 
+suited to parallel computing. Individual samples are 
+independent, and can therefore be distributed 
+across processors with reduced communication overhead. MLMC 
+inhertis this parallel structure, with additional 
+opportunities for parallelisation both across samples 
+and across levels. 
+
+In high-performance computing environments, more 
+sophisticated scheduling strategies can be adopted. 
+MLMC offers parallelisation across levels, samples, and 
+within sample PDE solvers \cite{drzisga2017scheduling}.
+In this dissertation, however, we aim to demonstrate 
+a baseline parallel efficiency achievable. 
+We therefore adopt a naive but effective parallelisation 
+scheme using OpenMP to 
+distribute the sampling loops across 
+multiple threads, and apply this to our 
+energy QoI case for the SHE problem. 
+This approach directly parallelises over 
+independent samples at each level, 
+leaving the MLMC algorithm unchanged. While more 
+advanced methods could offer further gains, the design is 
+sufficient to illustrate the substantial speed-ups achievable
+in practice. 
+
+We report below the measured wall-clock timings for our 
+OpenMP-accelerated implementations of all three coupling 
+mechanisms, compared with serial counterparts. 
+All runs were again completed on Intel Gold 6538Y+ processors, 
+and we report results using 8 threads, which was found to 
+offer substantial performance improvement.

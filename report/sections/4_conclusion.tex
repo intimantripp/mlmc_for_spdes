@@ -1,0 +1,61 @@
+\chapter*{Conclusion}
+
+
+This dissertation has investigated the Multilevel
+Monte Carlo method for two parabolic SPDEs: the Stochastic 
+Heat Equation and the Dean-Kawasaki equation. Our aim was to 
+quantify the cost savings achievable over standard Monte Carlo, 
+to evaluate the effct of different coupling strategies, 
+and to explore parallelism in accelerating practical 
+implementations. 
+
+Across both equations, our results demonstrate the significant 
+computational beenfits of MLMC. In every case, the MLMC 
+method achieved marked reductions in cost compared to MC, consistent with the 
+complexity bounds of the MLMC theorem.
+
+For the Stochastic Heat Equation, the impact of 
+coupling mechanisms was strikingly demonstrated. 
+While the NN and CC methods behaved similarly, with 
+equal variance decay rates, the FE method 
+consistently achieved a faster rate of variance 
+decay, with cost savings of $10^{5}$ observed 
+in the most extreme case over Monte Carlo. 
+
+For the Dean-Kawasaki equation, results across coupling methods were more uniform. 
+MLMC implementations still yielded a large benefit, but the variance decay 
+across NN, CC and FE methods was equivalent and the corresponding cost reductions 
+compared to MC were seemingly similar. We anticipated that the 
+CC method would demonstrate some improvement over the 
+NN method. A significant result from this dissertation is that in the 
+cases examined, they are effectively identical as coupling mechanisms.
+
+Parallelisation demonstrates further the 
+advantages of MLMC. Even a naive OpenMP implementation that distributes 
+samples across threads produced substantial reductions in wall-clock 
+time. 
+
+Taken together, these results address the three central questions posed at the outset:
+
+\begin{itemize}
+    \item \textbf{Cost Savings: } MLMC achieves very large computational gains over MC for 
+        both SPDEs studied.
+    \item \textbf{Coupling strategies:} Coupling strategies play a decisive role. The Finite Element coupling 
+        yields a significant improvement over simpler methods for the Stochastic Heat Equation. For 
+        the Dean-Kawasaki equation however, further alternatives require investigating.
+    \item \textbf{Parallelism: } Even simple parallelisation schemes yield meaningful additional speedups, highlighting 
+    MLMC strong compatibility with high-performance computing.
+\end{itemize}
+
+
+\newline
+\textbf{Future Work}
+
+There are several natural directions for extending this work. First, 
+a question we have following this project is 
+precisely why the FE method yields improved correlation for the SHE, 
+and why it fails to achieve this for the DK. Cornalba and Fischer 
+also propose their Fourier based coupling for the DK equation, which 
+yields an improvement. Expanding this analysis to high performance implementations would 
+also be interesting to investigate. 
+
