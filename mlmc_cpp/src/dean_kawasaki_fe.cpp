@@ -39,13 +39,12 @@ void run_dean_kawasaki_fe(const int N) {
     );
 }
 
-/** FE-style conservative element noise, MLMC-coupled */
 std::pair<std::vector<double>, std::vector<double>>
 dean_kawasaki_eqn_fe_l(int l, int N) {
     std::mt19937 RNG(42 + l);
     std::normal_distribution<> Z(0.0, 1.0);
 
-    // ---- Problem constants ----
+    // My problem constants
     const double Z_0 = 1.0 / 8.273782635069178;
     auto rho_0 = [&](double x) {
         double s = std::sin(x - M_PI / 2.0);
@@ -56,15 +55,15 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
     const double N_particles = 2.0e6;
     const double lam = 0.25;
     const int    batch_size = 1000;
-    const double eps = 1e-14; // positivity floor for multiplicative factor
+    const double eps = 1e-14; // floor for sqrt(rho)
 
-    // ---- Fine grid ----
+    // Fine grid 
     int    nf  = 1 << (l + 2);
     double hf  = 2.0 * M_PI / nf;
     double dtf = lam * hf * hf;
     int    timesteps_f = nf * nf;
 
-    // neighbor indices (fine)
+    // neighbor indices
     std::vector<int> iL_f(nf), iR_f(nf);
     for (int i = 0; i < nf; ++i) {
         iL_f[i] = (i == 0 ? nf - 1 : i - 1);
@@ -84,7 +83,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
         std::vector<double> rho_bar_f(nf);
         for (int i = 0; i < nf; ++i) rho_bar_f[i] = rho_0(xf[i]);
 
-        // States (fine)
+        // Initial conditions
         std::vector<double> rho_f(nf * N2), rho_f_old(nf * N2);
         for (int i = 0; i < nf; ++i)
             for (int n = 0; n < N2; ++n)
@@ -95,7 +94,6 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
         std::vector<double> Pf(N2, 0.0), Pc(N2, 0.0);
 
         if (l == 0) {
-            // ---------- Single-level evolution (fine only) ----------
             for (int t = 0; t < timesteps_f; ++t) {
                 rho_f_old = rho_f;
                 std::fill(eta_f.begin(), eta_f.end(), 0.0);
@@ -115,7 +113,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                     }
                 }
 
-                // Drift (explicit using snapshot)
+                // Drift (explicit)
                 for (int i = 0; i < nf; ++i) {
                     int iL = iL_f[i], iR = iR_f[i];
                     for (int n = 0; n < N2; ++n) {
@@ -127,7 +125,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                     }
                 }
 
-                // Deterministic mean: diffusion only
+                // rho_bar
                 std::vector<double> rho_bar_f_p1 = rho_bar_f, rho_bar_f_m1 = rho_bar_f;
                 roll_inplace(rho_bar_f_p1, -1, nf);
                 roll_inplace(rho_bar_f_m1,  1, nf);
@@ -146,38 +144,33 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                 Pf[n] = N_particles * inner * inner;
             }
         } else {
-            // ---------- Multilevel evolution (fine+coarse, coupled) ----------
+
             int    nc   = nf / 2;
             double hc   = 2.0 * M_PI / nc;
             int    timesteps_c = nc * nc;
-            double dtc  = 4.0 * dtf;       // since hc = 2*hf
-            // neighbor indices (coarse)
+            double dtc  = 4.0 * dtf;
             std::vector<int> iL_c(nc), iR_c(nc);
             for (int i = 0; i < nc; ++i) {
                 iL_c[i] = (i == 0 ? nc - 1 : i - 1);
                 iR_c[i] = (i == nc - 1 ? 0 : i + 1);
             }
 
-            // Coarse coords & phi
             std::vector<double> xc(nc), phi_vals_c(nc);
             for (int i = 0; i < nc; ++i) { xc[i] = i * hc; phi_vals_c[i] = phi_fn(xc[i]); }
 
-            // Deterministic mean (coarse)
             std::vector<double> rho_bar_c(nc);
             for (int i = 0; i < nc; ++i) rho_bar_c[i] = rho_0(xc[i]);
 
-            // States (coarse)
             std::vector<double> rho_c(nc * N2), rho_c_old(nc * N2);
             for (int i = 0; i < nc; ++i)
                 for (int n = 0; n < N2; ++n)
                     rho_c[idx(i, n, N2)] = rho_bar_c[i];
 
-            // Temporaries (coarse)
             std::vector<double> eta_c(nc * N2);
 
             for (int t = 0; t < timesteps_c; ++t) {
                 // Accumulate coarse element normals from fine children over 4 fine substeps
-                // We'll store sum of child gammas per coarse edge (size nc x N2)
+                // I'll store sum of child gammas per coarse edge (size nc x N2)
                 std::vector<double> gamma_E_accum(nc * N2, 0.0);
 
                 for (int s = 0; s < 4; ++s) {
@@ -231,7 +224,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                 // Coarse step: build coarse element normals from accumulated fine gammas
                 // gamma_E_c = 0.5 * sum_over_4subs(children gammas)
                 // Note: Each coarse edge had both children included in gamma_E_accum via the loop above.
-                // Now assemble coarse FE load using dtc, hc, and gamma_E_c.
+                // Now I assemble coarse FE load using dtc, hc, and gamma_E_c.
                 std::fill(eta_c.begin(), eta_c.end(), 0.0);
                 rho_c_old = rho_c;
 

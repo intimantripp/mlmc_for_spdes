@@ -11,9 +11,9 @@ void run_gbm_euler(const int N) {
     std::cout << "Running GBM Euler Option Pricing MLMC..." <<std::endl;
     double S0 = 100.0;
     double K = 100.0;
-    double  T = 1.0;
+    double T = 1.0;
     double r = 0.05;
-    double sig =  0.2;
+    double sig = 0.2;
 
     int M = 2;
     int L = 10;

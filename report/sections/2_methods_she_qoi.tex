@@ -7,10 +7,11 @@ of the SHE problem \eqref{eq:she_full_problem}.
 The first is the squared amplitude of the SHE's Fourier Modes,
 the second is a measure of the total energy of the 
 system. We outline these here, derive the true values that
-our MLMC version wishes to converge to, and then also 
+our MLMC version wishes to converge to, and also 
 determine what the weak error and variance decay values, $\alpha$ and 
-$\beta$ respectively, we expect to observe. In the next section,
-we validate that our implementation converges to these results. 
+$\beta$ respectively, that we expect to observe for the squared amplitude QoI.
+In the next section,
+we validate that our implementation aligns with these results. 
 
 \subsubsection{Squared Amplitude of Fourier Modes}
 
@@ -662,7 +663,7 @@ continuous form of this quantity is given by:
 P_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x.
 \end{equation}
 
-To derive the expected energy, $\mathbb{E}[Q_{\text{energy}}]$, 
+To derive the expected energy, $\mathbb{E}[P_{\text{energy}}]$, 
 we again express the solution 
 $u(t,x)$ in its Fourier sine series,
 $u(t,x) = \sum_{n=1}^\infty u_n(t)\phi_n(x)$. Substituting this into 

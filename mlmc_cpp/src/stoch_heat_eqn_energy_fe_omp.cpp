@@ -60,10 +60,10 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_fe_l(i
     const double fac_f = std::sqrt(dtf) / hf;
 
     // Coarse grid quantities
-    const int    nc = (l==0 ? 1 : nf/2);
+    const int nc = (l==0 ? 1 : nf/2);
     const double hc = (l==0 ? 1.0 : 1.0 / nc);
     const double dtc = lam * hc * hc;
-    const int    steps_c = (l==0 ? 0 : nc * nc);
+    const int steps_c = (l==0 ? 0 : nc * nc);
     const double fac_c = (l==0 ? 0.0 : std::sqrt(dtc) / hc);
 
     // Moments

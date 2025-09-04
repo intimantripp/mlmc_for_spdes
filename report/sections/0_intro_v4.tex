@@ -2,7 +2,7 @@
 
 The purpose of this dissertation is to investigate the 
 Multilevel Monte Carlo (MLMC) method as a technique for reducing 
-the computational cost in estimating expectations of random variables 
+the computational cost of estimating expectations of random variables 
 for two classes of parabolic stochastic partial differential equations (SPDEs).
 
 This is motivated by the slow convergence of the Monte Carlo 
@@ -10,7 +10,7 @@ This is motivated by the slow convergence of the Monte Carlo
 decays $O(N^{-1/2})$ where $N$ is the number 
 of independent samples obtained, and therefore achieving a high accuracy 
 estimate requires a high number of samples. As most SPDEs do not admit 
-analytic solutions, the main approach available for estimating expectations of 
+analytic solutions, the main approaches available for estimating expectations of 
 functionals of SPDEs are Monte Carlo methods \cite{giles2015multilevel}. In the context
 of SPDEs, obtaining samples typically requires discretising 
 the spatial domain via finite difference or finite element methods
@@ -43,7 +43,7 @@ fine samples, a process referred to as \textit{coupling}.
 To provide intuition as to what this means, Figure
 \ref{fig:coarse_vs_fine_grid} illustrates what the finite difference 
 grid used by two adjacent estimators might look like. At each 
-node in these grids a random noise is required to be generated. 
+node in these grids, a random noise is required to be generated. 
 This raises a question: what methods are best suited to aligning the 
 randomness across samples? Further, how large an impact 
 can different coupling methods have?
@@ -89,29 +89,61 @@ research landscape.
 Chapter \ref{chap:method_and_validation} details the numerical
 methodology and its validation. We present the MLMC Algorithm
 and derive the finite difference schemes for both the Stochastic 
-Heat Equation and Dean-Kawasaki equation. We describe 
-for each of these implementations the noise coupling strategies to 
-be investigated, and for the Stochastic Heat Equation, derive theoretical 
-targets and convergence rates with which we validate our implementation.
-We further validate our MLMC implementation of the Dean-Kawasaki equation,
+Heat Equation and the Dean-Kawasaki equation. We propose three noise 
+coupling strategies and outline how these are implemented.
+We derive theoretical targets for the Stochastic Heat Equation and 
+convergence rates with which we validate our implementation. 
+We also validate our implementation of the Dean-Kawasaki equation,
 replicating the results of another paper \cite{cornalba2025multilevel}.
 
 Chapter \ref{chap:performance} presents a comprehensive performance analysis. 
-We directly address our first two research questions by comparing the 
+We address our first two research questions by comparing the 
 computational cost of our MLMC implementation against a standard MC 
-estimator for a range of target accuracies. Furthermore, we analyse 
-the practical impact of different coupling mechanisms on overall performance.
+estimator for a range of target accuracies, and see how this 
+performance varies across coupling methods. We then present 
+further performance improvements achieved with a parallelised implementation.
 
-Chapter SECTION HERE explores the potential for further cost reductions 
-through high-performance computing. We discuss the design of a parallelised MLMC 
-algorithm that leverages modern multi-core architectures and present performance 
-metrics, such as computational speedup, to quantify the benefits of this approach.
 
-Finally, Chapter SECTION HERE concludes the dissertation. 
+Finally, Chapter \ref{chap:conclusion} concludes the dissertation. 
 We summarise our key findings, 
 revisit the initial research questions, and discuss potential avenues for 
 future investigation.
 
-
-
  
+\subsection*{Contributions}
+
+The main contributions of this dissertation are as follows:
+
+\begin{itemize}
+    \item \textbf{Quantification of MLMC efficiency.} We implemented MLMC for two
+    parabolic SPDEs, the Stochastic Heat Equation and the Dean-Kawasaki
+    equation, and systematically compared its computational cost against
+    standard Monte Carlo across a range of target accuracies. Our results confirm
+    the substantial efficiency gains predicted by the MLMC complexity theorem.
+
+    \item \textbf{Analysis of coupling mechanisms.} We investigated
+    three distinct noise-coupling strategies: Nearest Neighbour, Central Coupling,
+    and a Finite Element method. The last two of these 
+    are proposed in this dissertation, the first is utilised in 
+    \cite{cornalba2025multilevel}. For the Stochastic Heat Equation, the Finite Element
+    method achieved
+    optimal and near optimal variance decay,
+    while Nearest Neighbour and Central Coupling both exhibited 
+    suboptimal cost scalings and, contrary to
+    expectation, performed almost identically. For the DK equation, all three
+    couplings resulted in the same variance decay, with no systematic advantage of
+    the Finite Element method over
+    the Nearest Neighbour or Central Coupling methods.
+
+    \item \textbf{Parallelisation of MLMC.} We implemented a naive but effective
+    OpenMP parallelisation, parallelising over independent samples. Even this
+    simple scheme achieved average speedups of $4\times$ or greater, highlighting
+    MLMC's natural compatibility with high-performance computing.
+
+    \item \textbf{Novel contributions.} A finite element-based coupling was introduced
+    and demonstrated to yield optimal cost scaling for the SHE. We also provided
+    new empirical evidence that a coupling which discards part of the fine level
+    noise (Nearest Neighbour) is functionally equivalent in performance to one which
+    reuses all
+    increments (Central Coupling).
+\end{itemize}

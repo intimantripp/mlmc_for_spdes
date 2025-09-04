@@ -30,12 +30,10 @@ def dean_kawasaki_eqn_l(l, N):
     if l > 0:
         nc = nf // 2
         hc = 2 * np.pi / nc
-        # Coarse step is 4x dt_f (since hc = 2*hf)
         dtc = 4 * dtf
         timesteps_c = nc**2
         xc = np.linspace(0, 2*np.pi, nc, endpoint=False)
 
-    # Precompute index helpers for periodic assembly
     i_f = np.arange(nf)
     ip1_f = (i_f + 1) % nf
     if l > 0:
@@ -51,14 +49,12 @@ def dean_kawasaki_eqn_l(l, N):
     for N1 in range(0, N, 1000):
         N2 = min(1000, N - N1)
 
-        # Fine initial condition (paths in columns)
+        # Fine initial condition
         rho_bar_f = rho_0(xf)
-        rho_f = np.tile(rho_bar_f, (N2, 1)).T  # shape (nf, N2)
+        rho_f = np.tile(rho_bar_f, (N2, 1)).T
 
         if l == 0:
             for _ in range(timesteps_f):
-                # ----- FE element noise on the fine grid -----
-                # Edge/element averages of rho for multiplicative factor
                 rho_edge = 0.5 * (rho_f + rho_f[ip1_f, :])
                 rho_edge = np.maximum(rho_edge, eps)
 
@@ -68,19 +64,18 @@ def dean_kawasaki_eqn_l(l, N):
                 # alpha_e = sqrt((dt/Np) * (rho_e/h))
                 alpha_e = np.sqrt((dtf / N_particles) * (rho_edge / hf)) * gamma_e
 
-                # Assemble conservative load vector eta_f via [-alpha, +alpha]
                 eta_f = np.zeros_like(rho_f)
                 eta_f[i_f, :] -= alpha_e
                 eta_f[ip1_f, :] += alpha_e
 
-                # ----- Diffusive drift (your scheme; keep as-is) -----
+                # diffusive term
                 laplacian = lam * (np.roll(rho_f, -1, axis=0) - 2*rho_f + np.roll(rho_f, 1, axis=0)) / 2
 
                 # Update
                 rho_f += laplacian + eta_f / hf
                 rho_f = np.maximum(rho_f, 0.0)
 
-                # Deterministic mean solves the diffusion only
+                # rho_bar
                 rho_bar_f += lam * (np.roll(rho_bar_f, -1) - 2*rho_bar_f + np.roll(rho_bar_f, 1)) / 2
 
             # QoI on fine
@@ -99,7 +94,7 @@ def dean_kawasaki_eqn_l(l, N):
                 # Accumulator for coarse element normals across the four fine substeps
                 gamma_E_accum = np.zeros((nc, N2))
 
-                # Four fine substeps constitute one coarse step (dtc = 4 * dtf)
+                # Four fine substeps for one coarse
                 for _sub in range(4):
                     # FE element noise on fine grid 
                     rho_edge = 0.5 * (rho_f + rho_f[ip1_f, :])
@@ -116,7 +111,7 @@ def dean_kawasaki_eqn_l(l, N):
                     rho_f += laplacian + eta_f / hf
                     rho_f = np.maximum(rho_f, 0.0)
 
-                    # Deterministic mean (fine) for reference
+                    # rho_bar fine
                     rho_bar_f += lam * (np.roll(rho_bar_f, -1) - 2*rho_bar_f + np.roll(rho_bar_f, 1)) / 2
 
                     # Build variance-preserving coarse normals from children
@@ -126,9 +121,8 @@ def dean_kawasaki_eqn_l(l, N):
                     gamma_E_accum += gamma_e[e0, :] + gamma_e[e1, :]
 
                 # Coarse normal per element for the coarse step
-                gamma_E_c = gamma_E_accum / np.sqrt(8.0) # Var match: dtc = 4*dtf ⇒ factor 1/2 on sum of 4 subs
+                gamma_E_c = gamma_E_accum / np.sqrt(8.0)
 
-                # ----- FE element noise on coarse grid using gamma_E_c -----
                 rho_edge_c = 0.5 * (rho_c + rho_c[ip1_c, :])
                 rho_edge_c = np.maximum(rho_edge_c, eps)
 
@@ -143,7 +137,7 @@ def dean_kawasaki_eqn_l(l, N):
                 rho_c += laplacian_c + eta_c / hc
                 rho_c = np.maximum(rho_c, 0.0)
 
-                # Deterministic mean (coarse)
+                # rho_bar coarse
                 rho_bar_c += lam * (np.roll(rho_bar_c, -1) - 2*rho_bar_c + np.roll(rho_bar_c, 1)) / 2
 
             # QoIs
@@ -157,7 +151,7 @@ def dean_kawasaki_eqn_l(l, N):
             inner_products = hc * np.sum(deviation * phi_vals[:, np.newaxis], axis=0)
             Pc = N_particles * inner_products**2
 
-        # MLMC statistics accumulation (unchanged)
+        # MLMC accummulations
         diff = Pf - Pc
         sum1[0] += np.sum(diff)
         sum1[1] += np.sum(diff**2)

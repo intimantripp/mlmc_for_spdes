@@ -73,7 +73,7 @@ void mlmc_test_performance(
                 if (Nl[l] > 0) {
                     const double m1 = suml[0][l] / static_cast<double>(Nl[l]);
                     const double m2 = suml[1][l] / static_cast<double>(Nl[l]);
-                    means[l]     = m1;
+                    means[l] = m1;
                     variances[l] = std::max(0.0, m2 - m1*m1);
                 }
             }

@@ -8,8 +8,8 @@ growth and decay rates align with those derived for squared amplitudes.
 We also discuss the resulting validation charts as they vary for different coupling 
 strategies.
 
-We first consider the squared Fourier amplitude. We use the first Fourier mode, 
-for which the true value we know to 
+We first consider the squared Fourier amplitude. We use the first Fourier mode
+at time $T = 0.25$, for which the true value we know to 
 be $\approx 0.10$
 via \eqref{eq:squared_amplitude_analytic}.
 For each of the three coupling strategies (NN, CC, and FE) the following was done. 
@@ -133,7 +133,8 @@ to the intrinsic stochasticity of the system affecting the stopping criterion
 of the MLMC Algorithm, outlined in Algorithm \ref{alg:mlmc_detailed}.
 
 We now provide similar validation results for our SHE MLMC implementation where our QoI is the system energy. 
-We have the true value for the problem, $\approx \frac{1}{12}$, via
+We again take $T = 0.25$, for which we have the true value for the problem,
+$\approx \frac{1}{12}$, via
 \eqref{eq:she_energy_analytic_soln}.
 
 \begin{table}[htbp]
@@ -194,15 +195,14 @@ We have the true value for the problem, $\approx \frac{1}{12}$, via
 
 The rates shown in Table \ref{tab:energy_decay_rates} and Figures 
 \ref{fig:energy_mean_decay} and \ref{fig:energy_variance_decay} 
-difer from those obtained for the squared amplitude. 
-We observe $\gamma = 3$, as expected for this system. However, 
+differ from those obtained for the squared amplitude. 
+We observe $\gamma = 3$ again, as is expected for all systems. However, 
 for the energy we have a slower error decay. $\alpha \approx 1$ for the 
 FE method, $\alpha \approx 0.5$ for the NN and CC methods. Examining 
 Figure \ref{fig:energy_mean_decay}, which shows the samples used to estimate 
 $\alpha$ for the three mechanisms, we see the source of the discrepancy is 
 due to a kink in the NN and CC weak errors observed, occurring at $\ell = 2$. 
 Otherwise, the expected decay rate would have been 1 for all coupling mechanisms.
-This difference from the squared amplitudes is interestin
 
 Similarly, for the variance decay, we observe again that the FE method
 achieves improved variance decay compared to the NN and CC methods, but 
@@ -230,9 +230,3 @@ NN and CC estimates are effectively identical
 at small RMSEs. Their values 
 do differ slightly, but the differences 
 are negligible.
-
-% Finally, we comment on the observation that in Figure \ref{fig:energy_cumulative_conv}, 
-% for both the NN and CC methods the cumulative estimates move away before 
-% gradually converging back. We attribute this behaviour to 
-% the first level estimator having large variance 
-% compared to the initial level $\ell = 0$ estimate.

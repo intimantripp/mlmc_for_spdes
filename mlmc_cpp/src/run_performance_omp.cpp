@@ -38,10 +38,10 @@ int main(int argc, char** argv) {
     #endif
 
     // Tunables
-    const int   M  = 8;
-    int         N0 = 100;
-    int         loops_per_eps = 5;
-    std::vector<double> Eps   = {0.01, 0.001, 0.0001, 0.00001, 0.000001};
+    const int M  = 8;
+    int N0 = 100;
+    int loops_per_eps = 5;
+    std::vector<double> Eps = {0.01, 0.007, 0.005, 0.002};
 
     //
     if (argc >= 2) N0 = std::max(1, std::atoi(argv[1]));
@@ -58,14 +58,14 @@ int main(int argc, char** argv) {
         {"she_energy_cc_omp", stoch_heat_eqn_energy_cc_l,  1.0, 2.0, 3.0},
         {"she_energy_fe_omp", stoch_heat_eqn_energy_fe_l,  1.0, 3.0, 3.0},
         // Add more once you have OMP variants:
-        // {"she_sqamp_nn_omp",  stoch_heat_eqn_fourier_modes_var_l,    1.0, 2.0, 3.0},
-        // {"she_sqamp_cc_omp",  stoch_heat_eqn_fourier_modes_var_cc_l, 1.0, 2.0, 3.0},
-        // {"she_sqamp_fe_omp",  stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 4.0, 3.0},
+        // {"she_sqamp_nn_omp", stoch_heat_eqn_fourier_modes_var_l,    1.0, 2.0, 3.0},
+        // {"she_sqamp_cc_omp", stoch_heat_eqn_fourier_modes_var_cc_l, 1.0, 2.0, 3.0},
+        // {"she_sqamp_fe_omp", stoch_heat_eqn_fourier_modes_var_fe_l, 1.0, 4.0, 3.0},
 
         // // Dean–Kawasaki
-        // {"dk_fe_omp",         dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
-        // {"dk_nn_omp",         dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
-        // {"dk_cc_omp",         dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
+        // {"dk_fe_omp", dean_kawasaki_eqn_fe_l,  2.0, 2.0, 3.0},
+        // {"dk_nn_omp", dean_kawasaki_eqn_nn_l,  2.0, 2.0, 3.0},
+        // {"dk_cc_omp", dean_kawasaki_eqn_cc_l,  2.0, 2.0, 3.0},
         
     };
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     auto T0 = high_resolution_clock::now();
 
     for (const auto& c : cases) {
-        const std::string timings_dir   = root + "/timings/" + c.name;
+        const std::string timings_dir = root + "/timings/" + c.name;
         const std::string aggregate_csv = root + "/" + c.name + "_all_eps.csv";
         std::filesystem::create_directories(timings_dir);
 

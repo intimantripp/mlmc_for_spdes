@@ -16,7 +16,7 @@
 #include <omp.h>
 #endif
 
-// tiny 64-bit mixer for deterministic seeding of threads - very clever thing
+// tiny 64-bit mixer for deterministic seeding of threads - fun clever thing
 static inline uint64_t splitmix64(uint64_t x){
     x += 0x9e3779b97f4a7c15ULL;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
@@ -47,7 +47,7 @@ void run_gbm_euler(const int N) {
     std::cout << "Finished running GBM Euler OMP MLMC." << std::endl;
 }
 
-#include <cstdint>  // for uint64_t
+#include <cstdint> 
 
 std::pair<std::vector<double>, std::vector<double>>
 gbm_l(int l, int N, double S0, double K, double T, double r, double sig) {

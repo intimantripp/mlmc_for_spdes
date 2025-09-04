@@ -11,7 +11,7 @@
 #include <omp.h>
 #endif
 
-// --- Reproducible per-(level,sample) seed ---
+//  Reproducible seed
 static inline uint64_t splitmix64(uint64_t x){
     x += 0x9e3779b97f4a7c15ULL;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
@@ -22,14 +22,14 @@ static inline uint64_t splitmix64(uint64_t x){
 void run_stoch_heat_eqn_energy_nn(const int N) {
     std::cout << "Running MLMC Stochastic Heat Equation - Energy NN (OpenMP)\n" << std::endl;
 
-    const int M  = 8;
-    const int L  = 8;
+    const int M = 8;
+    const int L = 8;
     const int N0 = 100;
     const std::vector<double> Eps = {0.01, 0.05, 0.001, 0.005};
 
     const std::string output_convergence_filename = "../outputs_omp/mlmc_convergence_stoch_heat_eqn_energy_nn.csv";
-    const std::string output_complexity_filename  = "../outputs_omp/mlmc_complexity_stoch_heat_eqn_energy_nn.csv";
-    const std::string output_regression_filename  = "../outputs_omp/mlmc_regression_stoch_heat_eqn_energy_nn.csv";
+    const std::string output_complexity_filename = "../outputs_omp/mlmc_complexity_stoch_heat_eqn_energy_nn.csv";
+    const std::string output_regression_filename = "../outputs_omp/mlmc_regression_stoch_heat_eqn_energy_nn.csv";
 
     mlmc_test(
         [=](int l, int N) { return stoch_heat_eqn_energy_nn_l(l, N); },
@@ -44,16 +44,16 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_nn_l(i
     const double lam = 0.25;
 
     // Fine grid
-    const int    nf      = 1 << (l + 1);
-    const double hf      = 1.0 / nf;
-    const double dtf     = lam * hf * hf;
+    const int nf = 1 << (l + 1);
+    const double hf = 1.0 / nf;
+    const double dtf = lam * hf * hf;
     const int    steps_f = nf * nf;
-    const double std_f   = std::sqrt(dtf / hf);
+    const double std_f = std::sqrt(dtf / hf);
 
     // Coarse grid (only used when l > 0)
-    const int    nc      = (l == 0) ? 1 : nf / 2;
-    const double hc      = (l == 0) ? 1.0 : 1.0 / nc;
-    const int    steps_c = (l == 0) ? 0   : nc * nc;
+    const int nc = (l == 0) ? 1 : nf / 2;
+    const double hc = (l == 0) ? 1.0 : 1.0 / nc;
+    const int steps_c = (l == 0) ? 0   : nc * nc;
 
     // MLMC moment sums
     double s10=0.0, s11=0.0, s12=0.0, s13=0.0; // E[Y], E[Y^2], E[Y^3], E[Y^4]

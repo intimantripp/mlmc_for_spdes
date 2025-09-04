@@ -4,10 +4,7 @@
 #include <filesystem>
 #include <chrono>
 
-// perf harness
 #include "mlmc_test_performance.hpp"
-
-// your MLMC level-callables
 #include "stoch_heat_eqn_energy_nn.hpp"
 #include "stoch_heat_eqn_energy_cc.hpp"
 #include "stoch_heat_eqn_energy_fe.hpp"
@@ -18,6 +15,8 @@
 #include "dean_kawasaki_cc.hpp"
 #include "dean_kawasaki_fe.hpp"
 
+// -- This file is used to run timings for serial implementatinos i.e. not parallel
+
 struct PerfCase {
     std::string name; // used for folder/file names
     std::function<std::pair<std::vector<double>, std::vector<double>>(int,int)> mlmc_fn;
@@ -27,11 +26,11 @@ struct PerfCase {
 int main(int argc, char** argv) {
     using namespace std::chrono;
 
-    // --- knobs you’ll tweak most often ---
-    const int   M            = 8;        // refinement factor
-    int         N0           = 100;     // base samples per level in mlmc()
-    int         loops_per_eps= 5;        // repeats per epsilon
-    std::vector<double> Eps  = {0.01, 0.007, 0.005, 0.002};
+    // my control levers
+    const int   M = 8;  // refinement factor
+    int         N0 = 100; // base samples per level in mlmc()
+    int         loops_per_eps = 5; // repeats per epsilon
+    std::vector<double> Eps = {0.01, 0.007, 0.005, 0.002};
 
     // optional quick CLI: ./run_performance N0 loops
     if (argc >= 2) N0 = std::max(1, std::atoi(argv[1]));

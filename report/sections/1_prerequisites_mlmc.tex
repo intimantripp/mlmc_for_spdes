@@ -31,12 +31,12 @@ Root Mean Squared Error (RMSE), which we define now.
     The \textbf{Mean Squared Error (MSE)} of the estimator is the expected value of 
     the squared error:
     \[
-    \text{MSE}(\hat{P}) = \mathbb{E}[(\hat{P} - P)^2]
+    \text{MSE}(\hat{P}) = \mathbb{E}[(\hat{P} - P)^2].
     \]
     This can be decomposed into terms representing the estimator's variance and squared bias:
     \[
     \text{MSE}(\hat{P}) = \underbrace{\mathbb{V}[\hat{P}]}_{\text{Variance of estimator}}
-    + \underbrace{(\mathbb{E}[\hat{P}] - \mathbb{E}[P])^2}_{\text{Bias}^2}
+    + \underbrace{(\mathbb{E}[\hat{P}] - \mathbb{E}[P])^2}_{\text{Bias}^2}.
     \]
     The \textbf{Root Mean Squared Error (RMSE)} is the square root of the MSE.
 \end{definition}
@@ -45,7 +45,7 @@ Since the standard MC estimator is unbiased, its bias term is zero.
 Its MSE is therefore equal to its variance:
 
 \begin{equation*}
-    \text{MSE}(\hat{P}_{MC}) = \mathbb{V}[\hat{P}_{MC}] = \frac{1}{N}\mathbb{V}[P]
+    \text{MSE}(\hat{P}_{MC}) = \mathbb{V}[\hat{P}_{MC}] = \frac{1}{N}\mathbb{V}[P].
 \end{equation*}
 
 The framework above assumes we can generate perfect samples of the random 
@@ -53,7 +53,7 @@ variable $P$. In practice, for complex problems such as SPDEs, this is typically
 Instead, we must compute numerical approximations which we will denote by $P_L$, where $L$ 
 represents a level of discretisation. For example, and as will be used later
 in a finite difference scheme, $L$ could correspond to a mesh with spatial grid spacing 
-$h_L = 2^{-(L+1)}$. A higher $L$ means a finer mesh and a more accurate - but also more 
+$\Delta x_L = 2^{-(L+1)}$. A higher $L$ means a finer mesh and a more accurate - but also more 
 computationally expensive - approximation. 
 
 This introduces a second source of error. The total error of our estimate is now a combination 
@@ -63,7 +63,7 @@ $N$ samples of the numerical approximation $P_L$, denoted $\hat{P}_{MC, L}$ is:
 
 \begin{equation}\label{eq:mc_mse}
     \text{MSE}(\hat{P}_{MC,L}) = \underbrace{\frac{1}{N}\mathbb{V}[P_L]}_{\substack{\text{Statistical Error} \\ \text{(Variance)}}} + 
-    \underbrace{(\mathbb{E}[P_L] - \mathbb{E}[P])^2}_{\substack{\text{Discretisation Error} \\ (\text{Bias}^2)}}
+    \underbrace{(\mathbb{E}[P_L] - \mathbb{E}[P])^2}_{\substack{\text{Discretisation Error} \\ (\text{Bias}^2)}}.
 \end{equation}
 
 \eqref{eq:mc_mse} presents the clear dilemma of the standard MC method. To achieve an overall
@@ -93,7 +93,7 @@ standard Monte Carlo estimator.
 
 
 By the linearity of expectation, $\hat{P}_{\mathrm{MLMC}}$ is an unbiased estimator for 
-$\mathbb{E}[P_L]$. Since the estimates at each level are independent, its variance is the sum 
+$\mathbb{E}[P_L]$. Since the corrections at each level are independent, its variance is the sum 
 of the individual variances. We define the cost and variance of a single sample at 
 level $\ell$ as $C_\ell$ and $V_\ell$ respectively:
 
@@ -115,8 +115,8 @@ randomness to generate pairs of samples $(P_\ell, P_{\ell-1})$. This technique, 
 \textit{coupling}, ensures the samples are strongly correlated. Because 
 $P_\ell$ and $P_{\ell - 1}$ are approximations of the same underlying quantity, their difference 
 is small, and consequently, the variance of this difference, $V_\ell$, is much smaller than the 
-variance of either term individually. As the level $\ell$ increases, $P_\ell$ converges to 
-$P_{\ell - 1}$, and so we expect that $V_\ell \to 0$.
+variance of either term individually. As the level $\ell$ increases, $P_{\ell-1}$ converges to 
+$P_{\ell}$, and so we expect that $V_\ell \to 0$.
 
 This decay of the level variance allows for a crucial trade-off: we use a small number 
 of samples $N_\ell$ for the expensive, high-level correction terms 
@@ -124,7 +124,7 @@ of samples $N_\ell$ for the expensive, high-level correction terms
 for the cheap, low-level terms where the variance is high. The optimal allocation 
 of samples across levels can be determined by solving a constrained optimisation problem.
 For a fixed variance, $\varepsilon^2$, choosing the optimal $\{N_\ell\}_{\ell=0}^L$ that 
-minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is solveable with 
+minimises the total cost $C_{\textrm{MLMC}} = \sum N_\ell C_\ell$ is solvable with 
 Lagrange multipliers. It yields the optimal number of samples \cite{giles2015multilevel}:
 
 \begin{equation}\label{eq:optimal_N_l}
@@ -139,9 +139,9 @@ We also have that the bias $(\mathbb{E}[P_\ell] - \mathbb{E}[P]) \to 0$ as $\ell
 To ensure that MSE is less than $\varepsilon^2$, by Definition \ref{def:mse_rmse} we can 
 impose that 
 $(\mathbb{E}[P_L  - P])^2 < \frac{\varepsilon^2}{2}$ and 
-$\mathbb{V}[\hat{P}_{\mathrm{MLMC}}] < \frac{\varepsilon^2}{2}]$. 
+$\mathbb{V}[\hat{P}_{\mathrm{MLMC}}] < \frac{\varepsilon^2}{2}$. 
 
-This leads to the following theorem \cite{giles2015multilevel} which makes 
+This leads to the following theorem \cite{giles2015multilevel}, which makes 
 precise the cost scaling of the MLMC method:
 
 \begin{theorem}[MLMC Complexity Theorem]\label{theorem:mlmc_complexity}
@@ -190,10 +190,10 @@ To appreciate the significance of the MLMC Complexity Theorem, we first establis
 standard MC method in the above context. To achieve an MSE of 
 $\mathcal{O}(\varepsilon^2)$, both the statistical and discretisation errors must be controlled.
 Controlling the bias to $O(\varepsilon)$ requires using a fine grid with a 
-step size $h_L \propto \varepsilon^{1/\alpha}$. Independently, controlling the 
+step size $\Delta x_L \propto \varepsilon^{1/\alpha}$. Independently, controlling the 
 statistical error to $O(\varepsilon^2)$ requires 
 $N \propto \varepsilon^{-2}$ samples. The total cost is the product of the number of 
-samples and the cost per sample, where $C_L \propto h_L^{-\gamma}$. Combining these 
+samples and the cost per sample, where $C_L \propto \Delta x_L^{-\gamma}$. Combining these 
 requirements gives the overall complexity:
 
 $$
@@ -202,7 +202,7 @@ C_{\mathrm{MC}} \propto N \times C_L \propto \varepsilon^{-2}
 $$
 
 In contrast, in the MLMC case $\beta > \gamma$, the dominant computational
-cost is on coarsest level where the cost per sample $C_\ell$ is $O(1)$ 
+cost is on the coarsest level, where the cost per sample $C_\ell$ is $O(1)$ 
 \cite{giles2015multilevel}.
 Requiring $N = O(\varepsilon^{-2})$ samples provides the dominant cost. This is the optimal 
 case.
@@ -217,11 +217,11 @@ improvement over the MC method.
 
 In the case $\beta < \gamma$, the cost per level grows with $\ell$, meaning 
 the total cost is dominated by the work on the finest level, $L$. 
-Even in this worst-case scenario though, we still arrive at a smaller scaling of cost 
+Even in this worst-case scenario, though, we still arrive at a smaller scaling of cost 
 than that of the MC estimator. 
 
 We conclude this section by highlighting the importance of the relationship
-between the variance decay rate $\beta$, and the cost growth rate $\gamma$. 
+between the variance decay rate $\beta$ and the cost growth rate $\gamma$. 
 As shown in the Complexity Theorem, the magnitude of the computational savings 
 offered by an MLMC implementation depends critically on whether the variance 
 decreases faster than the cost increases (i.e., if $\beta \ge \gamma$). 

@@ -37,10 +37,11 @@ to $\rho(t_n, x_j)$ at time $t_n = n \Delta t$ and position $x_j =
 \;+\; \tfrac{1}{\sqrt{N_p}}\,
 \frac{F_{j+1}^{\,n}-F_{j-1}^{\,n}}{2\Delta x}, \label{eq:dk_fd}\\[4pt]
 F_j^n &:= \sqrt{[\rho_j^n]_+}\,\Delta W_j^n, \qquad
-\Delta W_j^n \overset{\text{i.i.d.}}{\sim} \mathcal{N}\!\left(0,\ \tfrac{\Delta t}{\Delta x}\right).
+\Delta W_j^n \overset{\text{i.i.d.}}{\sim} \mathcal{N}\!\left(0,\ \tfrac{\Delta t}{\Delta x}\right),
 \nonumber
 \end{align}
 
+where $\lambda$ is our CFL number.
 Our quantity of interest is the expected squared mean field fluctuations
 in the $\sin(x)$ mode at final time $T$, namely
 
@@ -53,7 +54,7 @@ where $\bar\rho$ denotes the deterministic mean-field solution.
 In the discrete setting, we approximate this by
 \begin{equation}
 P \;=\; N_p \left( \big(\boldsymbol{\rho}^N - \boldsymbol{\bar\rho}^N,\ 
-\sin(x_h)\big)_h \right)^{\!2},
+\sin(\Delta x)\big)_{\Delta x} \right)^{\!2},
 \end{equation}
 
 To compute $P$, we update in parallel the 
@@ -149,7 +150,7 @@ where
     \!\begin{bmatrix}1&-1\\-1&1\end{bmatrix}
 \end{equation*} 
 
-is the $\rho$-weighted stiffness matrix with local element contributions.
+is the $\rho$-weighted matrix $K$ with local element contributions.
 
 For our MLMC setting, noises are resolved from fine to coarse levels in exactly the
 same way as for the SHE FE coupling: we aggregate coarse fluxes by summing  
@@ -160,7 +161,7 @@ naturally to ensure the correct coarse variance is achieved.
 
 We now verify that our implementation converges. We obtained an estimate of the true 
 value of \eqref{eq:dk_qoi} via MC simulation, and now verify convergence 
-of our implementation across a range of accuracies, 
+across a range of accuracies, 
 $\varepsilon \in \{0.001, 0.005, 0.01, 0.05\}$. We also again 
 analyse variance and error decay. The results are summarised in Table 
 \ref{tab:dk_rates} and Figures \ref{fig:dk_validation_combined},
@@ -204,7 +205,7 @@ analyse variance and error decay. The results are summarised in Table
         \begin{subfigure}[b]{\textwidth}
             \centering
             \includegraphics[width=0.7\linewidth]{graphics/dk_conv.png}
-            \caption{Final MLMC estimate vs. target RMSE ($\varepsilon$). This is a cute plot}
+            \caption{Final MLMC estimate vs. target RMSE ($\varepsilon$).}
             \label{fig:dk_conv_vs_eps}
         \end{subfigure}
         \vspace{0.5cm}
@@ -220,7 +221,7 @@ analyse variance and error decay. The results are summarised in Table
 \end{figure}
 
 The rates for the DK problem mirror those obtained for the SHE 
-squared amplotide QoI under the NN and CC couplings, with 
+squared amplitude QoI under the NN and CC couplings, with 
 $\alpha \approx 2$ and $\beta \approx 2$ for both. In 
 contrast to the SHE case however, the FE coupling provides 
 no improvement. Its variance decay rate is again $\beta \approx 2$, 

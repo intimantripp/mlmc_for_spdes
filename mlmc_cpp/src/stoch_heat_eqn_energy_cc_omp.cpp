@@ -29,14 +29,14 @@ void run_stoch_heat_eqn_energy_cc(const int N) {
     std::cout << "Running MLMC Stochastic Heat Equation - Energy CC (OpenMP)\n" << std::endl;
 
 
-    int M  = 8;
-    int L  = 8;
+    int M = 8;
+    int L = 8;
     int N0 = 100;
     std::vector<double> Eps = {0.01, 0.05, 0.001, 0.005};
 
-    std::string output_complexity_filename  = "../outputs_omp/mlmc_complexity_stoch_heat_eqn_energy_cc.csv";
+    std::string output_complexity_filename = "../outputs_omp/mlmc_complexity_stoch_heat_eqn_energy_cc.csv";
     std::string output_convergence_filename = "../outputs_omp/mlmc_convergence_stoch_heat_eqn_energy_cc.csv";
-    std::string output_regression_filename  = "../outputs_omp/mlmc_regression_stoch_heat_eqn_energy_cc.csv";
+    std::string output_regression_filename = "../outputs_omp/mlmc_regression_stoch_heat_eqn_energy_cc.csv";
 
     mlmc_test(
         [=](int l, int N) { return stoch_heat_eqn_energy_cc_l(l, N); },
@@ -52,26 +52,26 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_cc_l(i
     const double lam = 0.25;
 
     // Fine grid
-    const int    nf  = 1 << (l + 1);
-    const double hf  = 1.0 / nf;
+    const int nf = 1 << (l + 1);
+    const double hf = 1.0 / nf;
     const double dtf = lam * hf * hf;
-    const int    steps_f = nf * nf;
-    const double std_f   = std::sqrt(dtf / hf);
+    const int steps_f = nf * nf;
+    const double std_f = std::sqrt(dtf / hf);
 
     // Coarse grid
-    const int    nc       = (l == 0) ? 1 : nf / 2;
-    const double hc       = (l == 0) ? 1.0 : 1.0 / nc;
-    const int    steps_c  = (l == 0) ? 0 : nc * nc;
+    const int nc = (l == 0) ? 1 : nf / 2;
+    const double hc = (l == 0) ? 1.0 : 1.0 / nc;
+    const int steps_c = (l == 0) ? 0 : nc * nc;
 
-    // Half-cell setup (used only when l>0)
-    const int    num_half_cells = 2 * (nf - 1);
-    const double std_half       = std::sqrt(hf * dtf / 2.0);
+    // Half-cell setup
+    const int num_half_cells = 2 * (nf - 1);
+    const double std_half = std::sqrt(hf * dtf / 2.0);
 
     // Moment reductions: Y = Pf - Pc (or Pf on l=0)
     double s10=0.0, s11=0.0, s12=0.0, s13=0.0; // E[Y], E[Y^2], E[Y^3], E[Y^4]
     double s20=0.0, s21=0.0;                   // E[Pf], E[Pf^2]
 
-    #ifdef _OPENMP
+    #ifdef _OPENMP 
     #pragma omp parallel for schedule(static) reduction(+:s10,s11,s12,s13,s20,s21)
     #endif
     for (int n = 0; n < N; ++n) {
@@ -79,7 +79,7 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_cc_l(i
         std::mt19937_64 gen(splitmix64(0xCC00FFEEULL ^ (uint64_t(l) << 32) ^ (uint64_t)n));
         std::normal_distribution<> nd(0.0, 1.0);
 
-        // Fine state (Dirichlet ends, interior updated)
+        // Fine 
         std::vector<double> uf(nf + 1, 0.0), uf_new(nf + 1, 0.0);
         double Pf = 0.0, Pc = 0.0;
 
@@ -99,10 +99,7 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_cc_l(i
             double ef = 0.0;
             for (int i = 0; i <= nf; ++i) ef += uf[i] * uf[i];
             Pf = hf * ef;
-            // Pc = 0; Y = Pf
         } else {
-            // CC construction
-
             // Coarse state
             std::vector<double> uc(nc + 1, 0.0), uc_new(nc + 1, 0.0);
 
@@ -139,8 +136,8 @@ std::pair<std::vector<double>, std::vector<double>> stoch_heat_eqn_energy_cc_l(i
 
                     // 4) Accumulate coarse noise from four adjacent half-cells per coarse cell
                     for (int ic = 0; ic < nc - 1; ++ic) {
-                        const double z2kL   = half_cell_noises[4 * ic];
-                        const double z2kR   = half_cell_noises[4 * ic + 1];
+                        const double z2kL = half_cell_noises[4 * ic];
+                        const double z2kR = half_cell_noises[4 * ic + 1];
                         const double z2kp1L = half_cell_noises[4 * ic + 2];
                         const double z2kp1R = half_cell_noises[4 * ic + 3];
                         dWc[ic] += (z2kL + z2kR + z2kp1L + z2kp1R);

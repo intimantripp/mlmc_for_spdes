@@ -7,10 +7,6 @@
 #include <functional>
 #include <random>
 
-// --- Assumed to be available from your existing code ---
-// Global RNG
-// static std::mt19937 RNG{ std::random_device{}() };
-// static std::normal_distribution<> Z(0.0, 1.0);
 
 
 inline int idx(int i, int n, int N_trials) { return i * N_trials + n; }
@@ -49,7 +45,6 @@ void run_dean_kawasaki_nn(const int N) {
 }
 
 
-// The main level simulation function
 std::pair<std::vector<double>, std::vector<double>>
 dean_kawasaki_eqn_nn_l(int l, int N) {
     std::mt19937 RNG(42+l);
