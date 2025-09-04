@@ -7,10 +7,11 @@ of the SHE problem \eqref{eq:she_full_problem}.
 The first is the squared amplitude of the SHE's Fourier Modes,
 the second is a measure of the total energy of the 
 system. We outline these here, derive the true values that
-our MLMC version wishes to converge to, and then also 
+our MLMC version wishes to converge to, and also 
 determine what the weak error and variance decay values, $\alpha$ and 
-$\beta$ respectively, we expect to observe. In the next section,
-we validate that our implementation converges to these results. 
+$\beta$ respectively, that we expect to observe for the squared amplitude QoI.
+In the next section,
+we validate that our implementation aligns with these results. 
 
 \subsubsection{Squared Amplitude of Fourier Modes}
 
@@ -119,19 +120,19 @@ Thus,
 
 \begin{align}
     u_n(t) &\sim \mathcal{N}(0, 
-    \frac{1-e^{-2\lambda_n^2t}}{2\lambda_n^2}), 
-    \quad \lambda_n = \pi n
+    \frac{1-e^{-2\lambda_nt}}{2\lambda_n}), 
+    \quad \lambda_n = \pi^2 n^2
     \nonumber
     \\
-    \mathbb{E}\left[u_n(t)^2\right] &= \frac{1 - e^{-2\lambda_n^2t}}{2\lambda_n^2}
+    \mathbb{E}\left[u_n(t)^2\right] &= \frac{1 - e^{-2\lambda_nt}}{2\lambda_n}
     \label{eq:squared_amplitude_analytic}
 \end{align}
 \newline
 
 \textbf{Weak Error and Variance Decay of Squared Amplitude of Fourier Modes}
 
-We now establish the decay
-rates for our MLMC estimators. We must analyse two key properties:
+We now establish theoretical decay
+rates for our MLMC estimator. We must analyse two key properties:
 the weak error of the finite difference scheme and the rate 
 of decay of the MLMC variance, $V_\ell$. We present 
 two propositions and their accompanying proofs to formally 
@@ -141,7 +142,8 @@ of a single Fourier mode.
 \begin{proposition}[Weak Error for the Squared Amplitude of a Fourier Mode]
     \label{prop:weak_error_for_fourier_mode}
     The explicit finite difference scheme for the Stochastic Heat Equation
-    governing the $n$-th Fourier mode, with time step $\Delta t$, has a weak error 
+    governing the $n$-th Fourier mode, under the NN, CC, and FE coupling 
+    methods, and with time step $\Delta t$, has a weak error 
     in its stationary variance of 
     $\mathcal{O}(\Delta t)$. Consequently, for a finite difference 
     implementation of the SHE with a fixed CFL number such that 
@@ -173,7 +175,7 @@ stationary variance of the $n$-th Fourier mode is the following:
 
 \begin{equation}\label{eq:stationary_variance}
     \lim_{t \to \infty} \mathbb{V}[u_n]
-    := \mathbb{V}[u_n^{\infty}] = \frac{1}{2\lambda_n^2}
+    := \mathbb{V}[u_n^{\infty}] = \frac{1}{2\lambda_n}
 \end{equation}
 
 Recalling our finite difference scheme in \eqref{eq:she_scheme},
@@ -181,31 +183,38 @@ we express it instead in matrix-vector form, with $N$
 internal points:
 
 \begin{align}
-    \mathbf{U}^j := 
-    \begin{bmatrix}
-        U_1^j \\
-        \vdots \\
-        U_N^j
-    \end{bmatrix} 
-    \in \mathbb{R}^N,
-    \quad
-    \mathbf{Z}^j := 
-    \begin{bmatrix}
-        Z_1^j \\
-        \vdots \\
-        Z_N^j
-    \end{bmatrix}
-    &\overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, \mathbf{I}_N), \\
-    \mathbf{U}^{j+1} &= \mathbf{U}^j + \Delta t A \mathbf{U}^j
-    + \sqrt{\frac{\Delta t}{\Delta x}} \mathbf{Z}^j, \label{eq:scheme_matrix_vector}\\
-    \text{where } A &= \frac{1}{(\Delta x)^2}
-    \begin{bmatrix}
-        -2 & 1 & & \\
-        1 & -2 & 1  \\
-        & \ddots & \ddots & \ddots \\
-        & & 1 & -2
-    \end{bmatrix}.
+  \mathbf{U}^j :=
+  \begin{bmatrix}
+    U_1^j \\ \vdots \\ U_N^j
+  \end{bmatrix}\in\mathbb{R}^N,\qquad
+  \mathbf{W}^j &:=
+  \begin{bmatrix}
+    W_1^j \\ \vdots \\ W_N^j
+  \end{bmatrix}
+  \sim \mathcal{N}(\mathbf{0},\,\mathbf{Q}_N), \quad
+  \{\mathbf{W}^j\}_{j\ge 0}\ \text{independent in $j$},\\[2mm]
+  \mathbf{U}^{j+1} &= \mathbf{U}^j + \Delta t\,A\,\mathbf{U}^j
+  \;+\; \sqrt{\frac{\Delta t}{\Delta x}}\;\mathbf{W}^j,
+  \label{eq:scheme_matrix_vector}\\
+  A &= \frac{1}{(\Delta x)^2}
+  \begin{bmatrix}
+    -2 & 1  &        &        \\
+     1 & -2 & 1      &        \\
+       & \ddots & \ddots & \ddots \\
+       &        & 1      & -2
+  \end{bmatrix}.
 \end{align}
+
+
+Here $\mathbf{Q}_N$ is a symmetric positive-definite per-step spatial covariance matrix. It 
+describes the spatial correlations within a time step induced by the coupling methods. 
+In the baseline (non-MLMC) case, the NN method, and the CC method, within 
+a single level have
+$\mathbf{Q}_N=\mathbf{I}_N$. For the FE coupling mechanism, we have 
+covariance between within-level noises, such that 
+$\mathbf{Q}_N = \frac{1}{\Delta x} M$, where $M$ is the FE mass matrix
+in equation \eqref{eq:fe_sdes_system}.
+
 
 We can equivalently express our finite difference estimates $\mathbf{U}^j$
 as a finite series of Fourier modes along with our basis functions 
@@ -231,7 +240,8 @@ Discrete Inner product (\cite{strang2007computational}, Chapter 2), i.e.
 
 \begin{equation*}
     (\boldsymbol{\phi}_n, \boldsymbol{\phi}_m)_{\Delta x} 
-    = \sum_{n=1}^N \Delta x \phi_{n,i} \phi_{m,i} = \delta_{n,m}
+    = \Delta x \boldsymbol{\phi}_n^T \boldsymbol{\phi}_m
+    = \sum_{i=1}^N \Delta x (\boldsymbol{\phi}_n)_i (\boldsymbol{\phi}_m)_i = \delta_{n,m},
 \end{equation*}
 
 where $\delta_{n,m}$ is the Kronecker-delta function.
@@ -246,7 +256,7 @@ scheme \eqref{eq:scheme_matrix_vector} and examining each term:
         \label{eq:inner_product_var_res}
         \\
         &\qquad + \sqrt{\frac{\Delta t}{\Delta x}} 
-        (\mathbf{Z}^j, \boldsymbol{\phi}_n)_{\Delta x},
+        (\mathbf{W}^j, \boldsymbol{\phi}_n)_{\Delta x},
     \end{split}\\
     (\mathbf{U}^{j+1}, \boldsymbol{\phi}_n)_{\Delta x} &=
     \left(\sum_{k=1}^{N} \hat{u}_k^{j+1} \boldsymbol{\phi}_k, 
@@ -261,31 +271,27 @@ scheme \eqref{eq:scheme_matrix_vector} and examining each term:
     \Delta t \Delta x (A \mathbf{U}^j)^T \boldsymbol{\phi}_n = 
     \Delta t \Delta x (\mathbf{U}^j)^T A \boldsymbol{\phi}_n
     \label{eq:eigenval_1}\\
-    &= \Delta t \Delta x \lambda_n^{FD}(\mathbf{U}^j)^T \boldsymbol{\phi}_n 
+    &= -\Delta t \Delta x \lambda_n^{FD}(\mathbf{U}^j)^T \boldsymbol{\phi}_n 
     \nonumber
     \\
-    &= \Delta t \lambda_n^{FD} (\mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x}
+    &= -\Delta t \lambda_n^{FD} (\mathbf{U}^j, \boldsymbol{\phi}_n)_{\Delta x}
     \nonumber
     \\
-    &= \Delta t \lambda_n^{FD} \hat{u}_n^j
+    &= -\Delta t \lambda_n^{FD} \hat{u}_n^j
      \label{eq:eigenval_2}\\
      \text{where }\lambda_n^{FD}&= \frac{4}{(\Delta x)^2} 
      \sin^2(\frac{\pi n}{2(N+1)}),
      \nonumber
      \\
     \sqrt{\frac{\Delta t}{\Delta x}}
-    (\mathbf{Z}^j, \boldsymbol{\phi}_n)_{\Delta x} &= 
-    \sqrt{\frac{\Delta t}{\Delta x}} \sum_{k=1}^N
-    \Delta x \mathbf{Z}_k^j(\boldsymbol{\phi}_n)_k 
-    \nonumber
-    \\
-    &= 
-    \sqrt{\Delta t \Delta x} \sum_{k=1}^N \mathbf{Z}_k^j
-    (\boldsymbol{\phi_n})_k 
+    (\mathbf{W}^j, \boldsymbol{\phi}_n)_{\Delta x} &= 
+    \sqrt{\frac{\Delta t}{\Delta x}} \Delta x \boldsymbol{\phi}_n^T \mathbf{W}^j = 
+    \sqrt{\Delta t \Delta x} \boldsymbol{\phi}_n^T \mathbf{W}^j
     \nonumber
     \\
     &:= \nu_n^j 
-    \sim \mathcal{N}(0, \sigma_n^2),
+    \sim \mathcal{N}(0, 
+    \Delta t \Delta x \boldsymbol{\phi}_n^T \mathbf{Q}_N \boldsymbol{\phi}_n),
     \label{eq:sum_of_norm_variables}
 \end{align}
 
@@ -294,8 +300,7 @@ we have substituted the eigenvalues, $\lambda_n^{FD}$, of the matrix
 $A$ (\cite{strang2007computational}, Chapter 2) and applied the orthogonality
 of the basis functions, and in 
 \eqref{eq:sum_of_norm_variables} we have 
-used that the sum of normal random variables is normally 
-distributed.
+used that a linear functional of a centred Gaussian vector is Gaussian.
 
 We obtain that \eqref{eq:inner_product_var_res} is equal to:
 \begin{equation}
@@ -303,28 +308,49 @@ We obtain that \eqref{eq:inner_product_var_res} is equal to:
     \nu_n^j
 \end{equation}
 
-We now determine what the variance of the random variable 
-$\nu_n^j$ is:
-\begin{align*}
-    \mathbb{V}[\nu_n^j] &= \mathbb{V}\left[\sqrt{\Delta t \Delta x}
-    \sum_{k=1}^N\mathbf{Z}_k^j(\boldsymbol{\phi}_n)^k\right] \\
-    &=\Delta t \Delta x \sum_{k=1}^N \mathbb{V}[\mathbf{Z}_k^j]
-    ((\boldsymbol{\phi}_n)_k)^2 \\
-    &= \Delta t \sum_{k=1}^N \Delta x  ((\boldsymbol{\phi}_n)_k)^2\\
-    &= \Delta t
-\end{align*}
+We now present the following lemma regarding the variance of the random 
+variable $\nu_n^j$. 
 
-where we have used the orthonormality of the basis functions, 
-$(\boldsymbol{\phi}_n, \boldsymbol{\phi}_m)_{\Delta x} = 
-\delta_{n,m}$.
+\begin{lemma}[Variance of noise in discrete Fourier mode update under NN/CC/FE]\label{lem:modal-var}
+Let $\{\boldsymbol{\phi}_n\}$ be the discrete sine basis, orthonormal in $(\cdot,\cdot)_{\Delta x}$, and
+$\mathbf W^j\sim\mathcal N(\mathbf 0,\mathbf Q_N)$. Define
+$\nu_n^j:=\sqrt{\Delta t\,\Delta x}\,\boldsymbol{\phi}_n^T \mathbf W^j$.
+Then, depending on the coupling scheme:
+\begin{equation*}
+\mathbb{V}[\nu_n^j]
+= \Delta t\,\Delta x\,\boldsymbol{\phi}_n^T \mathbf Q_N \boldsymbol{\phi}_n
+=
+\begin{cases}
+\Delta t, &\text{\emph{NN, CC}},\\
+\Delta t \left(1+\mathcal{O}\left((\Delta x)^2\right)\right),\quad
+&\text{\emph{FE}}.
+\end{cases}
+\end{equation*}
+\end{lemma}
 
-Taking the variance of equation 
-\eqref{eq:inner_product_var_res} therefore becomes:
+\begin{proof}
+The identity $\mathbb{V}[\nu_n^j]=\Delta t\,\Delta x\,\boldsymbol{\phi}_n^T 
+\mathbf Q_N \boldsymbol{\phi}_n$
+is immediate. For NN and CC, $\mathbf Q_N=I_N$ so 
+$\Delta x\,\boldsymbol{\phi}_n^T \mathbf Q_N\boldsymbol{\phi}_n=1$.
+For FE, $\mathbf Q_N=\tfrac{1}{\Delta x}M$ with 
+$M_{ii}=\tfrac{2}{3}\Delta x$, $M_{i,i\pm1}=\tfrac{1}{6}\Delta x$,
+thus $\Delta x\,\boldsymbol{\phi}_n^T \mathbf Q_N \boldsymbol{\phi}_n
+= \boldsymbol{\phi}_n^T M\boldsymbol{\phi}_n
+= \tfrac{2}{3}+\tfrac{1}{3}\cos\theta_n
+= 1-\tfrac{\theta_n^2}{6}+O(\theta_n^4)
+= 1+\mathcal{O}\left((\Delta x)^2\right)$, where $\theta_n = \frac{\pi n}{N+1}.$\qedhere
+\end{proof}
 
-\begin{equation}\label{eq:var_of_relation}
-    \mathbb{V}[\hat{u}_n^{j+1}] = (1-\Delta t \lambda_n^{FD})^2
-    \mathbb{V}[\hat{u}_n^j] + \Delta t
+Taking the variance of equation \eqref{eq:inner_product_var_res} gives
+\begin{equation}\label{eq:var_of_relation_general}
+  \mathbb{V}[\hat u_n^{j+1}]
+  = (1-\Delta t\,\lambda_n^{FD})^2\,\mathbb{V}[\hat u_n^{j}]
+    \;+\; \Delta t\,\big(1 + \mathcal{O}\left((\Delta x)^2\right)\big),
 \end{equation}
+where we have assumed the most complicated case of 
+being under FE coupling following Lemma~\ref{lem:modal-var}. The 
+following holds if $\mathbb{V}[\nu_n^j] = \Delta t$ also.
 
 For the stationary variance, we have that 
 $\mathbb{V}[\hat{u}_n^{j+1}] = 
@@ -333,15 +359,18 @@ $\mathbb{V}[\hat{u}_n^{j+1}] =
 variance gives:
 
 \begin{align}
-\mathbb{V}[\hat{u}_j^\infty] 
-&= \frac{\Delta t}{1 - 
-(1-\Delta t \lambda_n^{FD})^2} = 
-\frac{1}{2\lambda_n^{FD} - 
-(\lambda_n^{FD})^2 \Delta t}
+\mathbb{V}[\hat u_n^\infty]
+&= \frac{\Delta t\,(1 + \mathcal{O}\left((\Delta x)^2\right))}
+       {1-(1-\Delta t\,\lambda_n^{FD})^2}
+= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}
+       {2\,\lambda_n^{FD} - (\lambda_n^{FD})^2\,\Delta t},
 \label{eq:fourier_variance_stationary}
 \\
-&= \frac{1}{2\lambda_n^{FD}(1 - \frac{\Delta t \lambda_n^{FD}}{2})}\\
-&= \frac{1}{2\lambda_n^{FD}}(1 + \frac{\Delta t \lambda_n^{FD}}{2}
+&= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}
+{2\lambda_n^{FD}(1 - \frac{\Delta t \lambda_n^{FD}}{2})}
+\nonumber
+\\
+&= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}{2\lambda_n^{FD}}(1 + \frac{\Delta t \lambda_n^{FD}}{2}
 + \dots)\label{eq:using_taylor_series} \qquad 
 \text{(By Taylor Series)}
 \end{align}
@@ -355,27 +384,33 @@ Recalling that $\lambda_n^{FD} = \frac{4}{(\Delta x)^2}
     \lambda_n^{FD} &= \frac{4}{(\Delta x)^2}\left(\frac{n^2 
     \pi^2 (\Delta x)^2}{4} + \mathcal{O}((\Delta x)^2)\right) = 
     n^2\pi^2 + \mathcal{O}((\Delta x)^2) \\
-    &= \lambda_n^2 + \mathcal{O}((\Delta x)^2)
+    &= \lambda_n + \mathcal{O}((\Delta x)^2)
 \end{align*}
 
 Substituting this into \eqref{eq:using_taylor_series} yields:
 
 \begin{align*}
     \mathbb{V}[\hat{u}_j^\infty] &= 
-    \frac{1}{2\lambda_n^{FD}}\left(1 + 
+    \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}{2\lambda_n^{FD}}\left(1 + 
     \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
-    &= \frac{1}{2\left(\lambda_n^2 + \mathcal{O}(\Delta x^2)\right)}\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
-    &= \frac{1}{2 \lambda_n^2 \left(1 + \mathcal{O}(\Delta x^2)\right)}\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
-    &= \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
-    &= \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)
+    &= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}
+    {2\left(\lambda_n + \mathcal{O}\left((\Delta x)^2\right)\right)}
+    \left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}{2 
+    \lambda_n \left(1 + \mathcal{O}(\Delta x^2)\right)}
+    \left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1 + \mathcal{O}\left((\Delta x)^2\right)}{2 
+    \lambda_n}\left(1 + \mathcal{O}\left((\Delta x)^2\right)\right)\left(1 + \frac{\Delta t \lambda_n^{FD}}{2} + \dots\right) \\
+    &= \frac{1}{2 \lambda_n}\left(1 + \mathcal{O}\left((\Delta x)^2\right)\right)
     \label{eq:final_result}
 \end{align*}
 
 Finally therefore, we obtain our result that the weak error
-of our finite difference scheme estimate is :
+of our finite difference scheme estimate is:
 
 \begin{equation*}
-    |\mathbb{V}\left[u_n^\infty\right] - \mathbb{V}\left[\hat{u}_n^\infty]\right]| = |\frac{1}{2\lambda_n^2} - \frac{1}{2 \lambda_n^2}\left(1 + \mathcal{O}(\Delta x^2)\right)|
+    |\mathbb{V}\left[u_n^\infty\right] - \mathbb{V}\left[\hat{u}_n^\infty]\right]| 
+    = |\frac{1}{2\lambda_n} - \frac{1}{2 \lambda_n}\left(1 + \mathcal{O}(\Delta x^2)\right)|
     = \mathcal{O}(\Delta x^2)
 \end{equation*}
 \end{proof}
@@ -396,34 +431,35 @@ rate achievable in an MLMC implementation.
     determined by the correlation, $\rho$, between the underlying 
     discrete finite difference samples, 
     $\hat{u}_n^{(\ell, n)}$ and $\hat{u}_n^{(\ell-1, n)}$.
+
+    Specifically, if $1 - \rho^2 = \mathcal{O}\left((\Delta x_\ell)^p\right)$ for 
+    some $p \geq 0$, then:
     \begin{itemize}
-        \item If the processes are perfectly correlated ($\rho^2 = 1)$,
-         $V_\ell = \mathcal{O}((\Delta x_\ell)^4)$.
-        \item If the correlation is imperfect $(\rho^2 < 1)$, 
-        $V_\ell = \mathcal{O}((\Delta x_\ell)^2)$.
+        \item $p=0 \Rightarrow V_\ell=\mathcal{O}(1)$;
+        \item $p=2 \Rightarrow V_\ell=\mathcal{O}((\Delta x_\ell)^2)$;
+        \item $p=4 \Rightarrow V_\ell=\mathcal{O}((\Delta x_\ell)^4)$.
     \end{itemize}
 \end{proposition}
 
-Following Proposition \ref{prop:variance_decay_fourier}, we conclude 
-for the MLMC implementation:
+Following Proposition \ref{prop:variance_decay_fourier}, we conclude for the MLMC implementation:
 
-\begin{align*}
+\begin{equation*}
     V_\ell = 
     \begin{cases}
-        \mathcal{O}\left(2^{-4\ell}\right), \text{  thus } \beta = 4 \quad \text{if } \rho = \pm 1\\
-        \mathcal{O}\left(2^{-2\ell}\right), \text{  thus } \beta = 2 \quad \text{otherwise}
+        \mathcal{O}(2^{-4\ell}), \text{ thus } \beta = 4 \quad  \text{if } 1 - \rho^2 = \mathcal{O}\left((\Delta x)^4\right)\\
+        \mathcal{O}(2^{-2\ell}), \text{ thus } \beta = 2 \quad \text{if } 1 - \rho^2 = \mathcal{O}\left((\Delta x)^2\right)\\
     \end{cases}
-\end{align*}
+\end{equation*}
 
 \begin{proof}
     To prove Proposition \ref{prop:variance_decay_fourier} we will expand the terms in
     $V_\ell$ and then 
     solve for each of them.
     \begin{align*}
-    V_\ell &= \mathbb{V}[P_\ell - P^{\ell - 1}]\\
+    V_\ell &= \mathbb{V}[P_\ell - P_{\ell - 1}]\\
     &= \mathbb{V}[P_\ell] + 
         \mathbb{V}[P_{\ell-1}] - 
-        2 \mathrm{Cov}\left((P_\ell, P_{\ell - 1}\right)
+        2 \mathrm{Cov}\left(P_\ell, P_{\ell - 1}\right)
     \end{align*}
 
     We begin by expanding $\mathbb{V}[P_\ell]$:
@@ -454,16 +490,19 @@ for the MLMC implementation:
     of the Fourier mode \eqref{eq:fourier_variance_stationary}:
     
     \begin{equation}\label{eq:fourier_mode_var}
-        \mathbb{V}[\hat{u}_n^\ell] = \frac{1}{2 \lambda_n^{FD} - 
-        \Delta t_\ell (\lambda_n^{FD})^2}.
+        \mathbb{V}[\hat{u}_n^\ell] = 
+        \frac{1 + \kappa(\Delta x_\ell)^2}{2 \lambda_n^{FD} - \Delta t_\ell (\lambda_n^{FD})^2},
     \end{equation}
 
+    where $\kappa$ is a constant that equals 0 under the CC and NN couplings, 
+    and is $\mathcal{O}(1)$ under FE.
+    
     We denote by $\Delta x_\ell$ and $\Delta t_\ell$ the spatial
     and temporal step sizes in our finite difference scheme at level 
     $\ell$.
     These are related, for our explicit finite difference scheme,
     via $\Delta t = \mu (\Delta x)^2$, where $\mu$ is the CFL
-    number. Recalling that $\lambda_n^{FD} = \frac{4}{(\Delta x)^4} 
+    number. Recalling that $\lambda_n^{FD} = \frac{4}{(\Delta x)^2} 
     \sin^2\left(\frac{n \pi \Delta x}{2}\right) = \lambda_n - 
     \frac{n^4 \pi^4}{12}(\Delta x)^2 + \mathcal{O}((\Delta x)^4)$
     where $\lambda_n = n^2 \pi^2$, we have:
@@ -479,16 +518,18 @@ for the MLMC implementation:
     Returning to \eqref{eq:fourier_mode_var}:
 
     \begin{align*}
-        \mathbb{V}[\hat{u}_n^\ell] &= \frac{1}{2 \lambda_n^{FD} - 
+        \mathbb{V}[\hat{u}_n^\ell] &= \frac{1 + \kappa(\Delta x_\ell)^2}
+        {2 \lambda_n^{FD} - 
         \Delta t_\ell (\lambda_n^{FD})^2} = 
-        \frac{1}{2\lambda_n\left(1 - \frac{2a + \mu \lambda_n^2}{2\lambda_n}
+        \frac{1 + \kappa(\Delta x_\ell)^2}
+        {2\lambda_n\left(1 - \frac{2a + \mu \lambda_n^2}{2\lambda_n}
         (\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right)\right)} \\
         &= \frac{1}{2 \lambda_n} \left(1 + 
-        \frac{2a + \mu \lambda_n^2}{2 \lambda_n} (\Delta x_\ell)^2
+        \left(\kappa + \frac{2a + \mu \lambda_n^2}{2 \lambda_n}\right) (\Delta x_\ell)^2
         + \mathcal{O}\left((\Delta x_\ell)^4\right) \right)
         \qquad \text{(Taylor Series)} \\
         &= \frac{1}{2\lambda_n} + 
-        \underbrace{\frac{2a + \mu \lambda_n^2}{4\lambda_n^2}}_{=b}(\Delta x_\ell)^2
+        \underbrace{\left(\kappa + \frac{2a + \mu \lambda_n^2}{4\lambda_n^2}\right)}_{=b}(\Delta x_\ell)^2
         + \mathcal{O}\left((\Delta x_\ell)^4\right)
         \\
         &= \frac{1}{2\lambda_n} + 
@@ -514,25 +555,25 @@ for the MLMC implementation:
 
     \begin{align*}
         \mathbb{V}[(\hat{u}_n^\ell)^2] &= 
-        \mathbb{E}[(\hat{u}_n^\ell)^4] + 
+        \mathbb{E}[(\hat{u}_n^\ell)^4] - 
         \left(\mathbb{E}[(\hat{u}_n^\ell)^2]\right)^2 \\
-        &= 3\sigma_l^4 - \sigma_l^4 = 2\sigma_l^4
+        &= 3\sigma_\ell^4 - \sigma_\ell^4 = 2\sigma_\ell^4
     \end{align*}
 
     Finally, we obtain that:
 
     \begin{equation}\label{eq:P_var_estimates}
-        \mathbb{V}[P_\ell] = \frac{2\sigma_l^4}{M}, \quad 
+        \mathbb{V}[P_\ell] = \frac{2\sigma_\ell^4}{M}, \quad 
         \mathbb{V}[P_{\ell-1}] = \frac{2\sigma_{\ell-1}^4}{M}.
     \end{equation}
 
     We now examine $\mathrm{Cov}\left(P_\ell, P_{\ell-1}\right)$.
 
     \begin{equation*}
-        \mathrm{Cov}(P_l, P_{l-1}) = 
-        \frac{1}{M}\mathrm{Cov}(\hat{u}_l^2, \hat{u}_{l-1}^2) 
-        = \frac{1}{M}\mathbb{E}[(\hat{u}_n^\ell \hat{u}_n^{l-1})^2] 
-        - \mathbb{E}[(\hat{u}_n^\ell)^2]\mathbb{E}[(\hat{u}_n^{l-1})^2])
+        \mathrm{Cov}(P_\ell, P_{\ell-1}) = 
+        \frac{1}{M}\mathrm{Cov}(\hat{u}_\ell^2, \hat{u}_{\ell-1}^2) 
+        = \frac{1}{M}\mathbb{E}[(\hat{u}_n^\ell \hat{u}_n^{\ell-1})^2] 
+        - \mathbb{E}[(\hat{u}_n^\ell)^2]\mathbb{E}[(\hat{u}_n^{\ell-1})^2])
     \end{equation*}
 
     We already know $\mathbb{E}[(\hat{u}_n^\ell)^2] = \sigma_\ell^2$.
@@ -554,7 +595,7 @@ for the MLMC implementation:
     \mathrm{Cov}(\hat{u}_n^\ell, \hat{u}_n^{\ell-1})
     = \mathbb{E}[\hat{u}_n^\ell \hat{u}_n^{\ell-1}] - 
     \underbrace{\mathbb{E}[\hat{u}_n^\ell]\mathbb{E}[\hat{u}_n^{\ell-1}]}_{=0}
-    =\rho \sigma_l \sigma_{\ell-1}
+    =\rho \sigma_\ell \sigma_{\ell-1}
     $$
 
     and so we now obtain that:
@@ -562,7 +603,7 @@ for the MLMC implementation:
     \begin{equation}\label{eq:cov_fourier_var}
         \mathrm{Cov}(P_\ell, P_{\ell-1}) = 
         \frac{1}{M}\left(\sigma_\ell^2 \sigma_{\ell-1}^2 + 
-        2\rho^2\sigma_\ell \sigma_{\ell-1} - 
+        2\rho^2\sigma_\ell^2 \sigma_{\ell-1}^2 - 
         \sigma_\ell^2 \sigma_{\ell-1}^2\right)
         = \frac{2\rho^2\sigma_\ell^2\sigma_{\ell-1}^2}{M}
     \end{equation}
@@ -571,10 +612,10 @@ for the MLMC implementation:
     \eqref{eq:cov_fourier_var} into $V_\ell$:
 
     \begin{equation}\label{eq:nearly_there_fourier_var}
-        V_l = \mathbb{V}[P_l] + \mathbb{V}[P_{l-1}] - 
-        2\mathrm{Cov}(P_l, P_{l-1}) = 
-        \frac{2}{M}(\sigma_l^4 + \sigma_{l-1}^4 -
-        2\rho^2 \sigma_l^2 \sigma_{l-1}^2)
+        V_l = \mathbb{V}[P_l] + \mathbb{V}[P_{\ell-1}] - 
+        2\mathrm{Cov}(P_l, P_{\ell-1}) = 
+        \frac{2}{M}(\sigma_\ell^4 + \sigma_{\ell-1}^4 -
+        2\rho^2 \sigma_\ell^2 \sigma_{\ell-1}^2)
     \end{equation}
 
     We expand each of these terms, also setting 
@@ -583,17 +624,17 @@ for the MLMC implementation:
     continuous Fourier mode \eqref{eq:var_fourier_modes}:
 
     \begin{align*}
-        \sigma_l^4 &= \left(\sigma^2 + b (\Delta x_\ell)^2 + 
+        \sigma_\ell^4 &= \left(\sigma^2 + b (\Delta x_\ell)^2 + 
         \mathcal{O}\left((\Delta x_\ell)^4\right)\right)^2 = 
         \sigma^4 + 
         2 \sigma^2 b (\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right)
         \\
-        \sigma_{l-1}^4 &= \left(\sigma^2 + 4b (\Delta x_\ell)^2 + 
+        \sigma_{\ell-1}^4 &= \left(\sigma^2 + 4b (\Delta x_\ell)^2 + 
         \mathcal{O}\left((\Delta x_\ell)^4\right)\right)^2 =
         \sigma^4 + 8\sigma^2 b(\Delta x_\ell)^2 + 
         \mathcal{O}\left((\Delta x_\ell)^4\right)
         \\
-        \sigma_l^2 \sigma_{l-1}^2 &= \left(\sigma^2+ b(\Delta x_\ell)^2 + 
+        \sigma_\ell^2 \sigma_{\ell-1}^2 &= \left(\sigma^2+ b(\Delta x_\ell)^2 + 
         \mathcal{O}\left((\Delta x_\ell)^4\right)\right)(\sigma^2
         + 4b(\Delta x_\ell)^2 + \mathcal{O}\left((\Delta x_\ell)^4\right))\\
         &= \sigma^4 + 5\sigma^2b(\Delta x_\ell)^2 + 
@@ -606,14 +647,9 @@ for the MLMC implementation:
         \sigma_\ell^4 + \sigma_{\ell-1}^4 - 2\rho^2 \sigma_\ell^2 
         \sigma_{\ell-1}^2 &= 2 \sigma^4(1 - \rho^2) + 10 \sigma^2b 
         (\Delta x_\ell)^2(1 - \rho^2) + 
-        \mathcal{O}\left((\Delta x_\ell)^2\right) \\
-        &= \begin{cases}
-        \mathcal{O}\left((\Delta x_\ell)^4\right) \quad \text{if } 
-        \rho = \pm 1 \\
-        \mathcal{O}\left((\Delta x_\ell)^2\right) \quad \text{otherwise}
-        \end{cases}
+        \mathcal{O}\left((\Delta x_\ell)^4\right), \\
     \end{align*}
-
+    from which our proposition follows.
 \end{proof}
 
 
@@ -627,7 +663,7 @@ continuous form of this quantity is given by:
 P_{\text{energy}} = \int_0^1 (u(T,x))^2 \mathrm{d}x.
 \end{equation}
 
-To derive the expected energy, $\mathbb{E}[Q_{\text{energy}}]$, 
+To derive the expected energy, $\mathbb{E}[P_{\text{energy}}]$, 
 we again express the solution 
 $u(t,x)$ in its Fourier sine series,
 $u(t,x) = \sum_{n=1}^\infty u_n(t)\phi_n(x)$. Substituting this into 

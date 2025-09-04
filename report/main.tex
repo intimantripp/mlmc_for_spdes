@@ -8,6 +8,7 @@
 \usepackage{mathtools}
 \usepackage{amsthm}
 \usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage{tikz}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -18,6 +19,13 @@
 %input macros (i.e. write your own macros file called mymacros.tex 
 %and uncomment the next line)
 %\include{mymacros}
+
+\hypersetup{
+    colorlinks=true,     % use coloured text instead of boxes
+    linkcolor=black,     % colour for internal links
+    citecolor=black,     % colour for citations
+    urlcolor=blue        % colour for URLs
+}
 
 % Create a new theorem style
 \newtheoremstyle{mydefstyle}
@@ -62,9 +70,9 @@
 
 
 \maketitle                  % create a title page from the preamble info
-\include{dedication}        % include a dedication.tex file
-\include{acknowledgements}  % include an acknowledgements.tex file
-\include{abstract}          % include the abstract
+\include{sections/acknowledgements}
+\include{sections/abstract}         % include the abstract
+\include{sections/declaration}
 
 \begin{romanpages}          % start roman page numbering
 \tableofcontents            % generate and include a table of contents
@@ -76,6 +84,7 @@
 \include{sections/1_prerequisites}
 \include{sections/2_methods}
 \include{sections/3_performance}
+\include{sections/4_conclusion}
 % \include{conclusions}
 
 %now enable appendix numbering format and include any appendices

@@ -1,0 +1,39 @@
+\begin{center}
+  \Huge\bfseries Abstract
+\end{center}
+\vspace{2em}
+
+This dissertation investigates the Multilevel Monte Carlo (MLMC)
+method as a variance-reduction technique for parabolic 
+stochastic partial differential equations (SPDEs). The standard Monte 
+Carlo (MC) estimator suffers from high cost due to its slow
+convergence. MLMC offers an alternative by blending samples across 
+multiple discretisation levels, aiming to achieve equivalent accuracy at 
+reduced cost.
+
+Two representative SPDEs are studied: the Stochastic Heat Equation 
+and the Dean-Kawasaki equation. We employ explicit finite difference schemes 
+to construct MLMC implementations for each, and propose three noise coupling 
+methods: Nearest Neighbour, Central Coupling, and a Finite Element method. 
+Our implementations are validated against derived theoretical results or published 
+benchmarks, and performance is analysed against MC across a range of error 
+tolerances, with additional investigation of parallelisation using OpenMP.
+
+The results confirm the substantial efficiency gains of MLMC over 
+standard MC. They demonstrate both the substantial cost savings attainable 
+under optimal MLMC scaling and the still considerable savings achievable 
+in suboptimal cases. For the Stochastic Heat Equation, the 
+Finite Element coupling achieves stronger correlations 
+between levels, yielding a higher variance decay rate and 
+optimal MLMC complexity. By contrast, the Nearest Neighbour and Central 
+Coupling methods both exhibit suboptimal variance decay and are found 
+to behave almost identically, despite their differing treatment of fine level 
+noise. For the Dean-Kawasaki equation, all three methods achieve 
+equal variance decays, leading to broadly similar performance.
+
+These findings highlight the practical advantages of MLMC for SPDEs and 
+the crucial role of coupling strategies in achieving optimal performance. 
+The dissertation demonstrates that MLMC can deliver significant cost savings, 
+that coupling design can decisively affect outcomes, and that parallel 
+implementations provide a further worthwhile avenue for performance 
+improvement.

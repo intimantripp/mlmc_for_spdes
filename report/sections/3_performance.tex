@@ -24,7 +24,7 @@ work, derived from the number of samples $N_\ell$ used by the
 MLMC Algorithm, and a theoretical cost per sample, $C_\ell \propto 2^{\gamma \ell}$.
 We have established that in all our implementations $\gamma = 3$.
 We estimate the total MLMC Cost, $C_{\mathrm{MLMC}}$, for a given 
-$\varepsilon$ therefore in the following way:
+$\varepsilon$, therefore in the following way:
 
 \begin{equation*}
     C_{\mathrm{MLMC}} := \sum_{\ell = 0}^L N_\ell C_\ell = \sum_{\ell = 0}^L N_\ell 2^{3\ell}.
@@ -48,50 +48,60 @@ require the statistical error of the estimator to be $\varepsilon / 2$.
 We use our MLMC Algorithm implementation to obtain estimates of 
 $\mathbb{V}[P_L]$.
 
-We also include measured wall-clock timings, and present these in this chapter too.
 The code used was written in C++20 \cite{cpp20standard}, 
-and the timings were obtained running the implementation on Intel Gold 6538Y+ processors
+and measurements were obtained running the implementation on Intel Gold 6538Y+ processors
 \cite{intel_xeon_gold_6538y}.
 
 \section{Stochastic Heat Equation - Performance Measurements}
 
 Figure \ref{fig:performance_results_she} reports performance results for the three MLMC 
-coupling strategies on the stochastic heat equation, for both QoIs.
+coupling strategies on the stochastic heat equation, for both QoIs. Table 
+\ref{tab:she_cost_scalings} shows the largest and smallest cost scalings 
+observed for both SHE QoIs.
 
 \begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.45\textwidth}
+
+    % --- Performance charts stacked ---
+    \begin{subfigure}{0.7\textwidth}
         \centering
         \includegraphics[width=\linewidth]{graphics/she_sq_amp_costs.png}
         \caption{Normalised cost vs target RMSE ($\varepsilon$) for Squared Amplitude.}
         \label{fig:she_sq_amp_performance}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{graphics/she_sq_amps_nums.png}
-        \caption{Sample allocations for the Squared Amplitude.}
-        \label{fig:she_sq_amp_levels_num}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
+
+    \vspace{1em} % add some vertical space between rows
+
+    \begin{subfigure}{0.7\textwidth}
         \centering
         \includegraphics[width=\linewidth]{graphics/she_costs_energy.png}
         \caption{Normalised cost vs target RMSE ($\varepsilon$) for the System Energy QoI.}
         \label{fig:energy_performance}
     \end{subfigure}
+
+    \vspace{1em}
+
+    % --- Sample allocation charts side by side ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{graphics/she_sq_amps_nums.png}
+        \caption{Sample allocations for the Squared Amplitude.}
+        \label{fig:she_sq_amp_levels_num}
+    \end{subfigure}
     \hfill
-    \begin{subfigure}{0.45\textwidth}
+    \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{graphics/she_energy_nums.png}
         \caption{Sample allocations for the System Energy.}
         \label{fig:energy_levels_num}
     \end{subfigure}
-    \caption{Performance results for the SHE. Top row shows results for the squared 
-    amplitude for the first Fourier mode. The bottom row shows the results for the
-    total system energy.}
+
+    \caption{Performance results for the SHE. The first two panels show the 
+    normalised cost vs target RMSE for (a) the squared amplitude and (b) 
+    the system energy. The bottom row shows the corresponding sample 
+    allocations across levels.}
     \label{fig:performance_results_she}
 \end{figure}
-
 
 \begin{table}[htbp]
     \centering
@@ -104,7 +114,8 @@ coupling strategies on the stochastic heat equation, for both QoIs.
         Finite Element & 53.1-397.7x & 7.3x-20494.0x \\
         \hline
     \end{tabular}
-    \caption{Smallest and largest cost scalings for different coupling mechanisms and QoIs.}
+    \caption{Smallest and largest cost scalings for different coupling mechanisms and QoIs
+             for the SHE.}
     \label{tab:she_cost_scalings}
 \end{table}
 
@@ -119,7 +130,7 @@ faster variance decay.
 
 Figures \ref{fig:she_sq_amp_levels_num} and \ref{fig:energy_levels_num}
 demonstrate the tangible results of the faster variance decay, with significantly
-fewer samples requiredbeing generated to achieve the target accuracy compared to the number 
+fewer samples required to achieve the target accuracy compared to the number 
 required by the NN and CC methods.
 
 In contrast, the NN and CC methods are effectively indistinguishable
@@ -127,43 +138,48 @@ in both cost and allocations.
 Their cost plots show a clear downward slope, which is 
 characteristic of the suboptimal case where $\beta < \gamma$. As RMSE decreases, 
 we begin to observe significant cost reductions.
-At larger RMSEs, we the NN and CC methods can result in 
-the MLMC estimator being less efficient then the MC estimator. 
+At larger RMSEs, the NN and CC methods can result in 
+the MLMC estimator being less efficient than the MC estimator. 
 This is attributable to the variance reduction not 
 scaling sufficiently when only a tiny number of samples/levels 
 would suffice for MC.
 
-The speed-up factors in Table 
+The speedup factors in Table 
 \ref{tab:she_cost_scalings} show, even the suboptimal methods can provide 
-a very significant computational savings over the standard Monte 
+significant computational savings over the standard Monte 
 Carlo method, particularly when high accuracy is required. The FE method 
-provides an extremely significant improvement over this.
+provides a further extremely significant improvement over this.
 
 \section{Dean-Kawasaki - Performance Measurements}
 
 We now present the performance analysis for the Dean-Kawasaki equation. The results compare 
 the efficiency of the standard Monte Carlo method against our MLMC implementations using 
-both the NN and CC strategies. The key performance metrics are displayed in 
-Figure \ref{fig:performance_results_dk}, with the overall speed-up factors 
+the NN, CC, and FE strategies. The key performance metrics are displayed in 
+Figure \ref{fig:performance_results_dk}, with the overall speedup factors 
 summarised in Table \ref{tab:dk_cost_scalings}.
+
 
 
 \begin{figure}[htbp]
     \centering
-    \begin{subfigure}{0.45\textwidth}
+
+    \begin{subfigure}{0.8\textwidth}
         \centering
         \includegraphics[width=\linewidth]{graphics/dk_costs.png}
         \caption{Normalised cost vs. target RMSE ($\varepsilon$).}
         \label{fig:dk_performance}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
+
+    \vspace{1em}
+
+    \begin{subfigure}{0.6\textwidth}
         \centering
         \includegraphics[width=\linewidth]{graphics/dk_nums.png}
         \caption{Sample allocation ($N_\ell$) vs level ($\ell$).}
         \label{fig:dk_num}
     \end{subfigure}
-    \caption{Performance results for the MLMC implementation for the Dean-Kawasaki equation.}
+
+    \caption{Performance results for the MLMC implementation of the Dean–Kawasaki equation.}
     \label{fig:performance_results_dk}
 \end{figure}
 
@@ -172,36 +188,144 @@ summarised in Table \ref{tab:dk_cost_scalings}.
     \centering
     \begin{tabular}{|l|c|c|r|}
         \hline
-        \textbf{Coupling Method} & \textbf{Mean Squared Fluctuations Speed-up Factor}\\
+        \textbf{Coupling Method} & \textbf{Mean Squared Fluctuations Speedup Factor}\\
         \hline
         Nearest Neighbour & 3.0x-62.2x \\
         Central Coupling & 2.7x-62.5x \\
+        Finite Element & 2.7x-240.7x \\
         \hline
     \end{tabular}
-    \caption{Range of speed-up factors of MLMC over standard MC for the Dean-Kawasaki problem, for the 
-    lowest and highest accuracies tested.}
+    \caption{Smallest and largest cost scalings for different coupling mechanisms
+             for the DK equation.}
     \label{tab:dk_cost_scalings}
 \end{table}
 
 
-The results clearly demonstrate that the MLMC method provides a significant 
-computational advantage over the standard MC method for this problem. 
-As shown in Figure \ref{fig:dk_performance}, the cost for both MLMC
-implementations is substantially lower
-than that of the standard MC estimator, aligning with the efficiency 
-gains predicted by the MLMC theory.
 
-We also observe that the Nearest Neighbour and Central Coupling strategies again 
-exhibit 
-identical performance. This is evident across all metrics. The normalised 
-cost curves in Figure \ref{fig:dk_performance} are almost perfectly overlapping, 
-the sample allocations in Figure \ref{fig:dk_num} are indistinguishable, 
-and the final speed-up factors in Table \ref{tab:dk_cost_scalings} 
-are the same. 
+The results clearly demonstrate that the MLMC method 
+provides a significant computational advantage over 
+standard MC for this problem. As shown in Figure 
+\ref{fig:dk_performance}, all three MLMC 
+implementations achieve markedly lower costs 
+than MC, in line with the efficiency gains predicted by 
+MLMC theory.
 
-This result is consistent with the results from our validations, and demonstrate that 
-neither method achieves a sufficient sample correlation similar to that achieved by the 
-FE method. It was considered that the difference in symmetry, with the NN 
-method discarding some noise and the CC method more symmetrically aligning obtaining 
-some performance gains due to improved correlation between samples, but this 
-does not appear to have any tangible impact on the efficiency for this problem.
+Performance between coupling mechanisms is very 
+similar. NN and CC track each other, while FE follows a slightly different trajectory. 
+FE shows a larger cost reduction, although 
+given that all methods share the same 
+variance decay rate, it is unlikely that this improvement is systematic, 
+and more plausibly, it is a consequence of 
+estimator stochasticity. Nonetheless, 
+the size of the observed reductions, reported in 
+Table \ref{tab:dk_cost_scalings}, is striking 
+when compared with NN and CC.
+
+Figure \ref{fig:dk_num} shows broadly 
+similar sample allocations across all three couplings, with 
+FE assigning slightly fewer samples, 
+particularly at the smallest RMSEs.
+
+
+Overall, these findings are consistent with the validation results. 
+The DK problem 
+does not exhibit the stronger 
+correlations achieved by FE coupling in the SHE case, and 
+the CC method provides no observable improvement 
+over NN as was initially considered it could. 
+Instead, all three methods display similar cost scaling.
+
+\section{Parallelisation of MLMC Implementations}
+
+Finally, we investigate what performance improvements are achievable 
+when parallelising our MLMC methods. Monte Carlo methods are naturally 
+suited to parallel computing. Individual samples are 
+independent and can therefore be distributed 
+across processors. MLMC 
+inherits this parallel structure, with 
+opportunities for parallelism across levels, samples, and 
+within sample PDE solvers \cite{drzisga2017scheduling}.
+In this dissertation, we aim to demonstrate 
+a baseline parallel efficiency achievable. 
+We therefore adopt a naive but effective parallelisation 
+scheme using OpenMP to 
+distribute the sampling loops across 
+multiple threads, and apply this to our 
+energy QoI case for the SHE problem. 
+This approach directly parallelises over 
+independent samples at each level, 
+leaving the MLMC algorithm unchanged. While more 
+advanced methods could offer further gains, the design is 
+sufficient to illustrate the substantial speedups achievable
+in practice. 
+
+We report below the measured wall-clock timings for our 
+OpenMP-accelerated implementations for all three coupling 
+methods, compared with their serial counterparts. 
+All runs were completed on Intel Gold 6538Y+ processors, with 10 trials 
+at each RMSE. Parallelised implementations were performed using 8 threads, which
+was found to offer substantial performance improvement.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lccc}
+        \hline
+        $\varepsilon$ & NN & CC & FE \\
+        \hline
+        0.005 & 5.89x & 9.49x & 1.31x \\
+        0.002 & 25.79x & 5.84x & 4.98x \\
+        0.001 & 9.66x & 6.33x & 4.96x \\
+        0.0005 & 4.68x & 2.04x & 4.53x \\
+        0.0003 & 15.77x & 4.43x & 3.16x \\
+        \hline 
+        Mean & 12.36x & 5.45x & 3.96x \\
+        \hline
+    \end{tabular}
+    \caption{Mean Serial/OMP speedups per coupling method at different $\varepsilon$.}
+    \label{tab:omp_speedups}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\linewidth]{graphics/perf_wallclock_vs_eps.png}
+    \caption{Wall-clock time vs. target RMSE for parallelised OMP 
+    versions and standard serialised versions.}
+    \label{fig:omp_perf_chart}
+\end{figure}
+
+Table \ref{tab:omp_speedups} and Figure \ref{fig:omp_perf_chart}
+illustrate the effects of this parallelisation. We observe that 
+substantial performance improvements are achievable across 
+a range of target RMSEs, with speedups ranging 
+from approximately $1.3 \times$ to 
+$26 \times$. The NN method exhibits the largest 
+gains, but also exhibits the greatest variability. The 
+FE method demonstrates the least variability and also 
+the smallest reductions, although they are still of 
+meaningful magnitudes. The CC method achieves improvements
+between these two.
+
+These differences can be understood in terms of algorithmic complexity 
+and memory access patterns. The NN method is the computationally
+simplest, requiring the fewest memory access and 
+floating points operations,
+making it the best suited to thread-level parallelism. CC, while
+similar, requires twice as many samples to be generated 
+per sample and more operations required in constructing 
+fine level noise. The FE method 
+involves the most complex updates and memory access operations,
+as it must generate the correlated noises and resolve these from the 
+fine to the coarse level. All of this adds additional overhead 
+and limits the speedups achievable under naive 
+multithreading.
+
+Overall, these results demonstrate that even a naive OpenMP parallelisation
+can deliver meaningful reductions in wall-clock time for MLMC.
+While more advanced scheduling and hybrid parallelism approaches could 
+extract further gains, the baseline 
+results illustrate the further potential parallelism offers in practical
+MLMC applications. We highlight however, that the standard, non-parallelised FE 
+implementation manages to achieve the target RMSEs 
+faster than the OMP NN and CC methods, emphasising the value 
+an effective coupling method can have.
+

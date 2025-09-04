@@ -89,8 +89,6 @@ def stoch_heat_eqn_l(l, N, qoi_fn=default_qoi):
                 uc[i_c, :] += lam * (uc[i_c+1, :] - 2 * uc[i_c, :] + uc[i_c-1, :]) + np.sqrt(dtc) /hc * dWc
             Pc = qoi_fn(uc)
             Pf = qoi_fn(uf)
-            # Pf = hf * np.sum(uf**2, axis=0)
-            # Pc = hc * np.sum(uc**2, axis=0)
         
         diff = Pf - Pc
         sum1[0] += np.sum(diff)

@@ -1,0 +1,95 @@
+\chapter{Conclusion}\label{chap:conclusion}
+
+This dissertation has investigated the Multilevel Monte Carlo 
+method for two parabolic SPDEs: the Stochastic Heat Equation and the 
+Dean-Kawasaki equation. The primary objectives were to quantify the 
+computational savings achievable over standard Monte Carlo 
+(MC), to evaluate the effect of different coupling strategies, 
+and to explore the role of parallelisation in accelerating practical 
+implementations. 
+
+Across both equations, our results demonstrate the substantial computational 
+benefits of MLMC. In every case, MLMC achieved marked 
+reductions in cost compared with MC, in line with 
+the complexity bounds of the MLMC theorem. 
+
+For the SHE, the impact of coupling mechanisms was 
+particularly striking. The Nearest Neighbour and Central 
+Coupling methods exhibited similar, 
+suboptimal variance 
+decay rates, while the Finite Element coupling method 
+achieved a faster variance decay. This, in 
+turn, enabled the MLMC algorithm to yield 
+further improvements over the MC method and 
+highlighted the importance of coupling methods 
+in constructing effective MLMC estimators.
+We also found that, contrary to expectation, 
+the Central Coupling method offered no 
+material improvement over the Nearest Neighbour method. The 
+two methods often performed identically, particularly 
+for smaller RMSEs. 
+
+For the DK equation, performance across coupling 
+methods was more uniform. All coupling 
+methods achieved a variance decay rate of $\beta \approx 2$, 
+resulting in broadly similar performance 
+improvements and equivalent cost scalings. 
+
+Parallelisation provided an additional improvement in performance.
+Even a naive OpenMP implementation, parallelising only over 
+independent samples, produced substantial reductions in wall-clock time. 
+These results underscore the natural compatibility 
+of MLMC with parallel computing. 
+
+Taken together, these findings address the three central 
+questions posed at the outset:
+
+\begin{itemize}
+    \item \textbf{Cost savings: } MLMC achieves very large computational 
+            gains over MC for both SPDEs studied.
+    \item \textbf{Coupling Mechanisms: } Coupling plays a decisive role 
+            for the SHE, with the Finite Element method outperforming
+            the simpler schemes.
+            For the DK equation, the Nearest Neighbour and Central Coupling 
+            methods behave equivalently, and the Finite Element method 
+            provides no further advantage.
+    \item \textbf{Parallelism: } Even simple parallelisation across trials offers a significant 
+            additional speedup, most pronounced in the computationally simplest method, but still
+            averaging $4\times$ speedups in the lowest average improvement.
+\end{itemize}
+
+\bigskip
+
+\textbf{Future Work}
+
+Several natural extensions present themselves. Further theoretical 
+analysis to explain why the FE method provides improved correlations 
+for the SHE compared to the NN and CC methods, while not yielding any 
+improvements over them for the DK equation, is needed. We also 
+wish to derive why the FE method achieves the variance decay rates 
+observed for the Stochastic Heat Equation cases.
+Similarly, exploring alternative coupling methods, such as 
+the Fourier based coupling method used by Cornalba and Fischer 
+\cite{cornalba2025multilevel}, would be valuable, applying them 
+to other classes of SPDEs. Finally, extending this work 
+to high-performance implementations that exploit 
+the parallelism over levels and within samples could 
+further demonstrate the scalability of MLMC in large-scale 
+stochastic simulation.
+
+In conclusion, this dissertation has demonstrated 
+both the theoretical and practical power of MLMC in reducing the 
+cost of computing expectations for SPDEs. We demonstrated the 
+importance of coupling mechanisms and introduced a coupling 
+method that yielded the optimal cost rate for the Stochastic 
+Heat Equation.
+We also found that a method which perfectly 
+reuses fine level noise is functionally equivalent to a 
+method which discards some. Our results highlight that MLMC 
+can achieve significant performance improvements when applied 
+to Stochastic PDEs, which can be further enhanced by 
+taking advantage of its parallel nature.
+
+\textit{The code used to conduct this investigation and to write this report 
+can be found at the following: \url{https://github.com/intimantripp/mlmc_for_spdes}}
+
