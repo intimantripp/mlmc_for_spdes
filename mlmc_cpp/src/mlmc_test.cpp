@@ -229,7 +229,7 @@ void mlmc_test(
     for (size_t i = 0; i < Eps.size(); ++i) {
         comp_out << Eps[i] << "," << mlmc_estimates[i] << "," << mlmc_costs[i] << "," << std_costs[i] << "," << mlmc_wall_times[i];
 
-        // Pad with zeros if this run didn't have all levels
+
         for (size_t l = 0; l < max_levels; ++l)
             comp_out << "," << (l < Nls[i].size() ? Nls[i][l] : std::numeric_limits<double>::quiet_NaN());
         for (size_t l = 0; l < max_levels; ++l)

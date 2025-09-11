@@ -8,8 +8,6 @@
 #include <functional>
 #include <random>
 
-// --- Assumed to be available from your existing code ---
-
 
 inline int idx(int i, int n, int N_trials) { return i * N_trials + n; }
 

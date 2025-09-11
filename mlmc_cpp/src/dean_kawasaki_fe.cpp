@@ -90,7 +90,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                 rho_f[idx(i, n, N2)] = rho_bar_f[i];
 
         // Temporaries (fine)
-        std::vector<double> eta_f(nf * N2);       // assembled element load
+        std::vector<double> eta_f(nf * N2);    
         std::vector<double> Pf(N2, 0.0), Pc(N2, 0.0);
 
         if (l == 0) {
@@ -98,7 +98,7 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                 rho_f_old = rho_f;
                 std::fill(eta_f.begin(), eta_f.end(), 0.0);
 
-                // Element noise: one normal per edge; assemble [-alpha, +alpha]
+                // Element noise: one normal per edge; assemble [-F, +F]
                 for (int i = 0; i < nf; ++i) {
                     int ip1 = iR_f[i];
                     for (int n = 0; n < N2; ++n) {
@@ -106,14 +106,14 @@ dean_kawasaki_eqn_fe_l(int l, int N) {
                                                  std::max(0.0, rho_f_old[idx(ip1, n, N2)]));
                         rho_edge = std::max(rho_edge, eps);
                         double gamma = Z(RNG);
-                        double alpha = std::sqrt((dtf / N_particles) * (rho_edge / hf)) * gamma;
+                        double F = std::sqrt((dtf / N_particles) * (rho_edge / hf)) * gamma;
 
-                        eta_f[idx(i,   n, N2)] -= alpha; // left node
-                        eta_f[idx(ip1, n, N2)] += alpha; // right node
+                        eta_f[idx(i,   n, N2)] -= F; // left node
+                        eta_f[idx(ip1, n, N2)] += F; // right node
                     }
                 }
 
-                // Drift (explicit)
+                // Deterministic term
                 for (int i = 0; i < nf; ++i) {
                     int iL = iL_f[i], iR = iR_f[i];
                     for (int n = 0; n < N2; ++n) {
