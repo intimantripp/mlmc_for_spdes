@@ -115,7 +115,7 @@ def dean_kawasaki_eqn_l(l, N):
                     rho_bar_f += lam * (np.roll(rho_bar_f, -1) - 2*rho_bar_f + np.roll(rho_bar_f, 1)) / 2
 
                     # Build variance-preserving coarse normals from children
-                    # Each coarse element E corresponds to two fine elements: e0=2E, e1=2E+1
+                    # Each coarse element  corresponds to two fine elements: e0=2E, e1=2E+1
                     e0 = 2 * i_c
                     e1 = 2 * i_c + 1
                     gamma_E_accum += gamma_e[e0, :] + gamma_e[e1, :]
