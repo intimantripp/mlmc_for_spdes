@@ -1,0 +1,45 @@
+%Use one of the two documentclass lines depending on aspect ratio needed
+% for 4x3 aspect ratio slides
+%\documentclass{beamer}
+%for 16x9 (modern wide screen) aspect ratio slides
+\documentclass[aspectratio=169]{beamer}
+
+% Oxford Maths theming
+\usetheme{oxfordmaths}
+\usepackage{subcaption}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+% Set author etc info
+\title[Multilevel Monte Carlo for SPDEs] %short version of title for slide footer
+{Multilevel Monte Carlo for Stochastic PDEs} %full title for titlepage
+\author{Inti Mantripp}
+\institute{Mathematical Institute\\University of Oxford}
+\date[17 Sep 2025]  %short date for slide footer
+{MMSC Viva Voce, Sep 2025} %main date for title page,
+                        %can overload it to show say 'Conference X, Date Y'
+
+
+%% Now for the actual slides %%
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Dissertation Goals}
+  % \framesubtitle{A bit more information about this}
+  \include{slides/1_goals}
+\end{frame}
+\include{slides/1a_mlmc}
+\include{slides/1b_mlmc}
+\include{slides/2_goals_specific_1}
+\include{slides/3_coupling_effects}
+\include{slides/4_performance}
+\include{slides/5_parallelism}
+
+\include{slides/9_dk_fe}
+
+\end{document}

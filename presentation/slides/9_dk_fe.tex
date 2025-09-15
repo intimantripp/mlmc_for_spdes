@@ -1,0 +1,30 @@
+\begin{frame}{FE Coupling for DK equations}
+
+    Let $\phi$ be the hat basis functions, and our approximate
+    solution be 
+    $\rho(t, x) = \sum_{j=1}^{J-1} \rho_j(t) \phi_j(x)$.
+
+
+    \begin{align*}
+        \left(\frac{\partial \rho}{\partial t}, \phi_i\right)_{\Delta x} 
+        = 
+        \frac{1}{2}\left(\frac{\partial^2 \rho}{\partial t^2}, 
+        \phi_i\right)_{\Delta x}&
+        + N_p^{-1/2}
+        \left(\frac{\partial \sqrt{\rho} \xi}{\partial x}, \phi_i\right)_{\Delta x}
+        \\
+        M \mathrm{d}\boldsymbol{\rho}(t) + 
+        \frac{1}{2}K& \boldsymbol{\rho}(t)\mathrm{d}t = 
+        \mathrm{d}\boldsymbol{\eta}
+        \\
+        \int_0^{2 \pi} \frac{\partial (\sqrt{\rho}\xi)}
+        {\partial x} \phi_i \mathrm{d}x
+        = \int_0^{2\pi}\sqrt{\rho}\xi \phi_i' \mathrm{d}x
+        \quad \phi_i' = 
+        \begin{cases}
+            \frac{1}{\Delta x}, \quad x \in [x_i - \Delta x, x_i]\\
+            -\frac{1}{\Delta x}, \quad x \in [x_i, x_i - \Delta x]\\
+        \end{cases}
+    \end{align*}
+    
+\end{frame}

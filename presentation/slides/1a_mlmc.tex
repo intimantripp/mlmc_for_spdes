@@ -1,0 +1,41 @@
+\begin{frame}{Multilevel Monte Carlo Implementation}
+
+ \begin{center}
+    \includegraphics[height=3cm]{presentation_graphics/fine_grid_vs_coarse_grid.png}
+\end{center}   
+
+{\footnotesize
+\begin{columns}[T] 
+  \begin{column}{0.48\textwidth}
+    \centering
+    \textbf{Stochastic Heat Equation (SHE)}
+    \begin{align*}
+        \frac{\partial u}{\partial t} &= \frac{\partial^2 u}{\partial x^2} + \xi \\
+        u(0,x) &= 0, \ u(t,0) = u(t,1) = 0 \\
+        P = \int_0^1 u^2\,dx &\quad P = \Big(\int_0^1 u(x,T)\sin(n\pi x)\,dx\Big)^2
+    \end{align*}
+  \end{column}
+  %
+  \begin{column}{0.48\textwidth}
+    \centering
+    \textbf{Dean-Kawasaki (DK) Equation}
+    \begin{align*}
+        \frac{\partial \rho}{\partial t} &= \frac{1}{2}\frac{\partial^2 \rho}{\partial x^2} + N_p^{-\frac{1}{2}}\frac{\partial (\sqrt{\rho}\,\xi)}{\partial x} \\
+        \rho(0,x) &= \rho_0(x), \ \text{periodic} \\
+        P &= N_p \Big(\int_0^{2\pi}(\rho-\bar\rho)\sin(x)\,dx\Big)^2
+    \end{align*}
+  \end{column}
+\end{columns}
+}
+
+    \begin{textblock*}{9cm}(4.8cm,4.5cm)
+        \scalebox{0.7}{
+            Coarse Mesh
+        }
+    \end{textblock*}
+    \begin{textblock*}{9cm}(9.65cm,4.5cm)
+        \scalebox{0.7}{
+            Fine Mesh
+        }
+    \end{textblock*}
+\end{frame}
